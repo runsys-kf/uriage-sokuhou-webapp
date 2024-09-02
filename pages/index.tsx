@@ -181,12 +181,6 @@ const IndexPage = () => {
 
   //ソート列　現在ソートしている列
   const [sortKey, setSortKey] = useState<string>("");
-  
-  //昇順、降順 現在の状況
-  // const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-
-  //ソート列　現在ソートしている列
-  // const [sortKey, setSortKey] = useState<string>("storeName");
 
   // 店舗選択モーダルの開閉を制御
   const handleOpenStoreModal = () => setOpenStoreModal(true);
@@ -341,12 +335,10 @@ const IndexPage = () => {
   //ソート処理
   // ソート処理
   const sortedStoresData = [...storesData.storeData].sort((a, b) => {
-    // sortKey が数値のプロパティに対応しているか確認し、適切に変換
-    const aValue = typeof a[sortKey] === "number" ? a[sortKey] : 0;
-    const bValue = typeof b[sortKey] === "number" ? b[sortKey] : 0;
-
-    // 数値以外の場合は文字列としてソートする処理も追加可能
-    if (typeof aValue === "number" && typeof bValue === "number") {
+    const aValue = Number(a[sortKey]); // 文字列を数値に変換
+    const bValue = Number(b[sortKey]); // 文字列を数値に変換
+  
+    if (!isNaN(aValue) && !isNaN(bValue)) { // NaNでないことを確認
       return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
     } else {
       // 数値以外のデータ型に対応する場合の処理
