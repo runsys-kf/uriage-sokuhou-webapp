@@ -50,7 +50,7 @@ const IndexPage = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/', {
+        const response = await axios.get('http://127.0.0.1:5000', {
           withCredentials: true
         });
         console.log("User is authenticated:", response.data.user);
@@ -177,16 +177,16 @@ const IndexPage = () => {
     storeData: [],
   });
   //昇順、降順 現在の状況
-  // const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-
-  //ソート列　現在ソートしている列
-  // const [sortKey, setSortKey] = useState<string>("");
-  
-  //昇順、降順 現在の状況
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   //ソート列　現在ソートしている列
-  const [sortKey, setSortKey] = useState<string>("storeName");
+  const [sortKey, setSortKey] = useState<string>("");
+  
+  //昇順、降順 現在の状況
+  // const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  //ソート列　現在ソートしている列
+  // const [sortKey, setSortKey] = useState<string>("storeName");
 
   // 店舗選択モーダルの開閉を制御
   const handleOpenStoreModal = () => setOpenStoreModal(true);
@@ -339,11 +339,12 @@ const IndexPage = () => {
   };
 
   //ソート処理
+  // ソート処理
   const sortedStoresData = [...storesData.storeData].sort((a, b) => {
     // sortKey が数値のプロパティに対応しているか確認し、適切に変換
     const aValue = typeof a[sortKey] === "number" ? a[sortKey] : 0;
     const bValue = typeof b[sortKey] === "number" ? b[sortKey] : 0;
-  
+
     // 数値以外の場合は文字列としてソートする処理も追加可能
     if (typeof aValue === "number" && typeof bValue === "number") {
       return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
@@ -1066,9 +1067,9 @@ const IndexPage = () => {
                           <div>
                             <IconButton
                               size="small"
-                              onClick={() => handleSort("netSalesPeriodA")}
+                              onClick={() => handleSort("netSalesA")}
                             >
-                              {sortKey === "netSalesPeriodA" &&
+                              {sortKey === "netSalesA" &&
                               sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
@@ -1093,9 +1094,9 @@ const IndexPage = () => {
                           <div>
                             <IconButton
                               size="small"
-                              onClick={() => handleSort("usersPeriodA")}
+                              onClick={() => handleSort("usersA")}
                             >
-                              {sortKey === "usersPeriodA" &&
+                              {sortKey === "usersA" &&
                               sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
@@ -1120,9 +1121,9 @@ const IndexPage = () => {
                           <div>
                             <IconButton
                               size="small"
-                              onClick={() => handleSort("unitPricePeriodA")}
+                              onClick={() => handleSort("unitPriceA")}
                             >
-                              {sortKey === "unitPricePeriodA" &&
+                              {sortKey === "unitPriceA" &&
                               sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
@@ -1147,9 +1148,9 @@ const IndexPage = () => {
                           <div>
                             <IconButton
                               size="small"
-                              onClick={() => handleSort("newUsersPeriodA")}
+                              onClick={() => handleSort("newUsersA")}
                             >
-                              {sortKey === "newUsersPeriodA" &&
+                              {sortKey === "newUsersA" &&
                               sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
@@ -1263,7 +1264,7 @@ const IndexPage = () => {
                         {storesData.totalData.otherSalesRatio.toLocaleString()}%
                       </td>
                     </tr>
-                    {storesData.storeData.map((store) => (
+                    {sortedStoresData.map((store) => (
                       <tr key={store.storeNumber}>
                         <td className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                           {store.storeName}

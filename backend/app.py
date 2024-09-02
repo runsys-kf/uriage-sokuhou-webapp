@@ -7,6 +7,10 @@ import secrets
 from login import login
 from display import main
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 
 app.secret_key = secrets.token_hex(32)  # セッションの暗号化に必要なキーを設定
@@ -18,6 +22,7 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login_route"
+
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
 # ユーザークラス
@@ -35,8 +40,11 @@ def login_route():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+    logger.debug(f"Input : {username}, {password}")
     
     result = login(username, password)
+    
+    logger.debug(f"Output : {result}")
 
     if result.get("result") == "OK":
         user = User(id=username)
@@ -55,8 +63,7 @@ def index():
 
 @app.route('/display_by_store', methods=['POST'])
 @login_required  # このエンドポイントはログインが必要
-def display_by_store(): # 店舗別データ表示
-    
+def display_by_store(): # 店舗別データ表示    
     try:
         request_data = request.get_json()
         response = main(request_data)
@@ -77,4 +84,6 @@ def display_by_date(): # 日別データ表示
         return jsonify({"error": "Internal Server Error"}), 500
 
 if __name__ == '__main__':
+    # app.run(debug=True, host="0.0.0.0", port=5000)
     app.run(debug=True)
+    

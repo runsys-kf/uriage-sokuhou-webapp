@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel
 import pyodbc
 import os
 from dotenv import load_dotenv
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Load Environment
 dotenv_path = '.env'
@@ -15,6 +16,7 @@ def execute_sql(sql):
     username = os.getenv('DB_USER')
     password = os.getenv('DB_PASSWORD')
     sql_server = '{ODBC Driver 13 for SQL Server}'
+    logger.debug(f"{server}, {database}, {username}, {password}")
     try:    
         # pyodbc settings
         conn = pyodbc.connect('DRIVER={sql_server};SERVER={server};PORT=1433;DATABASE={database};UID={username};PWD={password};'.format(sql_server=sql_server, server=server, database=database, username=username, password=password))
@@ -29,6 +31,7 @@ def execute_sql(sql):
         return False
 
 def login(staffno, staffpassword):
+    logger.debug("staffNO, staffpassword")
     # STAFFテーブルから入力されたログイン情報をもとに検索するクエリ
     sql = f"SELECT BaseNo, StaffNo, StaffPassword FROM STAFF WHERE StaffNo='{staffno}' AND StaffPassword='{staffpassword}'"
     

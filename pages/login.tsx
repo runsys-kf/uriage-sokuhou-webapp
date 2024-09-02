@@ -26,7 +26,7 @@ const LoginPage = () => {
   const handleMouseDownPassword = (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
-    event.preventDefault();
+    // event.preventDefault();
   };
 
   const handleUsernameChange = (event) => setUsername(event.target.value);
