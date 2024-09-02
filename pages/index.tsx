@@ -84,6 +84,12 @@ const IndexPage = () => {
   const [dailyCheck, setDailyCheck] = useState("店舗別"); //日別or店舗別
   const [compareCheck, setCompareCheck] = useState(false); //比較対象
 
+  // 日別or店舗別でカラム名切り替え
+  const [headerTitles, setHeaderTitles] = useState({
+    firstColumn: "店舗名",
+    secondColumn: "店番",
+  });
+
   //ラジオボタン用状態
   const [locationValue, setLocationValue] = useState("全て"); //"全て or 駅前 or 郊外"
   const [typeValue, setTypeValue] = useState("全て"); //"全て or 直営 or FC"
@@ -339,9 +345,11 @@ const IndexPage = () => {
     const bValue = Number(b[sortKey]); // 文字列を数値に変換
   
     if (!isNaN(aValue) && !isNaN(bValue)) { // NaNでないことを確認
+      console.log("no str")
       return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
     } else {
       // 数値以外のデータ型に対応する場合の処理
+      console.log("no int")
       const aStr = String(a[sortKey]);
       const bStr = String(b[sortKey]);
       return sortDirection === "asc"
@@ -416,6 +424,13 @@ const IndexPage = () => {
     try {
       let params;
       setStoresData(initialStoresData);//初期化処理
+
+      //日別or店舗別でカラム名変更
+      setHeaderTitles({
+        firstColumn: dailyCheck === "店舗別" ? "店舗名" : "日付",
+        secondColumn: dailyCheck === "店舗別" ? "店番" : "店舗名",
+      });
+
       if (endpoint === API_ENDPOINTS.display_by_store) {
         //店舗別
         params = createRequestData(endpoint);
@@ -1049,9 +1064,11 @@ const IndexPage = () => {
                       </th>
                     </tr>
                     <tr>
-                      <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border"></th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        店番
+                        {headerTitles.firstColumn}
+                      </th>
+                      <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
+                        {headerTitles.secondColumn}
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
