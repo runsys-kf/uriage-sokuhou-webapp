@@ -23,7 +23,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login_route"
 
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": ["http://localhost", "http://localhost:3000"]}}, supports_credentials=True)
 
 # ユーザークラス
 class User(UserMixin):
@@ -35,15 +35,18 @@ class User(UserMixin):
 def load_user(user_id):
     return User(user_id)
 
-@app.route('/login', methods=['POST'])
+# login-display
+@app.route('/api/login', methods=['POST'])
 def login_route():
+    print("----- login successful ------")
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
     logger.debug(f"Input : {username}, {password}")
-    
+    print("---------- login-process before ----------")
     result = login(username, password)
-    
+    print("---------- login-process after ----------")
+
     logger.debug(f"Output : {result}")
 
     if result.get("result") == "OK":
@@ -55,15 +58,17 @@ def login_route():
         return jsonify({"message": "Login successful", "status": 200})
     else:
         return jsonify({"message": "Invalid credentials"}), 401    
-
-@app.route('/')
+# home-display
+@app.route('/api/')
 @login_required  # ルートアクセス時に認証されていない場合はログインページにリダイレクト
 def index():
+    print("----- index -------")
     return jsonify({"message": "Welcome to the home page!", "user": current_user.id})
 
-@app.route('/display_by_store', methods=['POST'])
-@login_required  # このエンドポイントはログインが必要
+@app.route('/api/display_by_store', methods=['POST'])
+# @login_required  # このエンドポイントはログインが必要
 def display_by_store(): # 店舗別データ表示    
+    print("----- displya_by_store ------")
     try:
         request_data = request.get_json()
         response = main(request_data)
@@ -83,7 +88,7 @@ def display_by_date(): # 日別データ表示
         print(f"Error: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
 
-if __name__ == '__main__':
-    # app.run(debug=True, host="0.0.0.0", port=5000)
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     # app.run(debug=True, host="0.0.0.0", port=5000)
+#     app.run(debug=True)
     

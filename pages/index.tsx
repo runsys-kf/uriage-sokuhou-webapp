@@ -46,20 +46,40 @@ const IndexPage = () => {
   //Muiのtheme設定を読み込む
   const theme = useTheme();
   const router = useRouter();
+  // local executation 
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     try {
+  //       const response = await axios.get('http://127.0.0.1:5000', {
+  //         withCredentials: true
+  //       });
+  //       console.log("User is authenticated:", response.data.user);
+  //     } catch (error) {
+  //       console.error("Authentication check failed:", error);
+  //       router.push('/login');
+  //     }
+  //   };
 
+  //   checkAuth();
+  // }, [router]);
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:5000', {
+        // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
+        //   withCredentials: true
+        // });
+        console.log('response = await axios.get("/")');
+        const response = await axios.get("/", {
           withCredentials: true
         });
+        // console.log("response: ", response);
         console.log("User is authenticated:", response.data.user);
       } catch (error) {
         console.error("Authentication check failed:", error);
         router.push('/login');
       }
     };
-
+  
     checkAuth();
   }, [router]);
   // カレンダー用状態 前日を選択させる処理含む
@@ -421,6 +441,7 @@ const IndexPage = () => {
   //バックエンドAPIにデータ送信、受信
   // add 20240828
   const fetchAndTransformData = async (endpoint) => {
+    console.log("endpoint: ",endpoint);
     try {
       let params;
       setStoresData(initialStoresData);//初期化処理
@@ -430,6 +451,10 @@ const IndexPage = () => {
         firstColumn: dailyCheck === "店舗別" ? "店舗名" : "日付",
         secondColumn: dailyCheck === "店舗別" ? "店番" : "店舗名",
       });
+
+      console.log("API_ENDPOINT: ", API_ENDPOINTS);
+      console.log("setHeaderTitles: ", setHeaderTitles);
+      console.log("endpoint: ", endpoint);
 
       if (endpoint === API_ENDPOINTS.display_by_store) {
         //店舗別

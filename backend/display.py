@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 # DB Connection
+import pyodbc
 import sqlalchemy
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
@@ -34,30 +35,53 @@ def adjust_date_ranges(start_date_str, end_date_str, comparison_start_date_str, 
 
     return [start_date.strftime("%Y-%m-%d"),end_date.strftime("%Y-%m-%d"), comparison_start_date.strftime("%Y-%m-%d"),comparison_end_date.strftime("%Y-%m-%d")]
 
+# def execute_sql(sql):
+#     result = []
+    
+#     params = {
+#         'server': os.getenv("DB_SERVER"),
+#         'port': os.getenv("DB_PORT"),
+#         'database': os.getenv("DB_NAME"),
+#         'username': os.getenv("DB_USER"),
+#         'password': os.getenv("DB_PASSWORD"),
+#         'sql_server': os.getenv("SQL_SERVER")}
+#     print(params)
+#     engine = sqlalchemy.create_engine(f'mssql+pyodbc://{params["username"]}:{params["password"]}@{params["server"]}:{params["port"]}/{params["database"]}?driver={params["sql_server"]}',
+#                                     echo=False,
+#                                     pool_size=10,
+#                                     max_overflow=5,
+#                                     pool_timeout=30,
+#                                     pool_recycle=3600)
+    
+#     session      = sessionmaker(bind=engine)()
+#     query        = text(sql)
+#     query_result = session.execute(query)
+#     result = [list(row) for row in query_result]
+#     return result
+
 def execute_sql(sql):
     result = []
-    params = {
-        'server': os.getenv("DB_SERVER"),
-        'port': os.getenv("DB_PORT"),
-        'database': os.getenv("DB_NAME"),
-        'username': os.getenv("DB_USER"),
-        'password': os.getenv("DB_PASSWORD"),
-        'sql_server': os.getenv("SQL_SERVER")}
-
-    engine = sqlalchemy.create_engine(f'mssql+pyodbc://{params["username"]}:{params["password"]}@{params["server"]}:{params["port"]}/{params["database"]}?driver={params["sql_server"]}',
-                                    echo=False,
-                                    pool_size=10,
-                                    max_overflow=5,
-                                    pool_timeout=30,
-                                    pool_recycle=3600)
-    session      = sessionmaker(bind=engine)()
-    query        = text(sql)
-    query_result = session.execute(query)
-
-    for row in query_result:
-        result.append(row)
-    return result
-
+    server     = os.getenv("DB_SERVER")
+    database   = os.getenv("DB_NAME")
+    username   = os.getenv('DB_USER')
+    password   = os.getenv('DB_PASSWORD')
+    sql_server = '{ODBC Driver 13 for SQL Server}'
+    print(f"display.py: {server}, {database}, {username}, {password}")
+    try:
+        # pyodbc settings
+        conn = pyodbc.connect('DRIVER={sql_server};SERVER={server};PORT=1433;DATABASE={database};UID={username};PWD={password};'.format(sql_server=sql_server, server=server, database=database, username=username, password=password))
+        print("conn: ", conn)
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        result = [list(row) for row in rows]
+        cursor.close()
+        conn.close()
+        return result
+    except:
+        print("------------- display.py failed ----------------")
+        return False
+    
 def get_sales_data(base_no, start_date, end_date):
     sql = f"""
         SELECT
@@ -196,6 +220,7 @@ def get_other_sales_data(base_no, start_date, end_date):
 def data_translater(lis):
     # NumPy配列に変換
     data_np = np.array(lis, dtype=str)
+    print("data_np.shape in data_traslater: ", data_np.shape)
 
     # uniqueなBaseNoとBusDateの組み合わせを取得
     unique_combinations = np.unique(data_np[:, [0, 1]], axis=0)
@@ -415,21 +440,37 @@ def store_filter_conditions(base_no, business_type, store_location):
 def access_database(base_no, start_date, end_date):
     # データ抽出
     ### 売上データ取得
+    print("start sales_data")
     sales_data = get_sales_data(base_no, start_date, end_date)
+    print("end sales_data")
+
+    print("start data_translater")
     sales_data = data_translater(sales_data)
+    print("end data_translater")
+    print("start pd_DataFrame")
     sales_df = pd.DataFrame(sales_data, columns=["BaseNo", "BusDate", "TotalSales", "TotalVisitors", "TotalCheckouts", "TaxRate"])
+    print("end pd_DataFrame")
 
     ### 税率データ取得
+    print("start tax_data")
     tax_data   = get_tax_date(base_no)
-    tax_df = pd.DataFrame(tax_data)
+    print("end tax_data")
+    tax_df = pd.DataFrame(tax_data, columns=["BaseNo","ActDate", "TaxRate"])
+    # tax_df = pd.DataFrame(tax_data)
     
     ### 新規数データ取得
+    print("start new_members_data")
     new_data   = get_new_members_data(base_no, start_date, end_date)
-    new_df = pd.DataFrame(new_data)
+    print("end new_members_data")
+    new_df = pd.DataFrame(new_data, columns=["BaseNo", "MemNo", "JoinDateFormatted"])
+    # new_df = pd.DataFrame(new_data)
     
     ### その他売上データ取得
+    print("start other_data")
     other_data = get_other_sales_data(base_no, start_date, end_date)
-    other_df = pd.DataFrame(other_data)
+    print("end other_data")
+    other_df = pd.DataFrame(other_data, columns=["BaseNo" , "PubDate", "ClassA", "ClassB", "ClassC", "SaleAmt"])
+    # other_df = pd.DataFrame(other_data)
     
     ### 売上データと税率データをマージ
     sales_df = add_tax_to_sales(sales_df, tax_df)
@@ -1477,5 +1518,27 @@ def main(params):
             output_data                = date_merge_and_calculate_data(output_json1, output_json2)
             output                     = format_data(output_data)
             return output
-
-
+# if __name__ == "__main__":
+    # app.run()
+#     param = {
+#         "displayType": "店舗別", # 日別or店舗別
+#         "range": {
+#             "start": "2018-01-01", # 比較期間S
+#             "end": "2018-01-30"    # 比較期間E
+#         },
+#         "comparisonRange": {
+#             "start": "", # 比較期間S
+#             "end": ""    # 比較期間E
+#         },
+#         "storeSelection": {
+#             "selectedStore": "1357, 1243", # 対象店舗
+#             # "selectedStore": "1357, 1243, 1331, 1332, 1336, 1337, 1347, 1376, 1510, 1525, 1527, 1652, 1656, 1660, 1856, 1898, 1342", # 対象店舗
+#             "prefecture": "" # 要らない？
+#         },
+#         "otherConditions": { 
+#             "businessType": "全て", # 対象店舗
+#             "storeLocation": "全て" # その他条件
+#         },
+#         "includeSales": "True" # その他売上込み
+#     }    
+#     main(param)

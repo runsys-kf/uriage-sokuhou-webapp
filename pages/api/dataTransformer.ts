@@ -2,8 +2,6 @@
  * APIレスポンス時のパラメーター定義
 */
 
-import { Message } from "@mui/icons-material";
-
 // 店舗別　APIレスポンスを受け取り、合計データと店舗データに分ける処理
 export const storeProcessData = (response) => {
   // UI に合わせたキー名に変更
