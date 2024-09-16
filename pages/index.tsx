@@ -68,11 +68,11 @@ const IndexPage = () => {
         // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
         //   withCredentials: true
         // });
-        console.log('response = await axios.get("/")');
         const response = await axios.get("/", {
           withCredentials: true
         });
         // console.log("response: ", response);
+        console.log("response", response);
         console.log("User is authenticated:", response.data.user);
       } catch (error) {
         console.error("Authentication check failed:", error);
