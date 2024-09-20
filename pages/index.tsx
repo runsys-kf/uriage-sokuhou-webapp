@@ -46,20 +46,40 @@ const IndexPage = () => {
   //Muiのtheme設定を読み込む
   const theme = useTheme();
   const router = useRouter();
+  // local executation 
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     try {
+  //       const response = await axios.get('http://127.0.0.1:5000', {
+  //         withCredentials: true
+  //       });
+  //       console.log("User is authenticated:", response.data.user);
+  //     } catch (error) {
+  //       console.error("Authentication check failed:", error);
+  //       router.push('/login');
+  //     }
+  //   };
 
+  //   checkAuth();
+  // }, [router]);
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/', {
+        // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
+        //   withCredentials: true
+        // });
+        const response = await axios.get("/", {
           withCredentials: true
         });
+        // console.log("response: ", response);
+        console.log("response", response);
         console.log("User is authenticated:", response.data.user);
       } catch (error) {
         console.error("Authentication check failed:", error);
         router.push('/login');
       }
     };
-
+  
     checkAuth();
   }, [router]);
   // カレンダー用状態 前日を選択させる処理含む
@@ -83,6 +103,12 @@ const IndexPage = () => {
   // チェックボックス用状態
   const [dailyCheck, setDailyCheck] = useState("店舗別"); //日別or店舗別
   const [compareCheck, setCompareCheck] = useState(false); //比較対象
+
+  // 日別or店舗別でカラム名切り替え
+  const [headerTitles, setHeaderTitles] = useState({
+    firstColumn: "店舗名",
+    secondColumn: "店番",
+  });
 
   //ラジオボタン用状態
   const [locationValue, setLocationValue] = useState("全て"); //"全て or 駅前 or 郊外"
@@ -177,16 +203,10 @@ const IndexPage = () => {
     storeData: [],
   });
   //昇順、降順 現在の状況
-  // const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-
-  //ソート列　現在ソートしている列
-  // const [sortKey, setSortKey] = useState<string>("");
-  
-  //昇順、降順 現在の状況
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   //ソート列　現在ソートしている列
-  const [sortKey, setSortKey] = useState<string>("storeName");
+  const [sortKey, setSortKey] = useState<string>("");
 
   // 店舗選択モーダルの開閉を制御
   const handleOpenStoreModal = () => setOpenStoreModal(true);
@@ -339,16 +359,17 @@ const IndexPage = () => {
   };
 
   //ソート処理
+  // ソート処理
   const sortedStoresData = [...storesData.storeData].sort((a, b) => {
-    // sortKey が数値のプロパティに対応しているか確認し、適切に変換
-    const aValue = typeof a[sortKey] === "number" ? a[sortKey] : 0;
-    const bValue = typeof b[sortKey] === "number" ? b[sortKey] : 0;
+    const aValue = Number(a[sortKey]); // 文字列を数値に変換
+    const bValue = Number(b[sortKey]); // 文字列を数値に変換
   
-    // 数値以外の場合は文字列としてソートする処理も追加可能
-    if (typeof aValue === "number" && typeof bValue === "number") {
+    if (!isNaN(aValue) && !isNaN(bValue)) { // NaNでないことを確認
+      console.log("no str")
       return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
     } else {
       // 数値以外のデータ型に対応する場合の処理
+      console.log("no int")
       const aStr = String(a[sortKey]);
       const bStr = String(b[sortKey]);
       return sortDirection === "asc"
@@ -420,9 +441,21 @@ const IndexPage = () => {
   //バックエンドAPIにデータ送信、受信
   // add 20240828
   const fetchAndTransformData = async (endpoint) => {
+    console.log("endpoint: ",endpoint);
     try {
       let params;
       setStoresData(initialStoresData);//初期化処理
+
+      //日別or店舗別でカラム名変更
+      setHeaderTitles({
+        firstColumn: dailyCheck === "店舗別" ? "店舗名" : "日付",
+        secondColumn: dailyCheck === "店舗別" ? "店番" : "店舗名",
+      });
+
+      console.log("API_ENDPOINT: ", API_ENDPOINTS);
+      console.log("setHeaderTitles: ", setHeaderTitles);
+      console.log("endpoint: ", endpoint);
+
       if (endpoint === API_ENDPOINTS.display_by_store) {
         //店舗別
         params = createRequestData(endpoint);
@@ -1056,9 +1089,11 @@ const IndexPage = () => {
                       </th>
                     </tr>
                     <tr>
-                      <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border"></th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        店番
+                        {headerTitles.firstColumn}
+                      </th>
+                      <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
+                        {headerTitles.secondColumn}
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
@@ -1066,9 +1101,9 @@ const IndexPage = () => {
                           <div>
                             <IconButton
                               size="small"
-                              onClick={() => handleSort("netSalesPeriodA")}
+                              onClick={() => handleSort("netSalesA")}
                             >
-                              {sortKey === "netSalesPeriodA" &&
+                              {sortKey === "netSalesA" &&
                               sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
@@ -1093,9 +1128,9 @@ const IndexPage = () => {
                           <div>
                             <IconButton
                               size="small"
-                              onClick={() => handleSort("usersPeriodA")}
+                              onClick={() => handleSort("usersA")}
                             >
-                              {sortKey === "usersPeriodA" &&
+                              {sortKey === "usersA" &&
                               sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
@@ -1120,9 +1155,9 @@ const IndexPage = () => {
                           <div>
                             <IconButton
                               size="small"
-                              onClick={() => handleSort("unitPricePeriodA")}
+                              onClick={() => handleSort("unitPriceA")}
                             >
-                              {sortKey === "unitPricePeriodA" &&
+                              {sortKey === "unitPriceA" &&
                               sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
@@ -1147,9 +1182,9 @@ const IndexPage = () => {
                           <div>
                             <IconButton
                               size="small"
-                              onClick={() => handleSort("newUsersPeriodA")}
+                              onClick={() => handleSort("newUsersA")}
                             >
-                              {sortKey === "newUsersPeriodA" &&
+                              {sortKey === "newUsersA" &&
                               sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
@@ -1263,7 +1298,7 @@ const IndexPage = () => {
                         {storesData.totalData.otherSalesRatio.toLocaleString()}%
                       </td>
                     </tr>
-                    {storesData.storeData.map((store) => (
+                    {sortedStoresData.map((store) => (
                       <tr key={store.storeNumber}>
                         <td className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                           {store.storeName}
