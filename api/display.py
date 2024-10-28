@@ -1468,8 +1468,10 @@ def format_data(data):
 def main(params):
     # パラメータ取得
     view_type, start_date, end_date, comparison_start_date, comparison_end_date, selected_store, prefecture_type, business_type, store_location, include_sales = get_parameter(params)  
+
     # 店舗フィルター
     selected_store = store_filter_conditions(selected_store, business_type, store_location)
+    
     # access_database用
     only_selected_store = ','.join(map(str, [i[0] for i in selected_store]))
     # 店舗名2含む
@@ -1518,26 +1520,25 @@ def main(params):
             return output
 # if __name__ == "__main__":
     # app.run()
-    # param = {
-    #     "displayType": "店舗別", # 日別or店舗別
-    #     "range": {
-    #         "start": "2018-01-01", # 比較期間S
-    #         "end": "2018-01-30"    # 比較期間E
-    #     },
-    #     "comparisonRange": {
-    #         "start": "", # 比較期間S
-    #         "end": ""    # 比較期間E
-    #     },
-    #     "storeSelection": {
-    #         "selectedStore": "1357, 1243", # 対象店舗
-    #         # "selectedStore": "1357, 1243, 1331, 1332, 1336, 1337, 1347, 1376, 1510, 1525, 1527, 1652, 1656, 1660, 1856, 1898, 1342", # 対象店舗
-    #         "prefecture": "" # 要らない？
-    #     },
-    #     "otherConditions": { 
-    #         "businessType": "全て", # 対象店舗
-    #         "storeLocation": "全て" # その他条件
-    #     },
-    #     "includeSales": "True" # その他売上込み
-    # }    
-    # main(param)
-    # main()
+#     param = {
+#         "displayType": "店舗別", # 日別or店舗別
+#         "range": {
+#             "start": "2018-01-01", # 比較期間S
+#             "end": "2018-01-30"    # 比較期間E
+#         },
+#         "comparisonRange": {
+#             "start": "", # 比較期間S
+#             "end": ""    # 比較期間E
+#         },
+#         "storeSelection": {
+#             "selectedStore": "1357, 1243", # 対象店舗
+#             # "selectedStore": "1357, 1243, 1331, 1332, 1336, 1337, 1347, 1376, 1510, 1525, 1527, 1652, 1656, 1660, 1856, 1898, 1342", # 対象店舗
+#             "prefecture": "" # 要らない？
+#         },
+#         "otherConditions": { 
+#             "businessType": "全て", # 対象店舗
+#             "storeLocation": "全て" # その他条件
+#         },
+#         "includeSales": "True" # その他売上込み
+#     }    
+#     main(param)

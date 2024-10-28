@@ -5,10 +5,10 @@ import { NextRouter } from 'next/router';
  * BackAPIリクエストを接続管理
  * */
 // APIURL
-// const BackApiURL = "http://127.0.0.1:5000"; // ローカル実行用
+const BackApiURL = "http://127.0.0.1:5000"; // ローカル実行用
 // const BackApiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 // const BackApiURL = "http://backend:5000/api";
-const BackApiURL = "http://localhost";
+//const BackApiURL = "http://localhost";
 
 
 console.log("Backend URL in apiService.ts :", BackApiURL);
@@ -25,10 +25,10 @@ export const API_ENDPOINTS = {
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
   try {
     // ここのリクエストが上手くわたっていない
-    console.log("receive_endpoint: ", endpoint);
-    console.log("receive_data: ", data);
-    console.log("receive_router: ", router);
-    console.log("hogehogehogehogehogehoge");
+    // console.log("receive_endpoint: ", endpoint);
+    // console.log("receive_data: ", data);
+    // console.log("receive_router: ", router);
+    // console.log("hogehogehogehogehogehoge");
     // console.log("post endpoint", `${BackApiURL}/${endpoint}`);
 
     // console.log("starting_process");

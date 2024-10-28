@@ -49,7 +49,8 @@ const LoginPage = () => {
 
     try {
       // const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/login`, { username, password }, { withCredentials: true });
-      const response = await axios.post("/api/login", { username, password }, { withCredentials: true });
+      // const response = await axios.post("/api/login", { username, password }, { withCredentials: true });
+      const response = await axios.post("http://127.0.0.1:5000/api/login", { username, password }, { withCredentials: true });
       console.log("response: ", response);
       if (response.status === 200) {
         router.push('/')

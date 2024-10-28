@@ -1,3 +1,7 @@
+import azure.functions as func
+from azure.functions import WsgiMiddleware
+import os
+
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
@@ -43,6 +47,8 @@ def login_route():
     username = data.get('username')
     password = data.get('password')
     logger.debug(f"Input : {username}, {password}")
+    # logger.debug(f"Output : {result}")
+
 
     if username == "1" and password == "1":
         user = User(id=username)
@@ -53,7 +59,8 @@ def login_route():
         return jsonify({"message": "Login successful", "status": 200})
     else:
         print("username & passwrd: failed")
-  
+    # else:
+    #     return jsonify({"message": "Invalid credentials"}), 401    
 # home-display
 @app.route('/api/')
 @login_required  # ルートアクセス時に認証されていない場合はログインページにリダイレクト
@@ -85,6 +92,5 @@ def display_by_date(): # 日別データ表示
         print(f"Error: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
-    
+def main(req: func.HttpRequest, context: func.Context):
+    return WsgiMiddleware(app.wsgi_app).handle(req, context)

@@ -68,7 +68,7 @@ const IndexPage = () => {
         // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
         //   withCredentials: true
         // });
-        const response = await axios.get("/", {
+        const response = await axios.get("http://127.0.0.1:5000/api/", {
           withCredentials: true
         });
         // console.log("response: ", response);
