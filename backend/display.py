@@ -35,29 +35,6 @@ def adjust_date_ranges(start_date_str, end_date_str, comparison_start_date_str, 
 
     return [start_date.strftime("%Y-%m-%d"),end_date.strftime("%Y-%m-%d"), comparison_start_date.strftime("%Y-%m-%d"),comparison_end_date.strftime("%Y-%m-%d")]
 
-# def execute_sql(sql):
-#     result = []
-    
-#     params = {
-#         'server': os.getenv("DB_SERVER"),
-#         'port': os.getenv("DB_PORT"),
-#         'database': os.getenv("DB_NAME"),
-#         'username': os.getenv("DB_USER"),
-#         'password': os.getenv("DB_PASSWORD"),
-#         'sql_server': os.getenv("SQL_SERVER")}
-#     print(params)
-#     engine = sqlalchemy.create_engine(f'mssql+pyodbc://{params["username"]}:{params["password"]}@{params["server"]}:{params["port"]}/{params["database"]}?driver={params["sql_server"]}',
-#                                     echo=False,
-#                                     pool_size=10,
-#                                     max_overflow=5,
-#                                     pool_timeout=30,
-#                                     pool_recycle=3600)
-    
-#     session      = sessionmaker(bind=engine)()
-#     query        = text(sql)
-#     query_result = session.execute(query)
-#     result = [list(row) for row in query_result]
-#     return result
 
 def execute_sql(sql):
     result = []
@@ -65,12 +42,10 @@ def execute_sql(sql):
     database   = os.getenv("DB_NAME")
     username   = os.getenv('DB_USER')
     password   = os.getenv('DB_PASSWORD')
-    sql_server = '{ODBC Driver 13 for SQL Server}'
+    sql_server = '{ODBC Driver 17 for SQL Server}'
     print(f"display.py: {server}, {database}, {username}, {password}")
     try:
-        # pyodbc settings
         conn = pyodbc.connect('DRIVER={sql_server};SERVER={server};PORT=1433;DATABASE={database};UID={username};PWD={password};'.format(sql_server=sql_server, server=server, database=database, username=username, password=password))
-        print("conn: ", conn)
         cursor = conn.cursor()
         cursor.execute(sql)
         rows = cursor.fetchall()

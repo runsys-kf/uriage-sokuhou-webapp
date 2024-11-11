@@ -31,29 +31,13 @@ const LoginPage = () => {
 
   const handleUsernameChange = (event) => setUsername(event.target.value);
   const handlePasswordChange = (event) => setPassword(event.target.value);
-  // ローカル実行用
-  // ログインボタン押下時の処理
-  // const handleLogin = async () => {
-  //   try {
-  //     const response = await axios.post('http://127.0.0.1:5000/login', { username, password }, { withCredentials: true });
-  //     if (response.status === 200) {
-  //       router.push('/');
-  //     }
-  //   } catch (error) {
-  //     console.error('ログインに失敗しました:', error);
-  //     setErrorMessage("ログインに失敗しました。ユーザー名とパスワードを確認してください。");
-  //   }
-  // };
   const handleLogin = async () => {
-    console.log("Backend URL in login.ts:", "/api/login");
-
     try {
-      // const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/login`, { username, password }, { withCredentials: true });
-      // const response = await axios.post("/api/login", { username, password }, { withCredentials: true });
-      const response = await axios.post("http://127.0.0.1:5000/api/login", { username, password }, { withCredentials: true });
+      const response = await axios.post("http://172.17.9.102:5021/api/login", { username, password }, { withCredentials: true });
       console.log("response: ", response);
+      console.log("status: ", response.status);
       if (response.status === 200) {
-        router.push('/')
+        router.push('http://172.17.9.102:3000/')
       }
     } catch (error) {
       console.error('ログインに失敗しました:', error);

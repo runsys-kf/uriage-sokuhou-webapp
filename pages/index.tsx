@@ -46,37 +46,20 @@ const IndexPage = () => {
   //Muiのtheme設定を読み込む
   const theme = useTheme();
   const router = useRouter();
-  // local executation 
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       const response = await axios.get('http://127.0.0.1:5000', {
-  //         withCredentials: true
-  //       });
-  //       console.log("User is authenticated:", response.data.user);
-  //     } catch (error) {
-  //       console.error("Authentication check failed:", error);
-  //       router.push('/login');
-  //     }
-  //   };
-
-  //   checkAuth();
-  // }, [router]);
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
-        //   withCredentials: true
-        // });
-        const response = await axios.get("http://127.0.0.1:5000/api/", {
+        console.log("index.ts res:");
+        const response = await axios.get("http://172.17.9.102:3000/", {
           withCredentials: true
         });
+        console.log("index.ts res: ", response);
         // console.log("response: ", response);
         console.log("response", response);
         console.log("User is authenticated:", response.data.user);
       } catch (error) {
         console.error("Authentication check failed:", error);
-        router.push('/login');
+        router.push('http://172.17.9.102:3000/login');
       }
     };
   
