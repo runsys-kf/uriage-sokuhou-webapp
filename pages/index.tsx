@@ -32,7 +32,7 @@ import { useTheme } from "@mui/material/styles";
 import Holidays from "date-holidays";
 import { fetchData, API_ENDPOINTS } from "./api/apiService";
 import { storeProcessData, dateProcessData } from "./api/dataTransformer";
-import { initialStores } from "./shopData";
+import { initialStores } from "../data/shopData";
 
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
