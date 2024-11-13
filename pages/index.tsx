@@ -50,16 +50,14 @@ const IndexPage = () => {
     const checkAuth = async () => {
       try {
         console.log("index.ts res:");
-        const response = await axios.get("http://172.17.9.102:3000/", {
-          withCredentials: true
-        });
+        const response = await axios.get("https://salesrepo.runsystem.co.jp/");
         console.log("index.ts res: ", response);
         // console.log("response: ", response);
         console.log("response", response);
         console.log("User is authenticated:", response.data.user);
       } catch (error) {
         console.error("Authentication check failed:", error);
-        router.push('http://172.17.9.102:3000/login');
+        router.push('/login');
       }
     };
   

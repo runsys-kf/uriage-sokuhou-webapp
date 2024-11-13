@@ -33,11 +33,11 @@ const LoginPage = () => {
   const handlePasswordChange = (event) => setPassword(event.target.value);
   const handleLogin = async () => {
     try {
-      const response = await axios.post("http://172.17.9.102:5021/api/login", { username, password }, { withCredentials: true });
+      const response = await axios.post("https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login", { username, password });
       console.log("response: ", response);
       console.log("status: ", response.status);
       if (response.status === 200) {
-        router.push('http://172.17.9.102:3000/')
+        router.push('https://salesrepo.runsystem.co.jp/')
       }
     } catch (error) {
       console.error('ログインに失敗しました:', error);
