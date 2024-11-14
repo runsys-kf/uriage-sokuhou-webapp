@@ -25,10 +25,25 @@ export const API_ENDPOINTS = {
 //APIリクエスト関数
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
   try {
-    console.log("BackAPIURL: ", BackApiURL);
-    console.log("endpoint: ", endpoint);
-    console.log("test", `${BackApiURL}/${endpoint}`);
-    const response = await axios.post(`${BackApiURL}/${endpoint}`, data, {
+    // ログイン認証
+    if (endpoint === "login") {
+        url = "https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login";
+    }
+    // 店舗別データ表示
+    if (endpoint === "display_by_store") {
+        url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store";
+    }
+
+    console.log("endpoint and url: ", endpoint);
+    console.log("data: ", data);
+
+    // 日別データ表示
+    //if (endpoint === "display_by_date") {
+    //    url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store"
+    //}
+
+
+    const response = await axios.post(url, data, {
       withCredentials: true
     });
     
