@@ -25,6 +25,9 @@ export const API_ENDPOINTS = {
 //APIリクエスト関数
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
   try {
+
+    let url = "";
+
     // ログイン認証
     if (endpoint === "login") {
         url = "https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login";
