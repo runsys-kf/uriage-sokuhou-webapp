@@ -5,11 +5,6 @@ import { NextRouter } from 'next/router';
  * BackAPIリクエストを接続管理
  * */
 // APIURL
-//const BackApiURL = "http://127.0.0.1:5000"; // ローカル実行用
-//const BackApiURL = "http://172.17.9.102:5021"; // ローカル実行用
-// const BackApiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
-// const BackApiURL = "http://backend:5000/api";
-//const BackApiURL = "http://localhost";
 const BackApiURL = "https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api"
 console.log("Backend URL in apiService.ts :", BackApiURL);
 
@@ -36,15 +31,12 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     if (endpoint === "display_by_store") {
         url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store";
     }
+    // 日別データ表示
+    if (endpoint === "display_by_date") {
+        url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store";
+    }
 
     console.log("endpoint and url: ", endpoint);
-    console.log("data: ", data);
-
-    // 日別データ表示
-    //if (endpoint === "display_by_date") {
-    //    url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store"
-    //}
-
 
     const response = await axios.post(url, data, {
       withCredentials: true

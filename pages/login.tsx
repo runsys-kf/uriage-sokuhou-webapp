@@ -33,7 +33,10 @@ const LoginPage = () => {
   const handlePasswordChange = (event) => setPassword(event.target.value);
   const handleLogin = async () => {
     try {
-      const response = await axios.post("https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login", { username, password });
+      const response = await axios.post("https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login",
+        { username, password },
+        { withCredentials: true }
+	);
       console.log("response: ", response);
       console.log("status: ", response.status);
       if (response.status === 200) {

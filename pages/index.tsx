@@ -50,7 +50,9 @@ const IndexPage = () => {
     const checkAuth = async () => {
       try {
         console.log("index.ts res:");
-        const response = await axios.get("https://salesrepo.runsystem.co.jp/");
+        const response = await axios.get("https://salesrepo.runsystem.co.jp/",{
+          withCredentials: true
+	});
         console.log("index.ts res: ", response);
         // console.log("response: ", response);
         console.log("response", response);
