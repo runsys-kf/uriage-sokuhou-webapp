@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout";
-import axios from 'axios';  // これを追加
+import axios from "axios"; // これを追加
 
 import React, { useState, useEffect } from "react";
 import {
@@ -38,7 +38,7 @@ import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
 import { Store } from "@mui/icons-material";
 // add 20240828
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 
 const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 
@@ -47,26 +47,30 @@ const IndexPage = () => {
   const theme = useTheme();
   const router = useRouter();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:5000/', {
-          withCredentials: true
-        });
-        console.log("User is authenticated:", response.data.user);
-      } catch (error) {
-        console.error("Authentication check failed:", error);
-        router.push('/login');
-      }
-    };
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     try {
+  //       const response = await axios.get('http://127.0.0.1:5000/', {
+  //         withCredentials: true
+  //       });
+  //       console.log("User is authenticated:", response.data.user);
+  //     } catch (error) {
+  //       console.error("Authentication check failed:", error);
+  //       router.push('/login');
+  //     }
+  //   };
 
-    checkAuth();
-  }, [router]);
+  //   checkAuth();
+  // }, [router]);
   // カレンダー用状態 前日を選択させる処理含む
   const [date1, setDate1] = useState(dayjs().subtract(1, "day"));
   const [date2, setDate2] = useState(dayjs().subtract(1, "day"));
-  const [date3, setDate3] = useState(dayjs().subtract(1, "day"));
-  const [date4, setDate4] = useState(dayjs().subtract(1, "day"));
+  const [date3, setDate3] = useState(
+    dayjs().subtract(1, "day").subtract(1, "year")
+  );
+  const [date4, setDate4] = useState(
+    dayjs().subtract(1, "day").subtract(1, "year")
+  );
 
   // モーダル用状態
   const [openStoreModal, setOpenStoreModal] = useState(false);
@@ -74,7 +78,7 @@ const IndexPage = () => {
 
   const [selectedStores, setSelectedStores] = useState([]); //選択した店舗名
   //const [selectedArea, setSelectedArea] = useState("");
-  const [selectedPrefecture, setSelectedPrefecture] = useState(""); //選択した都道府県名
+  const [selectedPrefecture, setSelectedPrefecture] = useState<string[]>([]); //選択した都道府県名
 
   const [searchText, setSearchText] = useState(""); //店舗名でフィルタリング時の入力値
   const [filteredStores, setFilteredStores] = useState(initialStores); // 入力値によるフィルタリング店舗(初期値は全店)
@@ -176,12 +180,17 @@ const IndexPage = () => {
     },
     storeData: [],
   });
+  interface Store {
+    id: string;
+    name: string;
+    prefecture: string;
+  }
   //昇順、降順 現在の状況
   // const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   //ソート列　現在ソートしている列
   // const [sortKey, setSortKey] = useState<string>("");
-  
+
   //昇順、降順 現在の状況
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -214,27 +223,46 @@ const IndexPage = () => {
         store.name.toLowerCase().includes(searchText.toLowerCase())
       );
       setFilteredStores(filtered);
+      const newSelectedStores = Array.from(
+        new Set([...selectedStores, ...filtered])
+      );
+      setSelectedStores(newSelectedStores);
     } else {
       setFilteredStores(filtered); // 未入力の場合は全データを表示
+      setSelectedStores(filtered);
     }
   };
 
   // 選択都道府県セットハンドラ
-  const setPrefectureChange = (e) => {
-    setSelectedPrefecture(e.target.value);
+  // const setPrefectureChange = (e) => {
+  //   setSelectedPrefecture(e.target.value);
+  // };
+
+  // 選択都道府県セットハンドラ
+  const setPrefectureChange = (event) => {
+    const {
+      target: { value },
+    } = event;
+    // 文字列か配列かを処理して、必ず配列として扱う
+    const selectedValues = typeof value === "string" ? [value] : value;
+    setSelectedPrefecture(selectedValues);
   };
   // 都道府県選択からのフィルタリング
   const handlePrefectureChange = () => {
     //let filtered = radioValueFilterStores();//ラジオボタンフィルタリング
     let filtered = initialStores;
-    if (selectedPrefecture) {
-      filtered = filtered.filter(
-        (store) => store.prefecture === selectedPrefecture
+    if (selectedPrefecture.length > 0) {
+      filtered = filtered.filter((store) =>
+        selectedPrefecture.includes(store.prefecture)
       );
       setFilteredStores(filtered);
-      setSelectedStores(filtered);
+      const newSelectedStores = Array.from(
+        new Set([...selectedStores, ...filtered])
+      );
+      setSelectedStores(newSelectedStores);
     } else {
       setFilteredStores(filtered); // 未入力の場合は全データを表示
+      setSelectedStores(filtered);
       //setSelectedStores([]); // 選択都道府県がない場合は選択を解除
     }
   };
@@ -329,6 +357,12 @@ const IndexPage = () => {
   const handleSalesInclusionChange = (event) => {
     setSalesInclusionValue(event.target.value);
   };
+  useEffect(() => {
+    if (compareCheck) {
+      setDate3(date1.subtract(1, "year"));
+      setDate4(date2.subtract(1, "year"));
+    }
+  }, [compareCheck]);
 
   //昇降順セット、ソート列のキー名をセット
   const handleSort = (key: string) => {
@@ -343,7 +377,7 @@ const IndexPage = () => {
     // sortKey が数値のプロパティに対応しているか確認し、適切に変換
     const aValue = typeof a[sortKey] === "number" ? a[sortKey] : 0;
     const bValue = typeof b[sortKey] === "number" ? b[sortKey] : 0;
-  
+
     // 数値以外の場合は文字列としてソートする処理も追加可能
     if (typeof aValue === "number" && typeof bValue === "number") {
       return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
@@ -422,7 +456,7 @@ const IndexPage = () => {
   const fetchAndTransformData = async (endpoint) => {
     try {
       let params;
-      setStoresData(initialStoresData);//初期化処理
+      setStoresData(initialStoresData); //初期化処理
       if (endpoint === API_ENDPOINTS.display_by_store) {
         //店舗別
         params = createRequestData(endpoint);
@@ -474,7 +508,9 @@ const IndexPage = () => {
                             onChange={setDate1}
                             maxDate={dayjs()}
                             slotProps={{
-                              textField: { size: "small" },
+                              textField: {
+                                size: "small",
+                              },
                               day: ({ day }) => ({
                                 sx: {
                                   ...(isHoliday(day) && {
@@ -497,6 +533,7 @@ const IndexPage = () => {
                             label=""
                             value={date2}
                             onChange={setDate2}
+                            minDate={date1}
                             maxDate={dayjs()}
                             slotProps={{
                               textField: { size: "small" },
@@ -550,6 +587,7 @@ const IndexPage = () => {
                                 label=""
                                 value={date4}
                                 onChange={setDate4}
+                                minDate={date3}
                                 maxDate={dayjs()}
                                 slotProps={{
                                   textField: { size: "small" },
@@ -609,19 +647,6 @@ const IndexPage = () => {
               <div className="w-full md:w-4/12 lg:w-3/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full">
                   <h2 className="text-base font-bold mb-2 md:mb-1">対象店舗</h2>
-                  <div className="mb-2">
-                    {/*　選択済み店舗名をカンマ区切りで表示＆クリアボタン
-                    <p className="text-sm text-gray-700">
-                      {selectedStores.map((store) => store.name).join(", ")}
-                    </p>
-                    <Button
-                      className="bg-blue-500 hover:bg-blue-800 text-white p-1 md:p-1"
-                      onClick={clearStores}
-                    >
-                      クリア
-                    </Button>
-                    */}
-                  </div>
                   <div className="">
                     <Button
                       onClick={handleOpenStoreModal}
@@ -649,15 +674,25 @@ const IndexPage = () => {
                           maxWidth: "95%",
                         }}
                       >
-                        <Typography
-                          variant="h6"
-                          component="h3"
-                          sx={{
-                            fontSize: "1rem",
-                          }}
-                        >
-                          店舗を選択してください
-                        </Typography>
+                        <div className="flex justify-between items-center">
+                          <Typography
+                            variant="h6"
+                            component="h3"
+                            sx={{
+                              fontSize: "1rem",
+                            }}
+                          >
+                            店舗を選択してください
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            className="bg-blue-500 hover:bg-blue-800 text-white"
+                            onClick={clearStores}
+                          >
+                            全選択解除
+                          </Button>
+                        </div>
                         <TextField
                           margin="normal"
                           fullWidth
@@ -669,10 +704,12 @@ const IndexPage = () => {
                             handleSearchChange
                           }
                         />
-                        <FormControl fullWidth>
+                        <FormControl sx={{ mt: 2, width: "100%" }}>
+                          <InputLabel>店舗選択</InputLabel>
                           <Select
                             multiple
                             value={selectedStores.map((store) => store.id)}
+                            input={<OutlinedInput label="店舗選択" />}
                             onChange={handleChange}
                             onOpen={
                               //フィルタリング
@@ -687,14 +724,25 @@ const IndexPage = () => {
                             }
                           >
                             {filteredStores.map((store) => (
-                              <MenuItem key={store.id} value={store.id}>
+                              <MenuItem
+                                key={store.id}
+                                value={store.id}
+                                dense
+                                sx={{ py: 0 }}
+                              >
                                 <Checkbox
                                   checked={selectedStores.some(
                                     (selectedStore) =>
                                       selectedStore.id === store.id
                                   )}
+                                  sx={{ py: 0 }}
                                 />
-                                <ListItemText primary={store.name} />
+                                <ListItemText
+                                  primary={store.name}
+                                  primaryTypographyProps={{
+                                    fontSize: "1.2rem",
+                                  }}
+                                />
                               </MenuItem>
                             ))}
                           </Select>
@@ -731,28 +779,56 @@ const IndexPage = () => {
                             maxWidth: "95%",
                           }}
                         >
-                          <Typography
-                            variant="h6"
-                            component="h3"
-                            sx={{
-                              fontSize: "1rem",
-                            }}
-                          >
-                            都道府県を選択してください。
-                          </Typography>
+                          <div className="flex justify-between items-center">
+                            <Typography
+                              variant="h6"
+                              component="h3"
+                              sx={{
+                                fontSize: "1rem",
+                              }}
+                            >
+                              都道府県を選択してください。
+                            </Typography>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              className="bg-blue-500 hover:bg-blue-800 text-white"
+                              onClick={clearStores}
+                            >
+                              全選択解除
+                            </Button>
+                          </div>
                           <FormControl fullWidth sx={{ mt: 2 }}>
                             <InputLabel>都道府県選択</InputLabel>
                             <Select
                               label="都道府県選択"
                               value={selectedPrefecture}
-                              onChange={
-                                //都道府県セット
-                                setPrefectureChange
+                              onChange={setPrefectureChange}
+                              multiple
+                              renderValue={(selected: string[]) =>
+                                selected.join(", ")
                               }
                             >
                               {prefectures.map((prefecture) => (
-                                <MenuItem key={prefecture} value={prefecture}>
-                                  {prefecture}
+                                <MenuItem
+                                  key={prefecture}
+                                  value={prefecture}
+                                  dense
+                                  sx={{ py: 0 }}
+                                >
+                                  <Checkbox
+                                    checked={
+                                      selectedPrefecture.indexOf(prefecture) >
+                                      -1
+                                    }
+                                    sx={{ py: 0 }}
+                                  />
+                                  <ListItemText
+                                    primary={prefecture}
+                                    primaryTypographyProps={{
+                                      fontSize: "1.2rem",
+                                    }}
+                                  />
                                 </MenuItem>
                               ))}
                             </Select>
@@ -782,14 +858,25 @@ const IndexPage = () => {
                               }
                             >
                               {filteredStores.map((store) => (
-                                <MenuItem key={store.id} value={store.id}>
+                                <MenuItem
+                                  key={store.id}
+                                  value={store.id}
+                                  dense
+                                  sx={{ py: 0 }}
+                                >
                                   <Checkbox
                                     checked={selectedStores.some(
                                       (selectedStore) =>
                                         selectedStore.id === store.id
                                     )}
+                                    sx={{ py: 0 }}
                                   />
-                                  <ListItemText primary={store.name} />
+                                  <ListItemText
+                                    primary={store.name}
+                                    primaryTypographyProps={{
+                                      fontSize: "1.2rem",
+                                    }}
+                                  />
                                 </MenuItem>
                               ))}
                             </Select>
@@ -797,6 +884,16 @@ const IndexPage = () => {
                         </Box>
                       </div>
                     </Modal>
+                    <div className="mb-2 md:mt-2">
+                      <p className="text-sm text-gray-700 flex flex-wrap">
+                        {selectedStores.map((store, index) => (
+                          <span key={store.id} className="whitespace-nowrap">
+                            {store.name}
+                            {index < selectedStores.length - 1 ? ",　" : ""}
+                          </span>
+                        ))}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1011,6 +1108,7 @@ const IndexPage = () => {
               <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[400px]">
                 <table className="min-w-full divide-y divide-x divide-gray-200">
                   <thead className="bg-gray-50 sticky top-0 z-10">
+                    {/*大分類*/}
                     <tr>
                       <th
                         colSpan={2}
@@ -1056,6 +1154,7 @@ const IndexPage = () => {
                       </th>
                     </tr>
                     <tr>
+                      {/*小分類*/}
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border"></th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         店番
