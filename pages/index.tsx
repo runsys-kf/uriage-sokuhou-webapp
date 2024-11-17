@@ -43,10 +43,6 @@ import { useRouter } from 'next/router';
 // fix 20241117
 import { GetServerSideProps } from 'next';
 import nookies from 'nookies';
-// pages/index.tsx
-
-import { GetServerSideProps } from 'next';
-import nookies from 'nookies';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const cookies = nookies.get(context);
