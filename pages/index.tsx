@@ -40,8 +40,64 @@ import { Store } from "@mui/icons-material";
 // add 20240828
 import { useRouter } from 'next/router';
 
-const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
+// fix 20241117
+import { GetServerSideProps } from 'next';
+import nookies from 'nookies';
+// pages/index.tsx
 
+import { GetServerSideProps } from 'next';
+import nookies from 'nookies';
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const cookies = nookies.get(context);
+  const sessionId = cookies['session_id']; // クッキー名 'session_id' を使用
+
+  if (!sessionId) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+
+  try {
+    const response = await axios.get(
+      'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
+      {
+        headers: {
+          Cookie: context.req.headers.cookie || '',
+        },
+        withCredentials: true,
+      }
+    );
+
+    if (response.status === 200) {
+      return {
+        props: {
+          user: response.data.user,
+        },
+      };
+    } else {
+      return {
+        redirect: {
+          destination: '/login',
+          permanent: false,
+        },
+      };
+    }
+  } catch (error) {
+    console.error('認証チェックに失敗しました:', error.message);
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+};
+
+const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 const IndexPage = () => {
   //Muiのtheme設定を読み込む
   const theme = useTheme();
