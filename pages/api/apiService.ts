@@ -16,9 +16,11 @@ export const API_ENDPOINTS = {
     download: "download",
     adimn_login: "admin_login",
 } 
+console.log("API_ENDPOINTS", API_ENDPOINTS);
 
 //APIリクエスト関数
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
+  console.log("endpoint: ", endpoint);
   try {
 
     let url = "";

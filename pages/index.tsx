@@ -39,16 +39,19 @@ import "dayjs/locale/ja";
 import { Store } from "@mui/icons-material";
 // add 20240828
 import { useRouter } from 'next/router';
-
-// fix 20241117
 import { GetServerSideProps } from 'next';
+// add 20241117 16:23
 import nookies from 'nookies';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = '100'; // サーバー側と同じ秘密鍵
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const cookies = nookies.get(context);
-  const sessionId = cookies['session_id']; // クッキー名 'session_id' を使用
+  const token = cookies['access_token'];
 
-  if (!sessionId) {
+  if (!token) {
+    // トークンがない場合、ログインページにリダイレクト
     return {
       redirect: {
         destination: '/login',
@@ -58,32 +61,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 
   try {
-    const response = await axios.get(
-      'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
-      {
-        headers: {
-          Cookie: context.req.headers.cookie || '',
-        },
-        withCredentials: true,
-      }
-    );
+    // トークンを検証
+    const decoded = jwt.verify(token, JWT_SECRET);
 
-    if (response.status === 200) {
-      return {
-        props: {
-          user: response.data.user,
-        },
-      };
-    } else {
-      return {
-        redirect: {
-          destination: '/login',
-          permanent: false,
-        },
-      };
-    }
+    // 認証成功
+    return {
+      props: {
+        user: decoded,
+      },
+    };
   } catch (error) {
-    console.error('認証チェックに失敗しました:', error.message);
+    console.error('Token verification failed:', error.message);
+    // 認証失敗、ログインページにリダイレクト
     return {
       redirect: {
         destination: '/login',
@@ -92,6 +81,59 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 };
+
+// fix 20241117
+//import { GetServerSideProps } from 'next';
+//import nookies from 'nookies';
+//
+//export const getServerSideProps: GetServerSideProps = async (context) => {
+//  const cookies = nookies.get(context);
+//  const sessionId = cookies['session_id']; // クッキー名 'session_id' を使用
+//
+//  if (!sessionId) {
+//    return {
+//      redirect: {
+//        destination: '/login',
+//        permanent: false,
+//      },
+//    };
+//  }
+//
+//  try {
+//    const response = await axios.get(
+//      'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
+//      {
+//        headers: {
+//          Cookie: context.req.headers.cookie || '',
+//        },
+//        withCredentials: true,
+//      }
+//    );
+//
+//    if (response.status === 200) {
+//      return {
+//        props: {
+//          user: response.data.user,
+//        },
+//      };
+//    } else {
+//      return {
+//        redirect: {
+//          destination: '/login',
+//          permanent: false,
+//        },
+//      };
+//    }
+//  } catch (error) {
+//    console.error('認証チェックに失敗しました:', error.message);
+//    return {
+//      redirect: {
+//        destination: '/login',
+//        permanent: false,
+//      },
+//    };
+//  }
+//};
 
 const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 const IndexPage = () => {
