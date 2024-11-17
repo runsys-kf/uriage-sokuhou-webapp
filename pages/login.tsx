@@ -32,22 +32,67 @@ const LoginPage = () => {
   const handleUsernameChange = (event) => setUsername(event.target.value);
   const handlePasswordChange = (event) => setPassword(event.target.value);
 
-  // fix 20241117 pages/login.tsx
   const handleLogin = async () => {
+    console.log("start --------------------=");
+
     try {
+      console.log("---------- Sending login request ---------------");
       const response = await axios.post(
         'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
         { username, password },
-        { withCredentials: true }
+        { withCredentials: true } // 必須：クッキーを送受信
       );
+
+      console.log("---------- Received response ---------------");
+      console.log("Response status: ", response.status);
+      console.log("Response headers: ", response.headers);
+      console.log("Response data: ", response.data);
+
       if (response.status === 200) {
-        router.push('/');
+        console.log("Login successful! Redirecting...");
+        router.push('/'); // 成功時にリダイレクト
+      } else {
+        setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
       }
     } catch (error) {
-      console.error('ログインに失敗しました:', error.message);
-      setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
+      console.error("ログインに失敗しました:", error);
+
+      // ネットワークエラーの場合
+      if (error.response) {
+        console.error('Response error: ', error.response);
+        setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
+      } else if (error.request) {
+        console.error('No response received: ', error.request);
+        setErrorMessage('ネットワークエラーが発生しました。通信環境を確認してください。');
+      } else {
+        console.error('Error message: ', error.message);
+        setErrorMessage('予期しないエラーが発生しました。');
+      }
     }
   };
+ 
+
+  // fix 20241117 pages/login.tsx
+  //console.log("start --------------------=")
+  //const handleLogin = async () => {
+  //  try {
+  //    console.log("---------- test1 ---------------");
+  //    const response = await axios.post(
+  //      'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
+  //      { username, password },
+  //      { withCredentials: true }
+  //    );
+  //    console.log("---------- test2 ---------------");
+  //    console.log(response);
+  //    console.log(response.status);
+  //    if (response.status === 200) {
+  //      router.push('/');
+  //    }
+  //  } catch (error) {
+  //    console.error('ログインに失敗しました:', error.message);
+  //    setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
+  //  }
+  //};
 
   //const handleLogin = async () => {
   //  try {
