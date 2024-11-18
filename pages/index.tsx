@@ -63,8 +63,8 @@ const IndexPage = () => {
   //   checkAuth();
   // }, [router]);
   // カレンダー用状態 前日を選択させる処理含む
-  const [date1, setDate1] = useState(dayjs().subtract(1, "day"));
-  const [date2, setDate2] = useState(dayjs().subtract(1, "day"));
+  const [date1, setDate1] = useState(dayjs());
+  const [date2, setDate2] = useState(dayjs());
   const [date3, setDate3] = useState(
     dayjs().subtract(1, "day").subtract(1, "year")
   );
