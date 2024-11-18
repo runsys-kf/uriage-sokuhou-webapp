@@ -1061,7 +1061,7 @@ const IndexPage = () => {
                     )
                   }
                 >
-                  検索表示
+                  集計実行
                 </Button>
               </div>
             </div>
@@ -1122,7 +1122,7 @@ const IndexPage = () => {
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1139,7 +1139,7 @@ const IndexPage = () => {
                         </div>
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間B
+                        比較期間
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         差異
@@ -1149,7 +1149,7 @@ const IndexPage = () => {
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1166,7 +1166,7 @@ const IndexPage = () => {
                         </div>
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間B
+                        比較期間
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         差異
@@ -1176,7 +1176,7 @@ const IndexPage = () => {
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1193,7 +1193,7 @@ const IndexPage = () => {
                         </div>
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間B
+                        比較期間
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         差異
@@ -1203,7 +1203,7 @@ const IndexPage = () => {
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1220,7 +1220,7 @@ const IndexPage = () => {
                         </div>
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間B
+                        比較期間
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         差異
@@ -1229,16 +1229,16 @@ const IndexPage = () => {
                         A/B
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間A
+                        対象期間
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間B
+                        比較期間
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間A
+                        対象期間
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間B
+                        比較期間
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         差異
