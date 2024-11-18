@@ -35,91 +35,41 @@ const LoginPage = () => {
   const handlePasswordChange = (event) => setPassword(event.target.value);
 
   const handleLogin = async () => {
-    console.log("start --------------------=");
+    try {
+      const response = await axios.post(
+        'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
+        { username, password },
+        { 
+                headers: {
+        	          'Content-Type': 'application/json'
+          }
+        }
+      );
 
-    //try {
-    console.log("---------- Sending login request ---------------");
-    const response = await axios.post(
-      'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
-      { username, password },
-      { 
-              headers: {
-      	          'Content-Type': 'application/json'
-	}
+      if (response.status === 200) {
+        const token = response.data.token;
+        Cookies.set('access_token', token, { expires: 1, path:'/'});
+        router.push('/'); // 成功時にリダイレクト
+      } else {
+        setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
       }
-    );
+    } catch (error) {
+      console.error("ログインに失敗しました:", error);
 
-    console.log("---------- Received response ---------------");
-    console.log("Response status: ", response.status);
-    console.log("Response headers: ", response.headers);
-    console.log("Response data: ", response.data);
-
-    if (response.status === 200) {
-      const token = response.data.token;
-      console.log("token: ", token);
-      //localStorage.setItem('access_token', token);
-      Cookies.set('access_token', token, { expires: 1, path:'/'});
-      console.log("Login successful! Redirecting...");
-      router.push('/'); // 成功時にリダイレクト
-    } else {
-      setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
+      // ネットワークエラーの場合
+      if (error.response) {
+        console.error('Response error: ', error.response);
+        setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
+      } else if (error.request) {
+        console.error('No response received: ', error.request);
+        setErrorMessage('ネットワークエラーが発生しました。通信環境を確認してください。');
+      } else {
+        console.error('Error message: ', error.message);
+        setErrorMessage('予期しないエラーが発生しました。');
+      }
     }
-    //} catch (error) {
-    //  console.error("ログインに失敗しました:", error);
-
-    //  // ネットワークエラーの場合
-    //  if (error.response) {
-    //    console.error('Response error: ', error.response);
-    //    setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
-    //  } else if (error.request) {
-    //    console.error('No response received: ', error.request);
-    //    setErrorMessage('ネットワークエラーが発生しました。通信環境を確認してください。');
-    //  } else {
-    //    console.error('Error message: ', error.message);
-    //    setErrorMessage('予期しないエラーが発生しました。');
-    //  }
-    //}
   };
  
-
-  // fix 20241117 pages/login.tsx
-  //console.log("start --------------------=")
-  //const handleLogin = async () => {
-  //  try {
-  //    console.log("---------- test1 ---------------");
-  //    const response = await axios.post(
-  //      'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
-  //      { username, password },
-  //      { withCredentials: true }
-  //    );
-  //    console.log("---------- test2 ---------------");
-  //    console.log(response);
-  //    console.log(response.status);
-  //    if (response.status === 200) {
-  //      router.push('/');
-  //    }
-  //  } catch (error) {
-  //    console.error('ログインに失敗しました:', error.message);
-  //    setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
-  //  }
-  //};
-
-  //const handleLogin = async () => {
-  //  try {
-  //    const response = await axios.post("https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login",
-  //      { username, password },
-  //      { withCredentials: true }
-  //      );
-  //    console.log("response: ", response);
-  //    console.log("status: ", response.status);
-  //    if (response.status === 200) {
-  //      router.push('https://salesrepo.runsystem.co.jp/')
-  //    }
-  //  } catch (error) {
-  //    console.error('ログインに失敗しました:', error);
-  //    setErrorMessage("ログインに失敗しました。ユーザー名とパスワードを確認してください。");
-  //  }
-  //};
   return (
     <Layout title="ログイン | 売上速報">
       <div className="flex flex-row-reverse min-h-screen items-stretch">
