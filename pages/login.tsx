@@ -40,9 +40,11 @@ const LoginPage = () => {
     const response = await axios.post(
       'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
       { username, password },
-      { withCredentials: true },
-      headers: {
-      	'Content-Type': 'application/json'
+      { 
+	      withCredentials: true ,
+              headers: {
+      	          'Content-Type': 'application/json'
+	}
       }
     );
 
