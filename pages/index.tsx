@@ -47,8 +47,10 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = '100'; // サーバー側と同じ秘密鍵
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  console.log("----- start getServerSideProps -----");
   const cookies = nookies.get(context);
   const token = cookies['access_token'];
+  console.log("----- end   getServerSideProps -----");
 
   if (!token) {
     // トークンがない場合、ログインページにリダイレクト
@@ -59,8 +61,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   }
+  console.log("token :", token);
 
   try {
+    console.log("try-setu");
     // トークンを検証
     const decoded = jwt.verify(token, JWT_SECRET);
 
