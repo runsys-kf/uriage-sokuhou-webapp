@@ -15,6 +15,8 @@ import axios from 'axios';  // これを追加
 
 import LoginSideImage from "../public/images/login-side-image.webp";
 
+import Cookies from 'js-cookie';
+
 const LoginPage = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [username, setUsername] = React.useState("");
@@ -41,7 +43,6 @@ const LoginPage = () => {
       'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
       { username, password },
       { 
-	      withCredentials: true ,
               headers: {
       	          'Content-Type': 'application/json'
 	}
@@ -56,7 +57,8 @@ const LoginPage = () => {
     if (response.status === 200) {
       const token = response.data.token;
       console.log("token: ", token);
-      localStorage.setItem('access_token', token);
+      //localStorage.setItem('access_token', token);
+      Cookies.set('access_token', token, { expires: 1, path:'/'});
       console.log("Login successful! Redirecting...");
       router.push('/'); // 成功時にリダイレクト
     } else {

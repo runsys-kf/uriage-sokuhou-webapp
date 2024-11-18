@@ -43,7 +43,8 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
 
   const response = await axios.post(url, data, {
 	  headers:{
-		  'Authorization': `Bearer ${token}`
+		  'Authorization': `Bearer ${token}`,
+		  'Content-Type': 'application/json'
 	  }
   });
   
