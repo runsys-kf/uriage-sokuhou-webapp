@@ -54,6 +54,9 @@ const LoginPage = () => {
     console.log("Response data: ", response.data);
 
     if (response.status === 200) {
+      const token = response.data.token;
+      console.log("token: ", token);
+      localStorage.setItem('access_token', token);
       console.log("Login successful! Redirecting...");
       router.push('/'); // 成功時にリダイレクト
     } else {

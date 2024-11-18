@@ -48,8 +48,12 @@ const JWT_SECRET = '100'; // サーバー側と同じ秘密鍵
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   console.log("----- start getServerSideProps -----");
-  const cookies = nookies.get(context);
-  const token = cookies['access_token'];
+  const token = context.req.cookies['access_token'] || context.req.headers.authorization?.split(' ')[1];
+  //const cookies = nookies.get(context);
+  //const token = cookies['access_token'];
+  //console.log("token : ", token);
+  //console.log("token : ", cookies);
+  console.log("token : ", token);
   console.log("----- end   getServerSideProps -----");
 
   if (!token) {
@@ -61,7 +65,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   }
-  console.log("token :", token);
+  console.log("token2 :", token);
 
   try {
     console.log("try-setu");

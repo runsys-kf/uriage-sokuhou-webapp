@@ -20,6 +20,7 @@ console.log("API_ENDPOINTS", API_ENDPOINTS);
 
 //APIリクエスト関数
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
+  const token = localStorage.getItem('access_token');
   console.log("endpoint: ", endpoint);
   //try {
 
@@ -41,7 +42,9 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
   console.log("endpoint and url: ", endpoint);
 
   const response = await axios.post(url, data, {
-    withCredentials: true
+	  headers:{
+		  'Authorization': `Bearer ${token}`
+	  }
   });
   
   return response.data;
