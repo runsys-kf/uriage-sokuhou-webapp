@@ -25,6 +25,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
@@ -377,11 +378,11 @@ const IndexPage = () => {
   //真
   // const sortedStoresData = [...storesData.storeData].sort((a, b) => {
   //   if (typeof a[sortKey] === 'number' && typeof b[sortKey] === 'number') {
-  //     return sortDirection === 'asc' 
-  //       ? a[sortKey] - b[sortKey] 
+  //     return sortDirection === 'asc'
+  //       ? a[sortKey] - b[sortKey]
   //       : b[sortKey] - a[sortKey];
   //   }
-    
+
   //   // 文字列の場合
   //   return sortDirection === 'asc'
   //     ? String(a[sortKey]).localeCompare(String(b[sortKey]))
@@ -722,7 +723,18 @@ const IndexPage = () => {
                           maxWidth: "95%",
                         }}
                       >
-                        <div className="flex justify-between items-center">
+                        <IconButton
+                          aria-label="close"
+                          onClick={handleCloseStoreModal}
+                          sx={{
+                            position: "absolute",
+                            right: 8,
+                            top: 8,
+                          }}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                        <div className="flex justify-between items-center mb-4 mt-4 pt-2">
                           <Typography
                             variant="h6"
                             component="h3"
@@ -770,7 +782,42 @@ const IndexPage = () => {
                                 .map((store) => store.name)
                                 .join(", ")
                             }
+                            MenuProps={{
+                              PaperProps: {
+                                style: {
+                                  maxHeight: '80vh', // 画面の80%の高さまで表示可能
+                                  width: 'fit-content',
+                                }
+                              }
+                            }}
                           >
+                            <Box sx={{ 
+                              position: 'sticky', 
+                              top: 0, 
+                              bgcolor: 'background.paper',
+                              zIndex: 1,
+                              borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+                              display: 'flex',
+                              justifyContent: 'flex-end',
+                              padding: '4px'
+                            }}>
+                              <IconButton
+                                 onClick={(event) => {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  // モーダルの外側をクリックする動作をシミュレート
+                                  const outsideClick = new MouseEvent('mousedown', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window
+                                  });
+                                  document.dispatchEvent(outsideClick);
+                                }}
+                                size="small"
+                              >
+                                <CloseIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                             {filteredStores.map((store) => (
                               <MenuItem
                                 key={store.id}
@@ -827,7 +874,18 @@ const IndexPage = () => {
                             maxWidth: "95%",
                           }}
                         >
-                          <div className="flex justify-between items-center">
+                          <IconButton
+                            aria-label="close"
+                            onClick={handleClosePrefectureModal}
+                            sx={{
+                              position: "absolute",
+                              right: 8,
+                              top: 8,
+                            }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                          <div className="flex justify-between items-center mb-4 mt-4 pt-2">
                             <Typography
                               variant="h6"
                               component="h3"
@@ -904,7 +962,42 @@ const IndexPage = () => {
                                 //フィルタリング
                                 handlePrefectureChange
                               }
+                              MenuProps={{
+                                PaperProps: {
+                                  style: {
+                                    maxHeight: '80vh', // 画面の80%の高さまで表示可能
+                                    width: 'fit-content',
+                                  }
+                                }
+                              }}
                             >
+                              <Box sx={{ 
+                                position: 'sticky', 
+                                top: 0, 
+                                bgcolor: 'background.paper',
+                                zIndex: 1,
+                                borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                padding: '4px'
+                              }}>
+                                <IconButton
+                                   onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    // モーダルの外側をクリックする動作をシミュレート
+                                    const outsideClick = new MouseEvent('mousedown', {
+                                      bubbles: true,
+                                      cancelable: true,
+                                      view: window
+                                    });
+                                    document.dispatchEvent(outsideClick);
+                                  }}
+                                  size="small"
+                                >
+                                  <CloseIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
                               {filteredStores.map((store) => (
                                 <MenuItem
                                   key={store.id}
