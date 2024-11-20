@@ -112,8 +112,8 @@ const IndexPage = () => {
   // const [date2, setDate2] = useState(dayjs().subtract(1, "day"));
   const [date1, setDate1] = useState(dayjs());
   const [date2, setDate2] = useState(dayjs());
-  const [date3, setDate3] = useState(dayjs().subtract(1, "day"));
-  const [date4, setDate4] = useState(dayjs().subtract(1, "day"));
+  const [date3, setDate3] = useState(dayjs().subtract(1, "year"));
+  const [date4, setDate4] = useState(dayjs().subtract(1, "year"));
 
   // モーダル用状態
   const [openStoreModal, setOpenStoreModal] = useState(false);
