@@ -1147,7 +1147,7 @@ const IndexPage = () => {
                         差異
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        A/B
+                        比率
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
@@ -1174,7 +1174,7 @@ const IndexPage = () => {
                         差異
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        A/B
+                        比率
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
@@ -1201,7 +1201,7 @@ const IndexPage = () => {
                         差異
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        A/B
+                        比率
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
@@ -1228,7 +1228,7 @@ const IndexPage = () => {
                         差異
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        A/B
+                        比率
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         対象期間
@@ -1246,7 +1246,7 @@ const IndexPage = () => {
                         差異
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        A/B
+                        比率
                       </th>
                     </tr>
                   </thead>
