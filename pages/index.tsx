@@ -108,8 +108,10 @@ const IndexPage = () => {
     checkAuth();
   }, [router]);
   // カレンダー用状態 前日を選択させる処理含む
-  const [date1, setDate1] = useState(dayjs().subtract(1, "day"));
-  const [date2, setDate2] = useState(dayjs().subtract(1, "day"));
+  // const [date1, setDate1] = useState(dayjs().subtract(1, "day"));
+  // const [date2, setDate2] = useState(dayjs().subtract(1, "day"));
+  const [date1, setDate1] = useState(dayjs());
+  const [date2, setDate2] = useState(dayjs());
   const [date3, setDate3] = useState(dayjs().subtract(1, "day"));
   const [date4, setDate4] = useState(dayjs().subtract(1, "day"));
 
@@ -624,42 +626,42 @@ const IndexPage = () => {
                           </div>
                         </>
                       )}
-                      <div className="flex w-full gap-4 items-center justify-between">
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={compareCheck}
-                              onChange={(e) =>
-                                setCompareCheck(e.target.checked)
-                              }
-                              sx={{
-                                "& .MuiSvgIcon-root": { fontSize: 18 },
-                                p: "6px",
-                              }}
-                            />
-                          }
-                          label="比較対象"
-                          sx={{
-                            "& .MuiFormControlLabel-label": { fontSize: 14 },
-                          }}
-                        />
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={dailyCheck === "日別"}
-                              onChange={handleDailyCheckChange}
-                              sx={{
-                                "& .MuiSvgIcon-root": { fontSize: 18 },
-                                p: "6px",
-                              }}
-                            />
-                          }
-                          label="日別"
-                          sx={{
-                            "& .MuiFormControlLabel-label": { fontSize: 14 },
-                          }}
-                        />
-                      </div>
+                      //<div className="flex w-full gap-4 items-center justify-between">
+                      //  <FormControlLabel
+                      //    control={
+                      //      <Checkbox
+                      //        checked={compareCheck}
+                      //        onChange={(e) =>
+                      //          setCompareCheck(e.target.checked)
+                      //        }
+                      //        sx={{
+                      //          "& .MuiSvgIcon-root": { fontSize: 18 },
+                      //          p: "6px",
+                      //        }}
+                      //      />
+                      //    }
+                      //    label="比較対象"
+                      //    sx={{
+                      //      "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      //    }}
+                      //  />
+                      //  <FormControlLabel
+                      //    control={
+                      //      <Checkbox
+                      //        checked={dailyCheck === "日別"}
+                      //        onChange={handleDailyCheckChange}
+                      //        sx={{
+                      //          "& .MuiSvgIcon-root": { fontSize: 18 },
+                      //          p: "6px",
+                      //        }}
+                      //      />
+                      //    }
+                      //    label="日別"
+                      //    sx={{
+                      //      "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      //    }}
+                      //  />
+                      //</div>
                     </div>
                   </LocalizationProvider>
                 </div>
