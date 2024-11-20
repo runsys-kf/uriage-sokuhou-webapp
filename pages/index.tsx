@@ -626,42 +626,42 @@ const IndexPage = () => {
                           </div>
                         </>
                       )}
-                      //<div className="flex w-full gap-4 items-center justify-between">
-                      //  <FormControlLabel
-                      //    control={
-                      //      <Checkbox
-                      //        checked={compareCheck}
-                      //        onChange={(e) =>
-                      //          setCompareCheck(e.target.checked)
-                      //        }
-                      //        sx={{
-                      //          "& .MuiSvgIcon-root": { fontSize: 18 },
-                      //          p: "6px",
-                      //        }}
-                      //      />
-                      //    }
-                      //    label="比較対象"
-                      //    sx={{
-                      //      "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      //    }}
-                      //  />
-                      //  <FormControlLabel
-                      //    control={
-                      //      <Checkbox
-                      //        checked={dailyCheck === "日別"}
-                      //        onChange={handleDailyCheckChange}
-                      //        sx={{
-                      //          "& .MuiSvgIcon-root": { fontSize: 18 },
-                      //          p: "6px",
-                      //        }}
-                      //      />
-                      //    }
-                      //    label="日別"
-                      //    sx={{
-                      //      "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      //    }}
-                      //  />
-                      //</div>
+                      <div className="flex w-full gap-4 items-center justify-between">
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={compareCheck}
+                              onChange={(e) =>
+                                setCompareCheck(e.target.checked)
+                              }
+                              sx={{
+                                "& .MuiSvgIcon-root": { fontSize: 18 },
+                                p: "6px",
+                              }}
+                            />
+                          }
+                          label="比較対象"
+                          sx={{
+                            "& .MuiFormControlLabel-label": { fontSize: 14 },
+                          }}
+                        />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={dailyCheck === "日別"}
+                              onChange={handleDailyCheckChange}
+                              sx={{
+                                "& .MuiSvgIcon-root": { fontSize: 18 },
+                                p: "6px",
+                              }}
+                            />
+                          }
+                          label="日別"
+                          sx={{
+                            "& .MuiFormControlLabel-label": { fontSize: 14 },
+                          }}
+                        />
+                      </div>
                     </div>
                   </LocalizationProvider>
                 </div>
