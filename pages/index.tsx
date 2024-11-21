@@ -15,12 +15,18 @@ import {
   ListItemText,
   FormControl,
   InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DownloadIcon from "@mui/icons-material/Download";
 import SearchIcon from "@mui/icons-material/Search";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
+import LogoutIcon from "@mui/icons-material/Logout";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -94,6 +100,8 @@ const IndexPage = () => {
   const [locationValue, setLocationValue] = useState("全て"); //"全て or 駅前 or 郊外"
   const [typeValue, setTypeValue] = useState("全て"); //"全て or 直営 or FC"
   const [salesInclusionValue, setSalesInclusionValue] = useState("true"); //その他売り上げ込みかどうか
+  const [openErrorModal, setOpenErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   //型指定
   interface TotalData {
@@ -205,17 +213,46 @@ const IndexPage = () => {
 
   // 都道府県選択モーダルの開閉を制御
   const handleOpenPrefectureModal = () => setOpenPrefectureModal(true);
-  const handleClosePrefectureModal = () => setOpenPrefectureModal(false);
+  const handleClosePrefectureModal = () => {
+    setOpenPrefectureModal(false);
+    setSelectedPrefecture([]); // 都道府県の選択をクリア
+  };
 
-  //店舗選択クリアボタン押下
-  const clearStores = () => {
-    setSelectedStores([]);
+  const toggleAllStores = () => {
+    if (selectedStores.length > 0) {
+      // 1つでも選択されている場合は全解除
+      setSelectedStores([]);
+    } else {
+      // 何も選択されていない場合は全選択
+      setSelectedStores(initialStores);
+    }
   };
 
   //店舗検索入力値の管理ハンドラ
   const handleSearchChange = (e) => {
     setSearchText(e.target.value);
   };
+
+  // エンターキー押下時のハンドラを修正
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSelectOpen();
+      // MouseEventを使用してクリックイベントを生成
+      setTimeout(() => {
+        const selectElement = document.querySelector(".MuiSelect-select");
+        if (selectElement) {
+          const mouseEvent = new MouseEvent("mousedown", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          });
+          selectElement.dispatchEvent(mouseEvent);
+        }
+      }, 100);
+    }
+  };
+
   //入力値からフィルタリング
   const handleSelectOpen = () => {
     //let filtered = radioValueFilterStores();//ラジオボタンフィルタリング
@@ -470,17 +507,22 @@ const IndexPage = () => {
   //バックエンドAPIにデータ送信、受信
   // add 20240828
   const fetchAndTransformData = async (endpoint) => {
+    if (selectedStores.length === 0) {
+      setErrorMessage("対象店舗が選択されていません");
+      setOpenErrorModal(true);
+      return;
+    }
     try {
       setStoresData(initialStoresData); //初期化処理
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
 
-      /**テスト環境用*/
-      if (isTestMode) {
+      /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
+      if (false) {
         // モックデータを使用
         if (dailyCheck === "日別") {
           setStoresData(mockDateResponse());
         } else {
-          setStoresData(mockStoreResponse());
+          //setStoresData(mockStoreResponse());
         }
         return;
       }
@@ -504,7 +546,25 @@ const IndexPage = () => {
         // setStoresData(processData(data));
       }
     } catch (error) {
-      console.error("データ取得および変換エラー:", error);
+      console.error("Error fetching data:", error);
+      setErrorMessage("データの取得に失敗しました");
+      setOpenErrorModal(true);
+    }
+  };
+
+  // エラーモーダルを閉じる関数
+  const handleCloseErrorModal = () => {
+    setOpenErrorModal(false);
+  };
+
+  // ログアウト処理を修正
+  const handleLogout = async () => {
+    try {
+      await fetchData(API_ENDPOINTS.logout, null, router);
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      router.push("/login");
     }
   };
 
@@ -512,9 +572,20 @@ const IndexPage = () => {
     <>
       <Layout title="店舗売上集計<速報> | 売上速報">
         <div className="bg-gray-50 min-h-screen flex flex-col pb-20">
-          <h1 className="text-lg font-bold tracking-tighter bg-white py-1 pl-4">
-            店舗売上集計{"<速報>"}
-          </h1>
+          <div className="flex justify-between items-center bg-white">
+            <h1 className="text-lg font-bold tracking-tighter py-1 pl-4">
+              店舗売上集計{"<速報>"}
+            </h1>
+            <Button
+              onClick={handleLogout}
+              startIcon={<LogoutIcon />}
+              variant="outlined"
+              size="small"
+              className="text-gray-600 border-gray-400 hover:bg-gray-100"
+            >
+              ログアウト
+            </Button>
+          </div>
           <div className="flex flex-col gap-2 flex-1 p-2">
             <div className="flex flex-col md:flex-row gap-2 lg:gap-4 items-stretch">
               <div className="w-full md:w-5/12 lg:w-4/12">
@@ -748,9 +819,9 @@ const IndexPage = () => {
                             size="small"
                             variant="contained"
                             className="bg-blue-500 hover:bg-blue-800 text-white"
-                            onClick={clearStores}
+                            onClick={toggleAllStores}
                           >
-                            全選択解除
+                            {selectedStores.length > 0 ? "全解除" : "全選択"}
                           </Button>
                         </div>
                         <TextField
@@ -759,10 +830,8 @@ const IndexPage = () => {
                           label="店舗を検索"
                           type="search"
                           value={searchText}
-                          onChange={
-                            //入力値セット
-                            handleSearchChange
-                          }
+                          onChange={handleSearchChange}
+                          onKeyDown={handleSearchKeyDown}
                         />
                         <FormControl sx={{ mt: 2, width: "100%" }}>
                           <InputLabel>店舗選択</InputLabel>
@@ -771,10 +840,7 @@ const IndexPage = () => {
                             value={selectedStores.map((store) => store.id)}
                             input={<OutlinedInput label="店舗選択" />}
                             onChange={handleChange}
-                            onOpen={
-                              //フィルタリング
-                              handleSelectOpen
-                            }
+                            onOpen={handleSelectOpen}
                             renderValue={(selected) =>
                               //選択ボックスに選択店舗名を表示
                               selectedStores
@@ -785,33 +851,58 @@ const IndexPage = () => {
                             MenuProps={{
                               PaperProps: {
                                 style: {
-                                  maxHeight: '80vh', // 画面の80%の高さまで表示可能
-                                  width: 'fit-content',
-                                }
-                              }
+                                  maxHeight: "90vh", // 画面の高さ100
+                                  width: "fit-content",
+                                },
+                              },
+                              // スクロール位置を先頭に設定
+                              TransitionProps: {
+                                onEnter: (node) => {
+                                  if (node) {
+                                    node.scrollTop = 0;
+                                  }
+                                },
+                              },
+                              anchorOrigin: {
+                                vertical: "bottom",
+                                horizontal: "left",
+                              },
+                              transformOrigin: {
+                                vertical: "top",
+                                horizontal: "left",
+                              },
                             }}
                           >
-                            <Box sx={{ 
-                              position: 'sticky', 
-                              top: 0, 
-                              bgcolor: 'background.paper',
-                              zIndex: 1,
-                              borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
-                              display: 'flex',
-                              justifyContent: 'flex-end',
-                              padding: '4px'
-                            }}>
+                            <Box
+                              sx={{
+                                position: "sticky",
+                                top: 0,
+                                bgcolor: "background.paper",
+                                zIndex: 1,
+                                borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                padding: "4px",
+                              }}
+                            >
                               <IconButton
-                                 onClick={(event) => {
-                                  event.preventDefault();
+                                onClick={(event) => {
                                   event.stopPropagation();
-                                  // モーダルの外側をクリックする動作をシミュレート
-                                  const outsideClick = new MouseEvent('mousedown', {
-                                    bubbles: true,
-                                    cancelable: true,
-                                    view: window
-                                  });
-                                  document.dispatchEvent(outsideClick);
+                                  const selectElement =
+                                    document.querySelector('[role="listbox"]');
+                                  if (selectElement) {
+                                    const closeEvent = new KeyboardEvent(
+                                      "keydown",
+                                      {
+                                        key: "Escape",
+                                        code: "Escape",
+                                        keyCode: 27,
+                                        which: 27,
+                                        bubbles: true,
+                                      }
+                                    );
+                                    selectElement.dispatchEvent(closeEvent);
+                                  }
                                 }}
                                 size="small"
                               >
@@ -893,15 +984,15 @@ const IndexPage = () => {
                                 fontSize: "1rem",
                               }}
                             >
-                              都道府県を選択してください。
+                              都道府県を選択してください
                             </Typography>
                             <Button
                               size="small"
                               variant="contained"
                               className="bg-blue-500 hover:bg-blue-800 text-white"
-                              onClick={clearStores}
+                              onClick={toggleAllStores}
                             >
-                              全選択解除
+                              {selectedStores.length > 0 ? "全解除" : "全選択"}
                             </Button>
                           </div>
                           <FormControl fullWidth sx={{ mt: 2 }}>
@@ -914,7 +1005,53 @@ const IndexPage = () => {
                               renderValue={(selected: string[]) =>
                                 selected.join(", ")
                               }
+                              MenuProps={{
+                                PaperProps: {
+                                  style: {
+                                    maxHeight: "90vh", // 画面の高さ100
+                                    width: "fit-content",
+                                  },
+                                },
+                              }}
                             >
+                              <Box
+                                sx={{
+                                  position: "sticky",
+                                  top: 0,
+                                  bgcolor: "background.paper",
+                                  zIndex: 1,
+                                  borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
+                                  display: "flex",
+                                  justifyContent: "flex-end",
+                                  padding: "4px",
+                                }}
+                              >
+                                <IconButton
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    const selectElement =
+                                      document.querySelector(
+                                        '[role="listbox"]'
+                                      );
+                                    if (selectElement) {
+                                      const closeEvent = new KeyboardEvent(
+                                        "keydown",
+                                        {
+                                          key: "Escape",
+                                          code: "Escape",
+                                          keyCode: 27,
+                                          which: 27,
+                                          bubbles: true,
+                                        }
+                                      );
+                                      selectElement.dispatchEvent(closeEvent);
+                                    }
+                                  }}
+                                  size="small"
+                                >
+                                  <CloseIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
                               {prefectures.map((prefecture) => (
                                 <MenuItem
                                   key={prefecture}
@@ -965,33 +1102,59 @@ const IndexPage = () => {
                               MenuProps={{
                                 PaperProps: {
                                   style: {
-                                    maxHeight: '80vh', // 画面の80%の高さまで表示可能
-                                    width: 'fit-content',
-                                  }
-                                }
+                                    maxHeight: "90vh", // 画面高さまで100
+                                    width: "fit-content",
+                                  },
+                                },
+                                TransitionProps: {
+                                  onEnter: (node) => {
+                                    if (node) {
+                                      node.scrollTop = 0;
+                                    }
+                                  },
+                                },
+                                anchorOrigin: {
+                                  vertical: "bottom",
+                                  horizontal: "left",
+                                },
+                                transformOrigin: {
+                                  vertical: "top",
+                                  horizontal: "left",
+                                },
                               }}
                             >
-                              <Box sx={{ 
-                                position: 'sticky', 
-                                top: 0, 
-                                bgcolor: 'background.paper',
-                                zIndex: 1,
-                                borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                padding: '4px'
-                              }}>
+                              <Box
+                                sx={{
+                                  position: "sticky",
+                                  top: 0,
+                                  bgcolor: "background.paper",
+                                  zIndex: 1,
+                                  borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
+                                  display: "flex",
+                                  justifyContent: "flex-end",
+                                  padding: "4px",
+                                }}
+                              >
                                 <IconButton
-                                   onClick={(event) => {
-                                    event.preventDefault();
+                                  onClick={(event) => {
                                     event.stopPropagation();
-                                    // モーダルの外側をクリックする動作をシミュレート
-                                    const outsideClick = new MouseEvent('mousedown', {
-                                      bubbles: true,
-                                      cancelable: true,
-                                      view: window
-                                    });
-                                    document.dispatchEvent(outsideClick);
+                                    const selectElement =
+                                      document.querySelector(
+                                        '[role="listbox"]'
+                                      );
+                                    if (selectElement) {
+                                      const closeEvent = new KeyboardEvent(
+                                        "keydown",
+                                        {
+                                          key: "Escape",
+                                          code: "Escape",
+                                          keyCode: 27,
+                                          which: 27,
+                                          bubbles: true,
+                                        }
+                                      );
+                                      selectElement.dispatchEvent(closeEvent);
+                                    }
                                   }}
                                   size="small"
                                 >
@@ -1025,21 +1188,32 @@ const IndexPage = () => {
                         </Box>
                       </div>
                     </Modal>
-                    <div className="mb-2 md:mt-2">
-                      <p className="text-sm text-gray-700 flex flex-wrap">
-                        {selectedStores.map((store, index) => (
-                          <span key={store.id} className="whitespace-nowrap">
-                            {store.name}
-                            {index < selectedStores.length - 1 ? ",　" : ""}
-                          </span>
-                        ))}
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
-              <div className="w-full md:w-3/12 lg-1/12">
+              <div className="md:w-4/12 lg:w-3/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full min-w-32">
+                  <h2 className="text-base font-bold mb-2 md:mb-1">選択店舗</h2>
+                  <div className="mb-2 md:mt-2">
+                    <p className="text-sm text-gray-700 flex flex-wrap">
+                      {selectedStores.length > 0 ? (
+                        selectedStores.map((store, index) => (
+                          <span key={store.id} className="whitespace-nowrap">
+                            {store.name}
+                            {index < selectedStores.length - 1 ? "　" : ""}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-500">
+                          選択されていません
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="md:w-auto">
+                <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full inline-block">
                   <h2 className="text-base font-bold mb-2 md:mb-1">
                     その他条件
                   </h2>
@@ -1297,7 +1471,7 @@ const IndexPage = () => {
                     <tr>
                       {/*小分類*/}
                       <th className="sticky left-0 z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border"></th>
-                      <th className="sticky left-[70px] z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border  border border-r-2 border-r-gray-400">
+                      <th className="sticky left-[60px] z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border  border border-r-2 border-r-gray-400">
                         店番
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
@@ -1434,7 +1608,7 @@ const IndexPage = () => {
                       <td className="sticky left-0 z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border">
                         {storesData.totalData.storeName.toLocaleString()}
                       </td>
-                      <td className="sticky left-[70px] z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border border border-r-2 border-r-gray-400">
+                      <td className="sticky left-[60px] z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border border border-r-2 border-r-gray-400">
                         {storesData.totalData.storeNumber.toLocaleString()}
                       </td>
                       <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
@@ -1588,6 +1762,32 @@ const IndexPage = () => {
           </div>
         </div>
       </Layout>
+      <Dialog
+        open={openErrorModal}
+        onClose={handleCloseErrorModal}
+        aria-labelledby="error-dialog-title"
+        aria-describedby="error-dialog-description"
+      >
+        <DialogTitle
+          id="error-dialog-title"
+          className="flex items-center gap-2"
+        >
+          <ErrorOutlineIcon className="text-red-500" />
+          <span>エラー</span>
+        </DialogTitle>
+        <DialogContent>
+          <p className="text-gray-700">{errorMessage}</p>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseErrorModal}
+            variant="contained"
+            className="bg-blue-500 hover:bg-blue-800"
+          >
+            閉じる
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
