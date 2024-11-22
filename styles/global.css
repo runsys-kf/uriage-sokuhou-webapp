@@ -3,3 +3,27 @@
 @import '~tailwindcss/utilities';
 
 @import '~styles/style.css';
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono+JP:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1+Code&display=swap');
+
+/* @font-face {
+    font-family: 'M PLUS 1 Code';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('https://fonts.googleapis.com/css2?family=M+PLUS+1+Code&display=swap');
+  } */
+  /* @font-face {
+    font-family: 'HGP創英角ｺﾞｼｯｸUB';
+    src: url('/fonts/HGP創英角ｺﾞｼｯｸUB.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  } */
+  /* @font-face {
+    font-family: 'Source Han Mono';
+    src: url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono+JP:wght@400;500&display=swap') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  } */

@@ -73,7 +73,7 @@ export const dateProcessData = (response) => {
   // UI に合わせたキー名に変更
   const totalData = {
     storeName: response.合計.date,
-    storeNumber: response.合計.base_no,
+    storeNumber: response.合計.base_name,
     netSalesA: response.合計.sales_total1,
     netSalesB: response.合計.sales_total2,
     netSalesChange: response.合計.sales_total_diff,
@@ -107,7 +107,7 @@ export const dateProcessData = (response) => {
 const dateTransformData = (data) => {
   return data.map(item => ({
     storeName: item.date,
-    storeNumber: item.base_no,
+    storeNumber: item.base_name,
     netSalesA: item.sales_total1,
     netSalesB: item.sales_total2,
     netSalesChange: item.sales_total_diff,

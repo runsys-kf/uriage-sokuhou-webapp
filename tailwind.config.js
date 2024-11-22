@@ -20,6 +20,21 @@ module.exports = {
 				accent: '#db6273',
 				'accent-dark': '#b24d5c',
 			},
+			// fontFamily: {
+			// 	'custom-mono': ['"M PLUS 1 Code"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+			// },
+			// fontFamily: {
+			// 	'custom-mono': ['HGP創英角ｺﾞｼｯｸUB', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+			// },
+
+
+			// fontFamily: {
+			// 	'custom-mono': ['"Noto Sans Mono JP"', 'monospace'],
+			// },
+			fontFamily: {
+				'custom-mono': ['"M PLUS 1 Code"', 'monospace'],
+			},
+
 		},
 	},
 	plugins: [],

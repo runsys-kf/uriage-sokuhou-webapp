@@ -44,7 +44,6 @@ import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
 
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
-import { Store } from "@mui/icons-material";
 // add 20240828
 import { useRouter } from "next/router";
 
@@ -55,21 +54,25 @@ const IndexPage = () => {
   const theme = useTheme();
   const router = useRouter();
 
+  // 認証チェックを有効化
   // useEffect(() => {
   //   const checkAuth = async () => {
   //     try {
   //       const response = await axios.get('http://127.0.0.1:5000/', {
   //         withCredentials: true
   //       });
+  //       // 認証成功
   //       console.log("User is authenticated:", response.data.user);
   //     } catch (error) {
+  //       // 認証失敗時はログインページへリダイレクト
   //       console.error("Authentication check failed:", error);
-  //       router.push('/login');
+  //       router.replace('/login'); // pushではなくreplaceを使用
   //     }
   //   };
 
   //   checkAuth();
   // }, [router]);
+
   // カレンダー用状態 前日を選択させる処理含む
   const [date1, setDate1] = useState(dayjs());
   const [date2, setDate2] = useState(dayjs());
@@ -107,54 +110,54 @@ const IndexPage = () => {
   interface TotalData {
     storeName: string;
     storeNumber: string;
-    netSalesA: number;
-    netSalesB: number;
-    netSalesChange: number;
-    netSalesRatio: number;
-    usersA: number;
-    usersB: number;
-    usersChange: number;
-    usersRatio: number;
-    avgPriceA: number;
-    avgPriceB: number;
-    avgPriceChange: number;
-    avgPriceRatio: number;
-    newUsersA: number;
-    newUsersB: number;
-    newUsersChange: number;
-    newUsersRatio: number;
-    newUsersRateA: number;
-    newUsersRateB: number;
-    otherSalesA: number;
-    otherSalesB: number;
-    otherSalesChange: number;
-    otherSalesRatio: number;
+    netSalesA: string;
+    netSalesB: string;
+    netSalesChange: string;
+    netSalesRatio: string;
+    usersA: string;
+    usersB: string;
+    usersChange: string;
+    usersRatio: string;
+    avgPriceA: string;
+    avgPriceB: string;
+    avgPriceChange: string;
+    avgPriceRatio: string;
+    newUsersA: string;
+    newUsersB: string;
+    newUsersChange: string;
+    newUsersRatio: string;
+    newUsersRateA: string;
+    newUsersRateB: string;
+    otherSalesA: string;
+    otherSalesB: string;
+    otherSalesChange: string;
+    otherSalesRatio: string;
   }
   interface StoreData {
     storeName: string;
     storeNumber: string;
-    netSalesA: number;
-    netSalesB: number;
-    netSalesChange: number;
-    netSalesRatio: number;
-    usersA: number;
-    usersB: number;
-    usersChange: number;
-    usersRatio: number;
-    avgPriceA: number;
-    avgPriceB: number;
-    avgPriceChange: number;
-    avgPriceRatio: number;
-    newUsersA: number;
-    newUsersB: number;
-    newUsersChange: number;
-    newUsersRatio: number;
-    newUsersRateA: number;
-    newUsersRateB: number;
-    otherSalesA: number;
-    otherSalesB: number;
-    otherSalesChange: number;
-    otherSalesRatio: number;
+    netSalesA: string;
+    netSalesB: string;
+    netSalesChange: string;
+    netSalesRatio: string;
+    usersA: string;
+    usersB: string;
+    usersChange: string;
+    usersRatio: string;
+    avgPriceA: string;
+    avgPriceB: string;
+    avgPriceChange: string;
+    avgPriceRatio: string;
+    newUsersA: string;
+    newUsersB: string;
+    newUsersChange: string;
+    newUsersRatio: string;
+    newUsersRateA: string;
+    newUsersRateB: string;
+    otherSalesA: string;
+    otherSalesB: string;
+    otherSalesChange: string;
+    otherSalesRatio: string;
   }
   interface StoresData {
     totalData: TotalData;
@@ -165,28 +168,28 @@ const IndexPage = () => {
     totalData: {
       storeName: "合計",
       storeNumber: "",
-      netSalesA: 0,
-      netSalesB: 0,
-      netSalesChange: 0,
-      netSalesRatio: 0,
-      usersA: 0,
-      usersB: 0,
-      usersChange: 0,
-      usersRatio: 0,
-      avgPriceA: 0,
-      avgPriceB: 0,
-      avgPriceChange: 0,
-      avgPriceRatio: 0,
-      newUsersA: 0,
-      newUsersB: 0,
-      newUsersChange: 0,
-      newUsersRatio: 0,
-      newUsersRateA: 0,
-      newUsersRateB: 0,
-      otherSalesA: 0,
-      otherSalesB: 0,
-      otherSalesChange: 0,
-      otherSalesRatio: 0,
+      netSalesA: "",
+      netSalesB: "",
+      netSalesChange: "",
+      netSalesRatio: "",
+      usersA: "",
+      usersB: "",
+      usersChange: "",
+      usersRatio: "",
+      avgPriceA: "",
+      avgPriceB: "",
+      avgPriceChange: "",
+      avgPriceRatio: "",
+      newUsersA: "",
+      newUsersB: "",
+      newUsersChange: "",
+      newUsersRatio: "",
+      newUsersRateA: "",
+      newUsersRateB: "",
+      otherSalesA: "",
+      otherSalesB: "",
+      otherSalesChange: "",
+      otherSalesRatio: "",
     },
     storeData: [],
   });
@@ -413,36 +416,36 @@ const IndexPage = () => {
 
   //ソート処理
   //真
-  // const sortedStoresData = [...storesData.storeData].sort((a, b) => {
-  //   if (typeof a[sortKey] === 'number' && typeof b[sortKey] === 'number') {
-  //     return sortDirection === 'asc'
-  //       ? a[sortKey] - b[sortKey]
-  //       : b[sortKey] - a[sortKey];
-  //   }
-
-  //   // 文字列の場合
-  //   return sortDirection === 'asc'
-  //     ? String(a[sortKey]).localeCompare(String(b[sortKey]))
-  //     : String(b[sortKey]).localeCompare(String(a[sortKey]));
-  // });
-  //旧
   const sortedStoresData = [...storesData.storeData].sort((a, b) => {
-    // sortKey が数値のプロパティに対応しているか確認し、適切に変換
-    const aValue = typeof a[sortKey] === "number" ? a[sortKey] : 0;
-    const bValue = typeof b[sortKey] === "number" ? b[sortKey] : 0;
-
-    // 数値以外の場合は文字列としてソートする処理も追加可能
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
-    } else {
-      // 数値以外のデータ型に対応する場合の処理
-      const aStr = String(a[sortKey]);
-      const bStr = String(b[sortKey]);
+    if (typeof a[sortKey] === "number" && typeof b[sortKey] === "number") {
       return sortDirection === "asc"
-        ? aStr.localeCompare(bStr)
-        : bStr.localeCompare(aStr);
+        ? a[sortKey] - b[sortKey]
+        : b[sortKey] - a[sortKey];
     }
+
+    // 文字列の場合
+    return sortDirection === "asc"
+      ? String(a[sortKey]).localeCompare(String(b[sortKey]))
+      : String(b[sortKey]).localeCompare(String(a[sortKey]));
   });
+  //旧
+  // const sortedStoresData = [...storesData.storeData].sort((a, b) => {
+  //   // sortKey が数値のプロパティに対応しているか確認し、適切に変換
+  //   const aValue = typeof a[sortKey] === "number" ? a[sortKey] : 0;
+  //   const bValue = typeof b[sortKey] === "number" ? b[sortKey] : 0;
+
+  //   // 数値以外の場合は文字列としてソートする処理も追加可能
+  //   if (typeof aValue === "number" && typeof bValue === "number") {
+  //     return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+  //   } else {
+  //     // 数値以外のデータ型に対応する場合の処理
+  //     const aStr = String(a[sortKey]);
+  //     const bStr = String(b[sortKey]);
+  //     return sortDirection === "asc"
+  //       ? aStr.localeCompare(bStr)
+  //       : bStr.localeCompare(aStr);
+  //   }
+  // });
   ///***<送信時データ変換処理>***///
   const createRequestData = (endpoint) => {
     let startDate3 = "";
@@ -479,28 +482,28 @@ const IndexPage = () => {
     totalData: {
       storeName: "合計",
       storeNumber: "",
-      netSalesA: 0,
-      netSalesB: 0,
-      netSalesChange: 0,
-      netSalesRatio: 0,
-      usersA: 0,
-      usersB: 0,
-      usersChange: 0,
-      usersRatio: 0,
-      avgPriceA: 0,
-      avgPriceB: 0,
-      avgPriceChange: 0,
-      avgPriceRatio: 0,
-      newUsersA: 0,
-      newUsersB: 0,
-      newUsersChange: 0,
-      newUsersRatio: 0,
-      newUsersRateA: 0,
-      newUsersRateB: 0,
-      otherSalesA: 0,
-      otherSalesB: 0,
-      otherSalesChange: 0,
-      otherSalesRatio: 0,
+      netSalesA: "",
+      netSalesB: "",
+      netSalesChange: "",
+      netSalesRatio: "",
+      usersA: "",
+      usersB: "",
+      usersChange: "",
+      usersRatio: "",
+      avgPriceA: "",
+      avgPriceB: "",
+      avgPriceChange: "",
+      avgPriceRatio: "",
+      newUsersA: "",
+      newUsersB: "",
+      newUsersChange: "",
+      newUsersRatio: "",
+      newUsersRateA: "",
+      newUsersRateB: "",
+      otherSalesA: "",
+      otherSalesB: "",
+      otherSalesChange: "",
+      otherSalesRatio: "",
     },
     storeData: [],
   };
@@ -515,14 +518,13 @@ const IndexPage = () => {
     try {
       setStoresData(initialStoresData); //初期化処理
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
-
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
-      if (false) {
+      if (isTestMode) {
         // モックデータを使用
         if (dailyCheck === "日別") {
           setStoresData(mockDateResponse());
         } else {
-          //setStoresData(mockStoreResponse());
+          setStoresData(mockStoreResponse());
         }
         return;
       }
@@ -561,12 +563,18 @@ const IndexPage = () => {
   const handleLogout = async () => {
     try {
       await fetchData(API_ENDPOINTS.logout, null, router);
-      router.push("/login");
+      router.replace("/login"); // pushではなくreplaceを使用
     } catch (error) {
       console.error("Logout failed:", error);
-      router.push("/login");
+      router.replace("/login");
     }
   };
+
+  // 固定幅のスタイルを定義
+const fixedColumnStyles = {
+  firstColumn: "sticky left-0 z-10 bg-white min-w-[120px] max-w-[120px]", // 店舗名列
+  secondColumn: "sticky left-[120px] z-10 bg-white min-w-[80px] max-w-[80px]", // 店舗番号列
+};
 
   return (
     <>
@@ -743,7 +751,7 @@ const IndexPage = () => {
                             "& .MuiFormControlLabel-label": { fontSize: 14 },
                           }}
                         />
-                        {/* <FormControlLabel
+                        <FormControlLabel
                           control={
                             <Checkbox
                               checked={dailyCheck === "日別"}
@@ -758,7 +766,7 @@ const IndexPage = () => {
                           sx={{
                             "& .MuiFormControlLabel-label": { fontSize: 14 },
                           }}
-                        /> */}
+                        />
                       </div>
                     </div>
                   </LocalizationProvider>
@@ -1195,20 +1203,30 @@ const IndexPage = () => {
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full min-w-32">
                   <h2 className="text-base font-bold mb-2 md:mb-1">選択店舗</h2>
                   <div className="mb-2 md:mt-2">
-                    <p className="text-sm text-gray-700 flex flex-wrap">
-                      {selectedStores.length > 0 ? (
-                        selectedStores.map((store, index) => (
-                          <span key={store.id} className="whitespace-nowrap">
-                            {store.name}
-                            {index < selectedStores.length - 1 ? "　" : ""}
+                    <div className="max-h-32 overflow-y-auto">
+                      {" "}
+                      {/* 最大高さとスクロールを追加 */}
+                      <p className="text-sm text-gray-700">
+                        {selectedStores.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {" "}
+                            {/* gap-1 で適切な間隔を設定 */}
+                            {selectedStores.map((store, index) => (
+                              <span
+                                key={store.id}
+                                className="whitespace-nowrap bg-gray-100 px-2 py-1 rounded" // 各店舗名を見やすく区切る
+                              >
+                                {store.name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">
+                            選択されていません
                           </span>
-                        ))
-                      ) : (
-                        <span className="text-gray-500">
-                          選択されていません
-                        </span>
-                      )}
-                    </p>
+                        )}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1470,9 +1488,24 @@ const IndexPage = () => {
                     </tr>
                     <tr>
                       {/*小分類*/}
-                      <th className="sticky left-0 z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border"></th>
-                      <th className="sticky left-[60px] z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border  border border-r-2 border-r-gray-400">
-                        店番
+                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}></th>
+                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
+                        <div className="flex items-center justify-between">
+                          店番
+                          <div>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleSort("storeNumber")}
+                            >
+                              {sortKey === "storeNumber" &&
+                              sortDirection === "asc" ? (
+                                <ArrowUpwardIcon fontSize="inherit" />
+                              ) : (
+                                <ArrowDownwardIcon fontSize="inherit" />
+                              )}
+                            </IconButton>
+                          </div>
+                        </div>
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
@@ -1583,13 +1616,43 @@ const IndexPage = () => {
                         A/B
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間A
+                        <div className="flex items-center justify-between">
+                          期間A
+                          <div>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleSort("newUsersRateA")}
+                            >
+                              {sortKey === "newUsersRateA" &&
+                              sortDirection === "asc" ? (
+                                <ArrowUpwardIcon fontSize="inherit" />
+                              ) : (
+                                <ArrowDownwardIcon fontSize="inherit" />
+                              )}
+                            </IconButton>
+                          </div>
+                        </div>
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
                         期間B
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間A
+                        <div className="flex items-center justify-between">
+                          期間A
+                          <div>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleSort("otherSalesA")}
+                            >
+                              {sortKey === "otherSalesA" &&
+                              sortDirection === "asc" ? (
+                                <ArrowUpwardIcon fontSize="inherit" />
+                              ) : (
+                                <ArrowDownwardIcon fontSize="inherit" />
+                              )}
+                            </IconButton>
+                          </div>
+                        </div>
                       </th>
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         期間B
@@ -1605,152 +1668,152 @@ const IndexPage = () => {
                   {/* 合計行 */}
                   <tbody className="bg-white divide-y divide-x divide-gray-200">
                     <tr>
-                      <td className="sticky left-0 z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border">
+                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}>
                         {storesData.totalData.storeName.toLocaleString()}
                       </td>
-                      <td className="sticky left-[60px] z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border border border-r-2 border-r-gray-400">
+                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
                         {storesData.totalData.storeNumber.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                         {storesData.totalData.netSalesA.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                         {storesData.totalData.netSalesB.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                         {storesData.totalData.netSalesChange.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 border border-r-2 border-r-gray-400 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 border border-r-2 border-r-gray-400 text-right">
                         {storesData.totalData.netSalesRatio.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                         {storesData.totalData.usersA.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right ">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ">
                         {storesData.totalData.usersB.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                         {storesData.totalData.usersChange.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
                         {storesData.totalData.usersRatio.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                         {storesData.totalData.avgPriceA.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                         {storesData.totalData.avgPriceB.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                         {storesData.totalData.avgPriceChange.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 border border-r-2 border-r-gray-400 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 border border-r-2 border-r-gray-400 text-right">
                         {storesData.totalData.avgPriceRatio.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                         {storesData.totalData.newUsersA.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                         {storesData.totalData.newUsersB.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                         {storesData.totalData.newUsersChange.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
                         {storesData.totalData.newUsersRatio.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                         {storesData.totalData.newUsersRateA.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
                         {storesData.totalData.newUsersRateB.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                         {storesData.totalData.otherSalesA.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                         {storesData.totalData.otherSalesB.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                         {storesData.totalData.otherSalesChange.toLocaleString()}
                       </td>
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                         {storesData.totalData.otherSalesRatio.toLocaleString()}
                       </td>
                     </tr>
                     {/* データ行 */}
-                    {storesData.storeData.map((store) => (
+                    {sortedStoresData.map((store) => (
                       <tr key={store.storeNumber}>
-                        <td className="sticky left-0 z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border">
+                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}>
                           {store.storeName}
                         </td>
-                        <td className="sticky left-[70px] z-10 bg-white px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border border border-r-2 border-r-gray-400">
+                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
                           {store.storeNumber}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                           {store.netSalesA.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                           {store.netSalesB.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                           {store.netSalesChange.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
                           {store.netSalesRatio.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.usersA.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.usersB.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.usersChange.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
                           {store.usersRatio.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                           {store.avgPriceA.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                           {store.avgPriceB.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                           {store.avgPriceChange.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 border border-r-2 border-r-gray-400 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 border border-r-2 border-r-gray-400 text-right">
                           {store.avgPriceRatio.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.newUsersA.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.newUsersB.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.newUsersChange.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border  border border-r-2 border-r-gray-400 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border  border border-r-2 border-r-gray-400 text-right">
                           {store.newUsersRatio.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
                           {store.newUsersRateA.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
                           {store.newUsersRateB.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.otherSalesA.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.otherSalesB.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.otherSalesChange.toLocaleString()}
                         </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-mono text-gray-900 border text-right">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.otherSalesRatio.toLocaleString()}
                         </td>
                       </tr>
