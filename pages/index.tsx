@@ -444,18 +444,29 @@ const IndexPage = () => {
     setSortKey(key);
   };
 
-  //ソート処理
-  const sortedStoresData = [...storesData.storeData].sort((a, b) => {
-    if (typeof a[sortKey] === "number" && typeof b[sortKey] === "number") {
-      return sortDirection === "asc"
-        ? a[sortKey] - b[sortKey]
-        : b[sortKey] - a[sortKey];
-    }
-    // 文字列の場合
-    return sortDirection === "asc"
-      ? String(a[sortKey]).localeCompare(String(b[sortKey]))
-      : String(b[sortKey]).localeCompare(String(a[sortKey]));
-  });
+// ソート処理
+const sortedStoresData = [...storesData.storeData].sort((a, b) => {
+  // 空文字列の処理
+  if (a[sortKey] === "" && b[sortKey] === "") return 0;
+  if (a[sortKey] === "") return sortDirection === "asc" ? -1 : 1;  // 昇順なら上、降順なら下
+  if (b[sortKey] === "") return sortDirection === "asc" ? 1 : -1;  // 昇順なら上、降順なら下
+
+  // カンマを除去して数値に変換
+  const valueA = Number(String(a[sortKey]).replace(/,/g, ''));
+  const valueB = Number(String(b[sortKey]).replace(/,/g, ''));
+
+  // 数値として有効な場合は数値比較
+  if (!isNaN(valueA) && !isNaN(valueB)) {
+    return sortDirection === "asc" 
+      ? valueA - valueB 
+      : valueB - valueA;
+  }
+
+  // 数値変換できない場合は文字列として比較
+  return sortDirection === "asc"
+    ? String(a[sortKey]).localeCompare(String(b[sortKey]))
+    : String(b[sortKey]).localeCompare(String(a[sortKey]));
+});
 
   ///***<送信時データ変換処理>***///
   const createRequestData = (endpoint) => {
@@ -530,7 +541,7 @@ const IndexPage = () => {
       setStoresData(initialStoresData); //初期化処理
       setSortKey("");
       setSortDirection("desc");
-      // /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
+      /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       // const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       // if (isTestMode) {
       //   if (dailyCheck === "日別") {
