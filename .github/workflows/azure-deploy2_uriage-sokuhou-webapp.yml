@@ -60,7 +60,7 @@ jobs:
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FBA4010A6A8D4BA193D5B49F8BBB0703 }}
 
-      # swap
+      # swapp
       - name: Swap Staging to Production
         run: |
           az webapp deployment slot swap \
