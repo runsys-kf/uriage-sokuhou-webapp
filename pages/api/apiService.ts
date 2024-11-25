@@ -4,26 +4,47 @@ import { NextRouter } from 'next/router';
 /**
  * BackAPIリクエストを接続管理
  * */
-//APIURL
-const BackApiURL = "http://127.0.0.1:5000";
+// APIURL
+const BackApiURL = "https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api";
+
 //ENDPOINTS
 export const API_ENDPOINTS = {
   login: "login",
   display_by_store: "display_by_store",
   display_by_date: "display_by_date",
   download: "download",
+  adimn_login: "admin_login",
   logout: "logout",
 }
 
 //APIリクエスト関数
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
+  const token = localStorage.getItem('access_token');
   try {
-    console.log("BackApiURL: ", BackApiURL);
-    console.log("endpoint: ", endpoint);
-    console.log("data: ", data);
-    // ここのリクエストが上手くわたっていない
-    const response = await axios.post(`${BackApiURL}/${endpoint}`, data, {
-      withCredentials: true
+
+    let url = "";
+
+    // ログイン認証
+    if (endpoint === "login") {
+        url = "https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login";
+    }
+    // 店舗別データ表示
+    if (endpoint === "display_by_store") {
+        url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store";
+    }
+    // 日別データ表示
+    if (endpoint === "display_by_date") {
+        url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store";
+    }
+    if(endpoint === "logout"){
+      url = "";
+    }
+
+    const response = await axios.post(url, data, {
+            headers:{
+          	  'Authorization': `Bearer ${token}`,
+          	  'Content-Type': 'application/json'
+            }
     });
 
     return response.data;

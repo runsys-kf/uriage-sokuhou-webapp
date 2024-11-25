@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout";
-import axios from "axios"; // これを追加
+import axios from "axios";  // これを追加
 
 import React, { useState, useEffect } from "react";
 import {
@@ -39,13 +39,55 @@ import { useTheme } from "@mui/material/styles";
 import Holidays from "date-holidays";
 import { fetchData, API_ENDPOINTS } from "./api/apiService";
 import { storeProcessData, dateProcessData } from "./api/dataTransformer";
-import { initialStores } from "./shopData";
-import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
-
+import { initialStores } from "../data/shopData";
+//import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
 // add 20240828
 import { useRouter } from "next/router";
+import { GetServerSideProps } from 'next';
+// add 20241117 16:23
+import nookies from 'nookies';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = '100'; // サーバー側と同じ秘密鍵
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+
+    const cookies = nookies.get(context);
+    const token = cookies['access_token'];
+
+    if (!token) {
+        // トークンがない場合、ログインページにリダイレクト
+        return {
+            redirect: {
+                destination: '/login',
+                permanent: false,
+            },
+        };
+    }
+
+    try {
+        // トークンを検証
+        const decoded = jwt.verify(token, JWT_SECRET);
+
+        // 認証成功
+        return {
+            props: {
+                user: decoded,
+            },
+        };
+    } catch (error) {
+        console.error('Token verification failed:', error.message);
+        // 認証失敗、ログインページにリダイレクト
+        return {
+            redirect: {
+                destination: '/login',
+                permanent: false,
+            },
+        };
+    }
+};
 
 const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 
@@ -54,13 +96,15 @@ const IndexPage = () => {
   const theme = useTheme();
   const router = useRouter();
 
-  // 認証チェックを有効化
+  // 認証チェック
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/', {
+        console.log("index.tsx res:");
+        const response = await axios.get("https://salesrepo.runsystem.co.jp/", {
           withCredentials: true
         });
+        console.log("index.tsx res: ", response);
         // 認証成功
         console.log("User is authenticated:", response.data.user);
       } catch (error) {
@@ -193,16 +237,6 @@ const IndexPage = () => {
     },
     storeData: [],
   });
-  interface Store {
-    id: string;
-    name: string;
-    prefecture: string;
-  }
-  //昇順、降順 現在の状況
-  // const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-
-  //ソート列　現在ソートしている列
-  // const [sortKey, setSortKey] = useState<string>("");
 
   //昇順、降順 現在の状況
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -221,6 +255,7 @@ const IndexPage = () => {
     setSelectedPrefecture([]); // 都道府県の選択をクリア
   };
 
+  //全選択/全解除
   const toggleAllStores = () => {
     if (selectedStores.length > 0) {
       // 1つでも選択されている場合は全解除
@@ -274,11 +309,6 @@ const IndexPage = () => {
       setSelectedStores(filtered);
     }
   };
-
-  // 選択都道府県セットハンドラ
-  // const setPrefectureChange = (e) => {
-  //   setSelectedPrefecture(e.target.value);
-  // };
 
   // 選択都道府県セットハンドラ
   const setPrefectureChange = (event) => {
@@ -415,7 +445,6 @@ const IndexPage = () => {
   };
 
   //ソート処理
-  //真
   const sortedStoresData = [...storesData.storeData].sort((a, b) => {
     if (typeof a[sortKey] === "number" && typeof b[sortKey] === "number") {
       return sortDirection === "asc"
@@ -427,24 +456,7 @@ const IndexPage = () => {
       ? String(a[sortKey]).localeCompare(String(b[sortKey]))
       : String(b[sortKey]).localeCompare(String(a[sortKey]));
   });
-  //旧
-  // const sortedStoresData = [...storesData.storeData].sort((a, b) => {
-  //   // sortKey が数値のプロパティに対応しているか確認し、適切に変換
-  //   const aValue = typeof a[sortKey] === "number" ? a[sortKey] : 0;
-  //   const bValue = typeof b[sortKey] === "number" ? b[sortKey] : 0;
 
-  //   // 数値以外の場合は文字列としてソートする処理も追加可能
-  //   if (typeof aValue === "number" && typeof bValue === "number") {
-  //     return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
-  //   } else {
-  //     // 数値以外のデータ型に対応する場合の処理
-  //     const aStr = String(a[sortKey]);
-  //     const bStr = String(b[sortKey]);
-  //     return sortDirection === "asc"
-  //       ? aStr.localeCompare(bStr)
-  //       : bStr.localeCompare(aStr);
-  //   }
-  // });
   ///***<送信時データ変換処理>***///
   const createRequestData = (endpoint) => {
     let startDate3 = "";
@@ -531,6 +543,8 @@ const IndexPage = () => {
 
       /**本番環境用 */
       let params;
+      console.log("API_ENDPOINT: ", API_ENDPOINTS);
+      console.log("endpoint: ", endpoint);
 
       if (endpoint === API_ENDPOINTS.display_by_store) {
         //店舗別
@@ -549,7 +563,7 @@ const IndexPage = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
-      setErrorMessage("データの取得に失敗しました");
+      setErrorMessage(error.message || "データの取得に失敗しました");
       setOpenErrorModal(true);
     }
   };
@@ -562,7 +576,7 @@ const IndexPage = () => {
   // ログアウト処理を修正
   const handleLogout = async () => {
     try {
-      await fetchData(API_ENDPOINTS.logout, null, router);
+      //await fetchData(API_ENDPOINTS.logout, null, router);
       router.replace("/login"); // pushではなくreplaceを使用
     } catch (error) {
       console.error("Logout failed:", error);
@@ -1405,7 +1419,7 @@ const IndexPage = () => {
               <div className="flex gap-4 self-end w-full md:w-auto justify-end">
                 <Button
                   variant="contained"
-                  className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
+                  className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
                   startIcon={<ArrowBackIcon className="md:inline hidden" />}
                   onClick={() => { }}
                 >
@@ -1414,9 +1428,9 @@ const IndexPage = () => {
 
                 <Button
                   variant="contained"
-                  className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
+                  className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
                   startIcon={<DownloadIcon className="md:inline hidden" />}
-                  //onClick={() => fetchAndTransformData(API_ENDPOINTS.download)}
+                //onClick={() => fetchAndTransformData(API_ENDPOINTS.download)}
                 >
                   ダウンロード
                 </Button>
@@ -1433,7 +1447,7 @@ const IndexPage = () => {
                     )
                   }
                 >
-                  検索表示
+                  集計実行
                 </Button>
               </div>
             </div>
@@ -1489,7 +1503,7 @@ const IndexPage = () => {
                     <tr>
                       {/*小分類*/}
                       <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}>
-                      店舗名
+                        店舗名
                       </th>
                       <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
                         <div className="flex items-center justify-between">
@@ -1511,7 +1525,7 @@ const IndexPage = () => {
                       </th>
                       <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1530,7 +1544,7 @@ const IndexPage = () => {
                       {compareCheck && (
                         <>
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            期間B
+                            比較期間
                           </th>
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                             差異
@@ -1542,7 +1556,7 @@ const IndexPage = () => {
                       )}
                       <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1561,7 +1575,7 @@ const IndexPage = () => {
                       {compareCheck && (
                         <>
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            期間B
+                            比較期間
                           </th>
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                             差異
@@ -1573,7 +1587,7 @@ const IndexPage = () => {
                       )}
                       <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1592,7 +1606,7 @@ const IndexPage = () => {
                       {compareCheck && (
                         <>
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            期間B
+                            比較期間
                           </th>
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                             差異
@@ -1604,7 +1618,7 @@ const IndexPage = () => {
                       )}
                       <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1620,21 +1634,21 @@ const IndexPage = () => {
                           </div>
                         </div>
                       </th>
-                      { compareCheck && (
+                      {compareCheck && (
                         <>
-                      <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        期間B
-                      </th>
-                      <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                        差異
-                      </th>
-                      <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
-                        A/B
-                      </th>
-                      </>)}
+                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
+                            比較期間
+                          </th>
+                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
+                            差異
+                          </th>
+                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
+                            比率
+                          </th>
+                        </>)}
                       <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1650,15 +1664,15 @@ const IndexPage = () => {
                           </div>
                         </div>
                       </th>
-                      { compareCheck && (
+                      {compareCheck && (
                         <>
-                      <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
-                        期間B
-                      </th>
-                      </>)}
+                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
+                            比較期間
+                          </th>
+                        </>)}
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
-                          期間A
+                          対象期間
                           <div>
                             <IconButton
                               size="small"
@@ -1677,7 +1691,7 @@ const IndexPage = () => {
                       {compareCheck && (
                         <>
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            期間B
+                            比較期間
                           </th>
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                             差異
