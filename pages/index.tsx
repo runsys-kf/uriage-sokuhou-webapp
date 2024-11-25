@@ -448,12 +448,18 @@ const IndexPage = () => {
 const sortedStoresData = [...storesData.storeData].sort((a, b) => {
   // 空文字列の処理
   if (a[sortKey] === "" && b[sortKey] === "") return 0;
-  if (a[sortKey] === "") return sortDirection === "asc" ? -1 : 1;  // 昇順なら上、降順なら下
-  if (b[sortKey] === "") return sortDirection === "asc" ? 1 : -1;  // 昇順なら上、降順なら下
+  if (a[sortKey] === "") return sortDirection === "asc" ? -1 : 1;
+  if (b[sortKey] === "") return sortDirection === "asc" ? 1 : -1;
 
-  // カンマを除去して数値に変換
-  const valueA = Number(String(a[sortKey]).replace(/,/g, ''));
-  const valueB = Number(String(b[sortKey]).replace(/,/g, ''));
+  // パーセント記号と区切りカンマを除去して数値に変換
+  const cleanValue = (val: string) => {
+    return String(val)
+      .replace(/[,％%]/g, '') // カンマとパーセント記号（全角・半角）を除去
+      .trim();
+  };
+
+  const valueA = Number(cleanValue(a[sortKey]));
+  const valueB = Number(cleanValue(b[sortKey]));
 
   // 数値として有効な場合は数値比較
   if (!isNaN(valueA) && !isNaN(valueB)) {
