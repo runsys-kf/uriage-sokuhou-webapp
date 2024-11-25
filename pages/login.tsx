@@ -128,7 +128,7 @@ const LoginPage = () => {
                   variant="contained"
                   onClick={handleLogin}
                 >
-                  実行
+                  ログイン
                 </Button>
               </div>
             </form>
