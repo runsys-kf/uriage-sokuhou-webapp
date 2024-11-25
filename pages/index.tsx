@@ -55,23 +55,23 @@ const IndexPage = () => {
   const router = useRouter();
 
   // 認証チェックを有効化
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       const response = await axios.get('http://127.0.0.1:5000/', {
-  //         withCredentials: true
-  //       });
-  //       // 認証成功
-  //       console.log("User is authenticated:", response.data.user);
-  //     } catch (error) {
-  //       // 認証失敗時はログインページへリダイレクト
-  //       console.error("Authentication check failed:", error);
-  //       router.replace('/login'); // pushではなくreplaceを使用
-  //     }
-  //   };
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:5000/', {
+          withCredentials: true
+        });
+        // 認証成功
+        console.log("User is authenticated:", response.data.user);
+      } catch (error) {
+        // 認証失敗時はログインページへリダイレクト
+        console.error("Authentication check failed:", error);
+        router.replace('/login'); // pushではなくreplaceを使用
+      }
+    };
 
-  //   checkAuth();
-  // }, [router]);
+    checkAuth();
+  }, [router]);
 
   // カレンダー用状態 前日を選択させる処理含む
   const [date1, setDate1] = useState(dayjs());
@@ -518,17 +518,16 @@ const IndexPage = () => {
       setStoresData(initialStoresData); //初期化処理
       setSortKey("");
       setSortDirection("desc");
-      const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
-      /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
-      if (isTestMode) {
-        // モックデータを使用
-        if (dailyCheck === "日別") {
-          //setStoresData(mockDateResponse());
-        } else {
-          setStoresData(mockStoreResponse());
-        }
-        return;
-      }
+      // /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
+      // const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
+      // if (isTestMode) {
+      //   if (dailyCheck === "日別") {
+      //     //setStoresData(mockDateResponse());
+      //   } else {
+      //     setStoresData(mockStoreResponse());
+      //   }
+      //   return;
+      // }
 
       /**本番環境用 */
       let params;
