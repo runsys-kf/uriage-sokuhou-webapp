@@ -36,7 +36,7 @@ const AdminLoginPage = () => {
   const handleUsernameChange = (event) => setUsername(event.target.value);
   const handlePasswordChange = (event) => setPassword(event.target.value);
 
-  const handleLogin = async () => {
+  const handleAdminLogin = async () => {
     try {
       const response = await axios.post(
         'https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin/admin_login',
@@ -126,9 +126,7 @@ const AdminLoginPage = () => {
                 <Button
                   className="bg-accent hover:bg-accent-dark text-white transition-colors duration-200 w-full p-2 md:p-4"
                   variant="contained"
-                  onClick={() =>
-                    fetchAndTransformData(API_ENDPOINTS.adimn_login)
-                  }
+                  onClick={handleAdminLogin}
                 >
                   ログイン
                 </Button>
