@@ -16,6 +16,8 @@ import { Password } from "@mui/icons-material";
 import { API_ENDPOINTS, fetchData } from "pages/api/apiService";
 import { useRouter } from "next/router";
 
+import Cookies from 'js-cookie';
+
 const AdminLoginPage = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [username, setUsername] = React.useState("");
@@ -27,36 +29,48 @@ const AdminLoginPage = () => {
   const handleMouseDownPassword = (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
-    event.preventDefault();
+    // event.preventDefault();
   };
 
   const handleUsernameChange = (event) => setUsername(event.target.value);
   const handlePasswordChange = (event) => setPassword(event.target.value);
 
-  //バックエンドに送信
-  const fetchAndTransformData = async (endpoint) => {
-    let params;
-    router.push("/admin/"); //リダイレクト
-    // try {
-    //   if (endpoint === API_ENDPOINTS.adimn_login) {
-    //     params = { username, password };
-    //     const response = await fetchData(endpoint, params);
-    //     if (response.statusCode === 200) {
-    //       //成功
-    //       const { message, authorityInformation } = response.responsebody;
-    //       console.log("ログイン成功：", message);
-    //       console.log("ユーザー権限：", authorityInformation);
-    //       router.push("/admin/"); //リダイレクト
-    //     } else {
-    //       const { message } = response.responsebody;
-    //       setErrorMessage(message);
-    //     }
-    //   }
-    // } catch (error) {
-    //   console.log("データ取得および変換エラー:", error);
-    //   setErrorMessage("ログイン中にエラーが発生しました。");
-    // }
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post(
+        'https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin/admin_login',
+        { username, password },
+        { 
+                headers: {
+        	          'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        const token = response.data.token;
+        Cookies.set('access_token', token, { expires: 1, path:'/admin/'});
+        router.push('/admin/'); // 成功時にリダイレクト
+      } else {
+        setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
+      }
+    } catch (error) {
+      console.error("ログインに失敗しました:", error);
+
+      // ネットワークエラーの場合
+      if (error.response) {
+        console.error('Response error: ', error.response);
+        setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
+      } else if (error.request) {
+        console.error('No response received: ', error.request);
+        setErrorMessage('ネットワークエラーが発生しました。通信環境を確認してください。');
+      } else {
+        console.error('Error message: ', error.message);
+        setErrorMessage('予期しないエラーが発生しました。');
+      }
+    }
   };
+ 
   return (
     <Layout title="管理者専用ログイン | 売上速報">
       <div className="flex flex-row-reverse min-h-screen items-stretch">
