@@ -15,6 +15,7 @@ import LoginSideImage from "../../public/images/login-side-image.webp";
 import { Password } from "@mui/icons-material";
 import { API_ENDPOINTS, fetchData } from "pages/api/apiService";
 import { useRouter } from "next/router";
+import axios from 'axios';  // これを追加
 
 import Cookies from 'js-cookie';
 
