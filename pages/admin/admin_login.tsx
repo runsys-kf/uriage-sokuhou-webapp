@@ -39,7 +39,7 @@ const AdminLoginPage = () => {
   const handleAdminLogin = async () => {
     try {
       const response = await axios.post(
-        'https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin/admin_login',
+        'https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin_login',
         { username, password },
         { 
                 headers: {
