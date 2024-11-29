@@ -46,7 +46,6 @@ const LoginPage = () => {
         }
       );
       console.log("response", response);
-      console.log("response.auth_base_no", response.auth_base_no);
 
       if (response.status === 200) {
         const token = response.data.token;
