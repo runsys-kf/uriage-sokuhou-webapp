@@ -12,6 +12,8 @@ import { useMobile } from "../../contexts/MobileContext";
 import { useRouter } from "next/router";
 import SidebarButton from "@/components/SidebarButton";
 
+import axios from 'axios';
+
 interface StoreInfo {
   id: string;
   storeNumber: string;
@@ -40,24 +42,36 @@ const AdminPage = () => {
       setSelectedFile(file);
     }
   };
-
-  //インポート
+  // ファイルインポート
   const handleImport = () => {
     if (selectedFile) {
-      console.log(`ファイルをインポート中: ${selectedFile.name}`);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result;
-        const contents = e.target?.result;
-        console.log("ファイルの内容:", contents);
-        // ここでファイルの内容を処理します
-      };
-      reader.readAsText(selectedFile);
+      const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
+      if (fileExtension !== 'csv') {
+        alert('CSVファイルを選択してください。');
+        return;
+      }
+  
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+  
+      axios.post('https://adminimport-c2f0c4hycwcfhha7.z01.azurefd.net/api/admimport', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true, // 必要に応じてCookieを送信
+      })
+        .then((response) => {
+          console.log('ファイルのアップロードに成功しました:', response.data);
+          alert('ファイルのアップロードに成功しました。');
+        })
+        .catch((error) => {
+          console.error('ファイルのアップロード中にエラーが発生しました:', error);
+          alert('ファイルのアップロード中にエラーが発生しました。');
+        });
     } else {
-      console.log("ファイルが選択されていません");
+      console.log('ファイルが選択されていません');
     }
   };
-
   //編集画面へ
   const navigateToEditPage = (store: StoreInfo) => {
     router.push({
@@ -340,6 +354,7 @@ const AdminPage = () => {
                           aria-describedby="file_input_help"
                           id="file_input"
                           type="file"
+			  accept=".csv"
                           onChange={handleFileSelect}
                         />
                       </label>
