@@ -345,7 +345,7 @@ const AdminPage = () => {
                       </label>
                       {/* 最大容量などの表記が必要な場合下記を残す */}
                       <p className="text-sm text-gray-500" id="file_input_help">
-                        SVG, PNG, JPG, or GIF (MAX. 800x400px).
+                        CSV Format Only
                       </p>
                     </div>
 
