@@ -45,6 +45,7 @@ const LoginPage = () => {
           }
         }
       );
+      console.log(response);
 
       if (response.status === 200) {
         const token = response.data.token;
