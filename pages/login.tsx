@@ -45,12 +45,14 @@ const LoginPage = () => {
           }
         }
       );
-      console.log("response", response);
+
+      // 店舗情報チェック
+      // console.log("response", response);
 
       if (response.status === 200) {
         const token = response.data.token;
         Cookies.set('access_token', token, { expires: 1, path:'/'});
-        // router.push('/'); // 成功時にリダイレクト
+        router.push('/'); // 成功時にリダイレクト
       } else {
         setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
       }
