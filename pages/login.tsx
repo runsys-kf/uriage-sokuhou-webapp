@@ -12,8 +12,9 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useRouter } from "next/router";
 import axios from 'axios';  // これを追加
-
+import { mockLoginResponses } from "../__tests__/loginMockData";
 import LoginSideImage from "../public/images/login-side-image.webp";
+
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -35,9 +36,17 @@ const LoginPage = () => {
   // ログインボタン押下時の処理
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://127.0.0.1:5000/login', { username, password }, { withCredentials: true });
+      let response;
+      if (process.env.NODE_ENV === 'development') { // 開発環境の場合はモックデータを使用
+        response = mockLoginResponses[username] || mockLoginResponses.not200;
+      } else {
+        response = await axios.post('http://127.0.0.1:5000/login', { username, password }, { withCredentials: true });
+      }
       if (response.status === 200) {
+        localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
         router.push('/');
+      }else {
+        setErrorMessage("ログインに失敗しました。ユーザー名とパスワードを確認してください。");
       }
     } catch (error) {
       console.error('ログインに失敗しました:', error);

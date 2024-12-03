@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout";
-import axios from "axios";  // これを追加
+import axios from "axios"; // これを追加
 
 import React, { useState, useEffect } from "react";
 import {
@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormLabel,
 } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -40,54 +41,54 @@ import Holidays from "date-holidays";
 import { fetchData, API_ENDPOINTS } from "./api/apiService";
 import { storeProcessData, dateProcessData } from "./api/dataTransformer";
 import { initialStores } from "../data/shopData";
-//import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
+import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
 // add 20240828
 import { useRouter } from "next/router";
-import { GetServerSideProps } from 'next';
+import { GetServerSideProps } from "next";
 // add 20241117 16:23
-import nookies from 'nookies';
-import jwt from 'jsonwebtoken';
+import nookies from "nookies";
+import jwt from "jsonwebtoken";
 
-const JWT_SECRET = '100'; // サーバー側と同じ秘密鍵
+const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+// export const getServerSideProps: GetServerSideProps = async (context) => {
 
-    const cookies = nookies.get(context);
-    const token = cookies['access_token'];
+//   const cookies = nookies.get(context);
+//   const token = cookies['access_token'];
 
-    if (!token) {
-        // トークンがない場合、ログインページにリダイレクト
-        return {
-            redirect: {
-                destination: '/login',
-                permanent: false,
-            },
-        };
-    }
+//   if (!token) {
+//     // トークンがない場合、ログインページにリダイレクト
+//     return {
+//       redirect: {
+//         destination: '/login',
+//         permanent: false,
+//       },
+//     };
+//   }
 
-    try {
-        // トークンを検証
-        const decoded = jwt.verify(token, JWT_SECRET);
+//   try {
+//     // トークンを検証
+//     const decoded = jwt.verify(token, JWT_SECRET);
 
-        // 認証成功
-        return {
-            props: {
-                user: decoded,
-            },
-        };
-    } catch (error) {
-        console.error('Token verification failed:', error.message);
-        // 認証失敗、ログインページにリダイレクト
-        return {
-            redirect: {
-                destination: '/login',
-                permanent: false,
-            },
-        };
-    }
-};
+//     // 認証成功
+//     return {
+//       props: {
+//         user: decoded,
+//       },
+//     };
+//   } catch (error) {
+//     console.error('Token verification failed:', error.message);
+//     // 認証失敗、ログインページにリダイレクト
+//     return {
+//       redirect: {
+//         destination: '/login',
+//         permanent: false,
+//       },
+//     };
+//   }
+// };
 
 const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 
@@ -96,26 +97,48 @@ const IndexPage = () => {
   const theme = useTheme();
   const router = useRouter();
 
-  // 認証チェック
+  //初期表示時店舗を選択する
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        console.log("index.tsx res:");
-        const response = await axios.get("https://salesrepo.runsystem.co.jp/", {
-          withCredentials: true
-        });
-        console.log("index.tsx res: ", response);
-        // 認証成功
-        console.log("User is authenticated:", response.data.user);
-      } catch (error) {
-        // 認証失敗時はログインページへリダイレクト
-        console.error("Authentication check failed:", error);
-        router.replace('/login'); // pushではなくreplaceを使用
+    const authority = JSON.parse(localStorage.getItem("Authority"));
+    console.log(authority);
+    if (authority) {
+      if (authority.length === 1 && authority.includes("9999")) {
+        // '9999'のみの場合は全店舗を選択
+        setSelectedStores(initialStores);
+        setAuthorizedStores(initialStores);
+        setFilteredStores(initialStores);
+      } else {
+        // '9999'が含まれていても他の店舗IDがある場合はその店舗のみを選択
+        const authorizedStoreList = initialStores.filter((store) =>
+          authority.includes(store.id)
+        );
+        setSelectedStores(authorizedStoreList);
+        setAuthorizedStores(authorizedStoreList);
+        setFilteredStores(authorizedStoreList);
       }
-    };
+    }
+  }, []);
 
-    checkAuth();
-  }, [router]);
+  // 認証チェック
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     try {
+  //       console.log("index.tsx res:");
+  //       const response = await axios.get("https://salesrepo.runsystem.co.jp/", {
+  //         withCredentials: true
+  //       });
+  //       console.log("index.tsx res: ", response);
+  //       // 認証成功
+  //       console.log("User is authenticated:", response.data.user);
+  //     } catch (error) {
+  //       // 認証失敗時はログインページへリダイレクト
+  //       console.error("Authentication check failed:", error);
+  //       router.replace('/login'); // pushではなくreplaceを使用
+  //     }
+  //   };
+
+  //   checkAuth();
+  // }, [router]);
 
   // カレンダー用状態 前日を選択させる処理含む
   const [date1, setDate1] = useState(dayjs());
@@ -135,6 +158,8 @@ const IndexPage = () => {
   //const [selectedArea, setSelectedArea] = useState("");
   const [selectedPrefecture, setSelectedPrefecture] = useState<string[]>([]); //選択した都道府県名
 
+  // 表示可能な店舗リストを保持するための新しいstate
+  const [authorizedStores, setAuthorizedStores] = useState(initialStores);
   const [searchText, setSearchText] = useState(""); //店舗名でフィルタリング時の入力値
   const [filteredStores, setFilteredStores] = useState(initialStores); // 入力値によるフィルタリング店舗(初期値は全店)
   //const [selectedPrefectureStores, setSelectedPrefectureStores] = useState([]); // 都道府県選択によるフィルタリング店舗
@@ -142,10 +167,12 @@ const IndexPage = () => {
   // チェックボックス用状態
   const [dailyCheck, setDailyCheck] = useState("店舗別"); //日別or店舗別
   const [compareCheck, setCompareCheck] = useState(false); //比較対象チェックボックスの状態
+  const [allSelected, setAllSelected] = useState(false); // 全選択/全解除の状態を管理
 
   //ラジオボタン用状態
   const [locationValue, setLocationValue] = useState("全て"); //"全て or 駅前 or 郊外"
   const [typeValue, setTypeValue] = useState("全て"); //"全て or 直営 or FC"
+  const [closedStoreValue, setClosedStoreValue] = useState("true"); //閉店かどうか
   const [salesInclusionValue, setSalesInclusionValue] = useState("true"); //その他売り上げ込みかどうか
   const [openErrorModal, setOpenErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -255,20 +282,31 @@ const IndexPage = () => {
     setSelectedPrefecture([]); // 都道府県の選択をクリア
   };
 
-  //全選択/全解除
+  //全選択/全解除チェックボックス
   const toggleAllStores = () => {
-    if (selectedStores.length > 0) {
-      // 1つでも選択されている場合は全解除
-      setSelectedStores([]);
+    if (allSelected) {
+      const filteredStoreIds = filteredStores.map((store) => store.id); //絞り込み中店舗のid取得
+      const newSelectedStores = selectedStores.filter(
+        (store) => !filteredStoreIds.includes(store.id)
+      ); //絞り込み絞り込み以外の店舗をフィルタリング
+      setSelectedStores(newSelectedStores); //絞り込み中以外をセット
     } else {
-      // 何も選択されていない場合は全選択
-      setSelectedStores(initialStores);
+      const combinedStores = Array.from(
+        new Set([...selectedStores, ...filteredStores])
+      );
+      setSelectedStores(combinedStores);
     }
+    setAllSelected(!allSelected);
   };
 
   //店舗検索入力値の管理ハンドラ
   const handleSearchChange = (e) => {
     setSearchText(e.target.value);
+  };
+  // MenuItemのクリックハンドラを修正
+  const handleMenuItemClick = (event) => {
+    event.stopPropagation(); // イベントの伝播を停止
+    toggleAllStores();
   };
 
   // エンターキー押下時のハンドラを修正
@@ -294,7 +332,7 @@ const IndexPage = () => {
   //入力値からフィルタリング
   const handleSelectOpen = () => {
     //let filtered = radioValueFilterStores();//ラジオボタンフィルタリング
-    let filtered = initialStores;
+    let filtered = authorizedStores;
     if (searchText) {
       filtered = filtered.filter((store) =>
         store.name.toLowerCase().includes(searchText.toLowerCase())
@@ -303,10 +341,10 @@ const IndexPage = () => {
       const newSelectedStores = Array.from(
         new Set([...selectedStores, ...filtered])
       );
-      setSelectedStores(newSelectedStores);
+      //setSelectedStores(newSelectedStores);
     } else {
-      setFilteredStores(filtered); // 未入力の場合は全データを表示
-      setSelectedStores(filtered);
+      setFilteredStores(filtered); //全店舗表示
+      //setSelectedStores(filtered); //全店舗選択
     }
   };
 
@@ -322,7 +360,8 @@ const IndexPage = () => {
   // 都道府県選択からのフィルタリング
   const handlePrefectureChange = () => {
     //let filtered = radioValueFilterStores();//ラジオボタンフィルタリング
-    let filtered = initialStores;
+    //setAllSelected(false);
+    let filtered = authorizedStores;
     if (selectedPrefecture.length > 0) {
       filtered = filtered.filter((store) =>
         selectedPrefecture.includes(store.prefecture)
@@ -331,10 +370,10 @@ const IndexPage = () => {
       const newSelectedStores = Array.from(
         new Set([...selectedStores, ...filtered])
       );
-      setSelectedStores(newSelectedStores);
+      //setSelectedStores(newSelectedStores);
     } else {
       setFilteredStores(filtered); // 未入力の場合は全データを表示
-      setSelectedStores(filtered);
+      //setSelectedStores(filtered);
       //setSelectedStores([]); // 選択都道府県がない場合は選択を解除
     }
   };
@@ -426,6 +465,11 @@ const IndexPage = () => {
   const handleTypeChange = (event) => {
     setTypeValue(event.target.value);
   };
+  //閉店変更ハンドラ
+  const handleClosedStoreChange = (event) => {
+    setClosedStoreValue(event.target.value);
+  };
+  //その他売上変更ハンドラ
   const handleSalesInclusionChange = (event) => {
     setSalesInclusionValue(event.target.value);
   };
@@ -444,35 +488,33 @@ const IndexPage = () => {
     setSortKey(key);
   };
 
-// ソート処理
-const sortedStoresData = [...storesData.storeData].sort((a, b) => {
-  // 空文字列の処理
-  if (a[sortKey] === "" && b[sortKey] === "") return 0;
-  if (a[sortKey] === "") return sortDirection === "asc" ? -1 : 1;
-  if (b[sortKey] === "") return sortDirection === "asc" ? 1 : -1;
+  // ソート処理
+  const sortedStoresData = [...storesData.storeData].sort((a, b) => {
+    // 空文字列の処理
+    if (a[sortKey] === "" && b[sortKey] === "") return 0;
+    if (a[sortKey] === "") return sortDirection === "asc" ? -1 : 1;
+    if (b[sortKey] === "") return sortDirection === "asc" ? 1 : -1;
 
-  // パーセント記号と区切りカンマを除去して数値に変換
-  const cleanValue = (val: string) => {
-    return String(val)
-      .replace(/[,％%]/g, '') // カンマとパーセント記号（全角・半角）を除去
-      .trim();
-  };
+    // パーセント記号と区切りカンマを除去して数値に変換
+    const cleanValue = (val: string) => {
+      return String(val)
+        .replace(/[,％%]/g, "") // カンマとパーセント記号（全角・半角）を除去
+        .trim();
+    };
 
-  const valueA = Number(cleanValue(a[sortKey]));
-  const valueB = Number(cleanValue(b[sortKey]));
+    const valueA = Number(cleanValue(a[sortKey]));
+    const valueB = Number(cleanValue(b[sortKey]));
 
-  // 数値として有効な場合は数値比較
-  if (!isNaN(valueA) && !isNaN(valueB)) {
-    return sortDirection === "asc" 
-      ? valueA - valueB 
-      : valueB - valueA;
-  }
+    // 数値として有効な場合は数値比較
+    if (!isNaN(valueA) && !isNaN(valueB)) {
+      return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
+    }
 
-  // 数値変換できない場合は文字列として比較
-  return sortDirection === "asc"
-    ? String(a[sortKey]).localeCompare(String(b[sortKey]))
-    : String(b[sortKey]).localeCompare(String(a[sortKey]));
-});
+    // 数値変換できない場合は文字列として比較
+    return sortDirection === "asc"
+      ? String(a[sortKey]).localeCompare(String(b[sortKey]))
+      : String(b[sortKey]).localeCompare(String(a[sortKey]));
+  });
 
   ///***<送信時データ変換処理>***///
   const createRequestData = (endpoint) => {
@@ -548,15 +590,15 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
       setSortKey("");
       setSortDirection("desc");
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
-      // const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
-      // if (isTestMode) {
-      //   if (dailyCheck === "日別") {
-      //     //setStoresData(mockDateResponse());
-      //   } else {
-      //     setStoresData(mockStoreResponse());
-      //   }
-      //   return;
-      // }
+      const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
+      if (isTestMode) {
+        if (dailyCheck === "日別") {
+          //setStoresData(mockDateResponse());
+        } else {
+          setStoresData(mockStoreResponse());
+        }
+        return;
+      }
 
       /**本番環境用 */
       let params;
@@ -594,6 +636,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
   const handleLogout = async () => {
     try {
       //await fetchData(API_ENDPOINTS.logout, null, router);
+      localStorage.removeItem("Authority");
       router.replace("/login"); // pushではなくreplaceを使用
     } catch (error) {
       console.error("Logout failed:", error);
@@ -648,6 +691,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             value={date1}
                             onChange={setDate1}
                             maxDate={dayjs()}
+                            toolbarFormat="yyyy年MM月dd日"
                             slotProps={{
                               textField: {
                                 size: "small",
@@ -854,14 +898,14 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           >
                             店舗を選択してください
                           </Typography>
-                          <Button
+                          {/* <Button
                             size="small"
                             variant="contained"
                             className="bg-blue-500 hover:bg-blue-800 text-white"
                             onClick={toggleAllStores}
                           >
                             {selectedStores.length > 0 ? "全解除" : "全選択"}
-                          </Button>
+                          </Button> */}
                         </div>
                         <TextField
                           margin="normal"
@@ -924,6 +968,22 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                                 padding: "4px",
                               }}
                             >
+                              <MenuItem
+                                onClick={handleMenuItemClick}
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  width: "100%",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <Checkbox
+                                  checked={allSelected}
+                                  onChange={toggleAllStores}
+                                  onClick={(e) => e.stopPropagation()} // チェックボックス自体のクリックイベントも伝播を停止
+                                />
+                                <ListItemText primary="全選択/全解除" />
+                              </MenuItem>
                               <IconButton
                                 onClick={(event) => {
                                   event.stopPropagation();
@@ -1025,14 +1085,14 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             >
                               都道府県を選択してください
                             </Typography>
-                            <Button
+                            {/* <Button
                               size="small"
                               variant="contained"
                               className="bg-blue-500 hover:bg-blue-800 text-white"
                               onClick={toggleAllStores}
                             >
                               {selectedStores.length > 0 ? "全解除" : "全選択"}
-                            </Button>
+                            </Button> */}
                           </div>
                           <FormControl fullWidth sx={{ mt: 2 }}>
                             <InputLabel>都道府県選択</InputLabel>
@@ -1174,6 +1234,22 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                                   padding: "4px",
                                 }}
                               >
+                                <MenuItem
+                                  onClick={handleMenuItemClick}
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    width: "100%",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  <Checkbox
+                                    checked={allSelected}
+                                    onChange={toggleAllStores}
+                                    onClick={(e) => e.stopPropagation()} // チェックボックス自体のクリックイベントも伝播を停止
+                                  />
+                                  <ListItemText primary="全選択/全解除" />
+                                </MenuItem>
                                 <IconButton
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -1234,10 +1310,10 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full min-w-32">
                   <h2 className="text-base font-bold mb-2 md:mb-1">選択店舗</h2>
                   <div className="mb-2 md:mt-2">
-                    <div className="max-h-32 overflow-y-auto">
+                    <div className="max-h-40 overflow-y-auto">
                       {" "}
                       {/* 最大高さとスクロールを追加 */}
-                      <p className="text-sm text-gray-700">
+                      <div className="text-sm text-gray-700">
                         {selectedStores.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {" "}
@@ -1256,145 +1332,162 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             選択されていません
                           </span>
                         )}
-                      </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="md:w-auto">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full inline-block">
-                  <h2 className="text-base font-bold mb-2 md:mb-1">
-                    その他条件
-                  </h2>
-                  <div className="flex gap-4">
-                    <RadioGroup
-                      aria-labelledby="demo-radio-buttons-group-label"
-                      defaultValue={locationValue}
-                      name="radio-location-group"
-                      className="flex flex-row md:flex-col mb-2 md:gap-0"
-                      onChange={handleLocationChange}
-                    >
-                      <FormControlLabel
-                        value="全て"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="全て"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                      <FormControlLabel
-                        value="駅前"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="駅前"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                      <FormControlLabel
-                        value="郊外"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="郊外"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                    </RadioGroup>
-                    <RadioGroup
-                      aria-labelledby="demo-radio-buttons-group-label"
-                      defaultValue={typeValue}
-                      name="radio-type-group"
-                      className="flex flex-row md:flex-col md:gap-0"
-                      onChange={handleTypeChange}
-                    >
-                      <FormControlLabel
-                        value="全て"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": { fontSize: 16 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="全て"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                      <FormControlLabel
-                        value="直営"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": { fontSize: 16 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="直営"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                      <FormControlLabel
-                        value="FC"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": { fontSize: 16 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="FC"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                    </RadioGroup>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="w-full flex flex-wrap gap-2 justify-between">
-              <div className="bg-white border rounded-lg p-2 px-4 md:px-4 mr-0 md:mr-4 w-full md:w-auto">
-                <FormControl>
+                  <h2 className="text-base font-bold mb-2 md:mb-1">表示設定</h2>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---区分---
+                  </FormLabel>
                   <RadioGroup
-                    row
-                    aria-labelledby="demo-row-radio-buttons-group-label"
-                    name="row-radio-salesInclusion-group"
-                    defaultValue={salesInclusionValue}
-                    onChange={handleSalesInclusionChange}
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue={typeValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={handleTypeChange}
+                  >
+                    <FormControlLabel
+                      value="全て"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="全て"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="直営"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="直営"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="FC"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="FC"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---エリア---
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue={locationValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={handleLocationChange}
+                  >
+                    <FormControlLabel
+                      value="全て"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="全て"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="駅前"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="駅前"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="郊外"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="郊外"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---閉店店舗を---
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue={closedStoreValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={handleClosedStoreChange}
                   >
                     <FormControlLabel
                       value="true"
@@ -1404,11 +1497,12 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             "& .MuiSvgIcon-root": {
                               fontSize: 16,
                             },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
                             p: "4px",
                           }}
                         />
                       }
-                      label="その他売上込み"
+                      label="含める"
                       sx={{
                         "& .MuiFormControlLabel-label": { fontSize: 14 },
                       }}
@@ -1421,24 +1515,77 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             "& .MuiSvgIcon-root": {
                               fontSize: 16,
                             },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
                             p: "4px",
                           }}
                         />
                       }
-                      label="その他売上抜き"
+                      label="含めない"
                       sx={{
                         "& .MuiFormControlLabel-label": { fontSize: 14 },
                       }}
                     />
                   </RadioGroup>
-                </FormControl>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---税抜売上にその他売上を---
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue={salesInclusionValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={handleSalesInclusionChange}
+                  >
+                    <FormControlLabel
+                      value="true"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含める"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="false"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含めない"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
+                </div>
               </div>
-              <div className="flex gap-4 self-end w-full md:w-auto justify-end">
+            </div>
+            <div className="w-full flex flex-wrap gap-2 justify-between">
+              <div className="flex gap-4 ml-auto w-full md:w-auto justify-end">
                 <Button
                   variant="contained"
                   className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
                   startIcon={<ArrowBackIcon className="md:inline hidden" />}
-                  onClick={() => { }}
+                  onClick={() => {}}
                 >
                   店舗別に戻る
                 </Button>
@@ -1447,7 +1594,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                   variant="contained"
                   className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
                   startIcon={<DownloadIcon className="md:inline hidden" />}
-                //onClick={() => fetchAndTransformData(API_ENDPOINTS.download)}
+                  //onClick={() => fetchAndTransformData(API_ENDPOINTS.download)}
                 >
                   ダウンロード
                 </Button>
@@ -1469,17 +1616,21 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
               </div>
             </div>
             <div className="w-full">
-              <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[400px]">
+              <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[600px]">
                 <table className="min-w-full divide-y divide-x divide-gray-200">
                   <thead className="bg-gray-50 sticky top-0 z-20">
                     {/*大分類*/}
                     <tr>
                       <th
-                        colSpan={2}
-                        className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
+                        colSpan={1}
+                        className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         店舗情報
                       </th>
+                      <th
+                        colSpan={1}
+                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
+                      ></th>
                       <th
                         colSpan={compareCheck ? 4 : 1}
                         className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
@@ -1519,10 +1670,14 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                     </tr>
                     <tr>
                       {/*小分類*/}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                      >
                         店舗名
                       </th>
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400`}
+                      >
                         <div className="flex items-center justify-between">
                           店番
                           <div>
@@ -1531,7 +1686,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                               onClick={() => handleSort("storeNumber")}
                             >
                               {sortKey === "storeNumber" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1540,7 +1695,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </div>
                         </div>
                       </th>
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1549,7 +1706,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                               onClick={() => handleSort("netSalesA")}
                             >
                               {sortKey === "netSalesA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1571,7 +1728,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </th>
                         </>
                       )}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1580,7 +1739,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                               onClick={() => handleSort("usersA")}
                             >
                               {sortKey === "usersA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1602,7 +1761,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </th>
                         </>
                       )}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1611,7 +1772,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                               onClick={() => handleSort("avgPriceA")}
                             >
                               {sortKey === "avgPriceA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1633,7 +1794,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </th>
                         </>
                       )}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1642,7 +1805,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                               onClick={() => handleSort("newUsersA")}
                             >
                               {sortKey === "newUsersA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1662,8 +1825,11 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
                             比率
                           </th>
-                        </>)}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        </>
+                      )}
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1672,7 +1838,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                               onClick={() => handleSort("newUsersRateA")}
                             >
                               {sortKey === "newUsersRateA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1686,7 +1852,8 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
                             比較期間
                           </th>
-                        </>)}
+                        </>
+                      )}
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
                           対象期間
@@ -1696,7 +1863,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                               onClick={() => handleSort("otherSalesA")}
                             >
                               {sortKey === "otherSalesA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1723,13 +1890,19 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                   {/* 合計行 */}
                   <tbody className="bg-white divide-y divide-x divide-gray-200">
                     <tr>
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                      >
                         {storesData.totalData.storeName.toLocaleString()}
                       </td>
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
+                      >
                         {storesData.totalData.storeNumber.toLocaleString()}
                       </td>
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.netSalesA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1745,7 +1918,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </td>
                         </>
                       )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.usersA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1761,7 +1936,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </td>
                         </>
                       )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.avgPriceA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1777,7 +1954,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </td>
                         </>
                       )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.newUsersA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1793,7 +1972,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </td>
                         </>
                       )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.newUsersRateA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1823,13 +2004,19 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                     {/* データ行 */}
                     {sortedStoresData.map((store, index) => (
                       <tr key={`${store.storeNumber}-${index}`}>
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                        >
                           {store.storeName}
                         </td>
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
+                        >
                           {store.storeNumber}
                         </td>
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.netSalesA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1846,7 +2033,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             </td>
                           </>
                         )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.usersA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1862,7 +2051,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             </td>
                           </>
                         )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.avgPriceA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1878,7 +2069,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             </td>
                           </>
                         )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.newUsersA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1894,7 +2087,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             </td>
                           </>
                         )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.newUsersRateA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1902,7 +2097,8 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
                               {store.newUsersRateB.toLocaleString()}
                             </td>
-                          </>)}
+                          </>
+                        )}
                         <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.otherSalesA.toLocaleString()}
                         </td>

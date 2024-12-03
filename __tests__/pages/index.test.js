@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { RouterContext } from 'next/dist/shared/lib/router-context';
 import { createMockRouter } from '../test-utils';
 import { useRouter } from 'next/router';
+import { initialStores } from '../../data/shopData';
 
 jest.mock('next/router', () => ({
     useRouter: jest.fn()
@@ -25,6 +26,20 @@ describe('メイン画面のテスト', () => {
         );
     };
 
+    it('ログイン後に店舗が選択されるかをテスト', async () => {
+        // localStorageにモックデータをセット
+        localStorage.setItem('Authority', JSON.stringify(['9999', '1234', '2345']));
+
+        renderWithRouter(<IndexPage />);
+
+        // 全店舗が選択されていることを確認
+        await waitFor(() => {
+            initialStores.forEach(store => {
+                expect(screen.getByText((content, element) => content.includes(store.name))).toBeInTheDocument();
+            });
+        });
+    });
+
     test('対象店舗テキストの表示確認', () => {
         renderWithRouter(<IndexPage />);
         expect(screen.getByText('対象店舗')).toBeInTheDocument();
@@ -38,7 +53,7 @@ describe('メイン画面のテスト', () => {
                 picker1: screen.getByTestId('date-picker-1'),
                 picker2: screen.getByTestId('date-picker-2')
             };
-            
+
             const today = dayjs();
             const initialValues = {
                 date1: today.format('YYYY/MM/DD'),
@@ -57,7 +72,7 @@ describe('メイン画面のテスト', () => {
                 picker3: screen.getByTestId('date-picker-3'),
                 picker4: screen.getByTestId('date-picker-4')
             };
-            
+
             expect(comparisonPickers.picker3).toBeInTheDocument();
             expect(comparisonPickers.picker4).toBeInTheDocument();
         });
