@@ -64,11 +64,11 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
       switch (error.response.status) {
         case 401:
           router.push('/login');
-          throw new Error('認証エラーが発生しました');
+          throw new Error('401 : 認証エラーが発生しました');
         case 404:
-          throw new Error('データが見つかりません');
+          throw new Error('404 : データが見つかりません');
         case 500:
-          throw new Error('サーバーエラーが発生しました');
+          throw new Error('500 : サーバーエラーが発生しました');
         default:
           throw new Error('データの取得に失敗しました');
       }

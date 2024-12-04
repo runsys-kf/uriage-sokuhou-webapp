@@ -21,6 +21,7 @@ import {
   DialogActions,
   FormLabel,
 } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -100,7 +101,6 @@ const IndexPage = () => {
   //初期表示時店舗を選択する
   useEffect(() => {
     const authority = JSON.parse(localStorage.getItem("Authority"));
-    console.log(authority);
     if (authority) {
       if (authority.length === 1 && authority.includes("9999")) {
         // '9999'のみの場合は全店舗を選択
@@ -112,9 +112,9 @@ const IndexPage = () => {
         const authorizedStoreList = initialStores.filter((store) =>
           authority.includes(store.id)
         );
-        setSelectedStores(authorizedStoreList);
-        setAuthorizedStores(authorizedStoreList);
-        setFilteredStores(authorizedStoreList);
+        setSelectedStores(authorizedStoreList); //選択状態店舗
+        setAuthorizedStores(authorizedStoreList); //表示される店舗
+        setFilteredStores(authorizedStoreList); //絞り込み店舗
       }
     }
   }, []);
@@ -150,19 +150,15 @@ const IndexPage = () => {
     dayjs().subtract(1, "day").subtract(1, "year")
   );
 
-  // モーダル用状態
+  // 店舗選択モーダル用状態
   const [openStoreModal, setOpenStoreModal] = useState(false);
   const [openPrefectureModal, setOpenPrefectureModal] = useState(false);
 
-  const [selectedStores, setSelectedStores] = useState([]); //選択した店舗名
-  //const [selectedArea, setSelectedArea] = useState("");
+  const [selectedStores, setSelectedStores] = useState([]); //選択した店舗
+  const [authorizedStores, setAuthorizedStores] = useState(initialStores); //表示できる店舗
+  const [filteredStores, setFilteredStores] = useState(initialStores); //絞り込み店舗
   const [selectedPrefecture, setSelectedPrefecture] = useState<string[]>([]); //選択した都道府県名
-
-  // 表示可能な店舗リストを保持するための新しいstate
-  const [authorizedStores, setAuthorizedStores] = useState(initialStores);
   const [searchText, setSearchText] = useState(""); //店舗名でフィルタリング時の入力値
-  const [filteredStores, setFilteredStores] = useState(initialStores); // 入力値によるフィルタリング店舗(初期値は全店)
-  //const [selectedPrefectureStores, setSelectedPrefectureStores] = useState([]); // 都道府県選択によるフィルタリング店舗
 
   // チェックボックス用状態
   const [dailyCheck, setDailyCheck] = useState("店舗別"); //日別or店舗別
@@ -174,8 +170,14 @@ const IndexPage = () => {
   const [typeValue, setTypeValue] = useState("全て"); //"全て or 直営 or FC"
   const [closedStoreValue, setClosedStoreValue] = useState("true"); //閉店かどうか
   const [salesInclusionValue, setSalesInclusionValue] = useState("true"); //その他売り上げ込みかどうか
+
+  //集計ボタン
+  const [isLoading, setIsLoading] = useState(false); // 集計中の状態を管理
+
+  //お知らせモーダル関連
   const [openErrorModal, setOpenErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [modalType, setModalType] = useState<"error" | "info">("error"); //エラーかお知らせか
 
   //型指定
   interface TotalData {
@@ -297,6 +299,15 @@ const IndexPage = () => {
       setSelectedStores(combinedStores);
     }
     setAllSelected(!allSelected);
+  };
+
+  //全店舗選択/全店舗解除ボタン
+  const selectAllStores = () => {
+    if (selectedStores.length > 0) {
+      setSelectedStores([]);
+    } else {
+      setSelectedStores(authorizedStores);
+    }
   };
 
   //店舗検索入力値の管理ハンドラ
@@ -545,6 +556,7 @@ const IndexPage = () => {
         businessType: typeValue, // 例: '全て', '直営', 'FC'
       },
       includeSales: salesInclusionValue, // 'true' または 'false'
+      includeClose: closedStoreValue,
     };
   };
   // 初期化処理
@@ -581,6 +593,7 @@ const IndexPage = () => {
   // add 20240828
   const fetchAndTransformData = async (endpoint) => {
     if (selectedStores.length === 0) {
+      setModalType("error");
       setErrorMessage("対象店舗が選択されていません");
       setOpenErrorModal(true);
       return;
@@ -592,6 +605,7 @@ const IndexPage = () => {
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       if (isTestMode) {
+        setIsLoading(true); // 集計中...に設定
         if (dailyCheck === "日別") {
           //setStoresData(mockDateResponse());
         } else {
@@ -607,11 +621,13 @@ const IndexPage = () => {
 
       if (endpoint === API_ENDPOINTS.display_by_store) {
         //店舗別
+        setIsLoading(true); // 集計中...に設定
         params = createRequestData(endpoint);
         const data = await fetchData(endpoint, params, router);
         setStoresData(storeProcessData(data));
       } else if (endpoint === API_ENDPOINTS.display_by_date) {
         //日別
+        setIsLoading(true); // 集計中...に設定
         params = createRequestData(endpoint);
         const data = await fetchData(endpoint, params, router);
         setStoresData(dateProcessData(data));
@@ -622,8 +638,11 @@ const IndexPage = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      setModalType("error");
       setErrorMessage(error.message || "データの取得に失敗しました");
       setOpenErrorModal(true);
+    } finally {
+      setIsLoading(false); // 集計実行に戻す
     }
   };
 
@@ -672,161 +691,177 @@ const IndexPage = () => {
             <div className="flex flex-col md:flex-row gap-2 lg:gap-4 items-stretch">
               <div className="w-full md:w-5/12 lg:w-4/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full">
-                  <h2 className="text-base font-bold mb-2 md:mb-1">対象期間</h2>
-                  <LocalizationProvider
-                    dateAdapter={AdapterDayjs}
-                    adapterLocale={dayjsAdapter.locale}
-                  >
-                    <div className="grid grid-cols-1 gap-2 md:gap-2">
-                      <div className="flex w-full gap-2 lg:gap-4 items-center">
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            width: "45%",
-                          }}
-                        >
-                          <DatePicker
-                            label="抽出対象"
-                            value={date1}
-                            onChange={setDate1}
-                            maxDate={dayjs()}
-                            toolbarFormat="yyyy年MM月dd日"
-                            slotProps={{
-                              textField: {
-                                size: "small",
-                                inputProps: {
-                                  "data-testid": "date-picker-1",
-                                },
-                              },
-                              day: ({ day }) => ({
-                                sx: {
-                                  ...(isHoliday(day) && {
-                                    color: theme.palette.secondary.main,
-                                  }),
-                                },
-                              }),
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-start mb-4">
+                    <h2 className="text-base font-bold mb-2 md:mb-0 md:mr-2">
+                      対象期間
+                    </h2>
+                    <div className="text-sm text-left md:text-right md:ml-auto">
+                      {" "}
+                      {/* spanをラップして右寄せ */}
+                      <span>
+                        ※直営の締めデータは翌日の
+                        <span className="whitespace-nowrap bg-gray-100 px-1 py-1 rounded">
+                          12 : 33
+                        </span>
+                        に反映されます
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mb-3 md:mt-3">
+                    <LocalizationProvider
+                      dateAdapter={AdapterDayjs}
+                      adapterLocale={dayjsAdapter.locale}
+                    >
+                      <div className="grid grid-cols-1 gap-2 md:gap-2">
+                        <div className="flex w-full gap-2 lg:gap-4 items-center">
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              width: "45%",
                             }}
-                          />
-                        </Box>
-                        <p>～</p>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            width: "45%",
-                          }}
-                        >
-                          <DatePicker
-                            label=""
-                            value={date2}
-                            onChange={setDate2}
-                            minDate={date1}
-                            maxDate={dayjs()}
-                            slotProps={{
-                              textField: {
-                                size: "small",
-                                inputProps: {
-                                  "data-testid": "date-picker-2",
-                                },
-                              },
-                              day: ({ day }) => ({
-                                sx: {
-                                  ...(isHoliday(day) && {
-                                    color: theme.palette.secondary.main,
-                                  }),
-                                },
-                              }),
-                            }}
-                          />
-                        </Box>
-                      </div>
-                      {compareCheck && (
-                        <>
-                          <div className="flex w-full gap-2 lg:gap-4 items-center">
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                width: "45%",
-                              }}
-                            >
-                              <DatePicker
-                                label="比較対象"
-                                value={date3}
-                                onChange={setDate3}
-                                maxDate={dayjs()}
-                                slotProps={{
-                                  textField: {
-                                    size: "small",
-                                    inputProps: {
-                                      "data-testid": "date-picker-3",
-                                    },
+                          >
+                            <DatePicker
+                              label="抽出対象"
+                              value={date1}
+                              onChange={setDate1}
+                              maxDate={dayjs()}
+                              //toolbarFormat="yyyy年MM月dd日"
+                              slotProps={{
+                                textField: {
+                                  size: "small",
+                                  inputProps: {
+                                    "data-testid": "date-picker-1",
                                   },
-                                  day: ({ day }) => ({
-                                    sx: {
-                                      ...(isHoliday(day) && {
-                                        color: theme.palette.secondary.main,
-                                      }),
-                                    },
-                                  }),
-                                }}
-                              />
-                            </Box>
-                            <p>～</p>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                width: "45%",
-                              }}
-                            >
-                              <DatePicker
-                                label=""
-                                value={date4}
-                                onChange={setDate4}
-                                minDate={date3}
-                                maxDate={dayjs()}
-                                slotProps={{
-                                  textField: {
-                                    size: "small",
-                                    inputProps: {
-                                      "data-testid": "date-picker-4",
-                                    },
+                                },
+                                day: ({ day }) => ({
+                                  sx: {
+                                    ...(isHoliday(day) && {
+                                      color: theme.palette.secondary.main,
+                                    }),
                                   },
-                                  day: ({ day }) => ({
-                                    sx: {
-                                      ...(isHoliday(day) && {
-                                        color: theme.palette.secondary.main,
-                                      }),
-                                    },
-                                  }),
-                                }}
-                              />
-                            </Box>
-                          </div>
-                        </>
-                      )}
-                      <div className="flex w-full gap-4 items-center justify-between">
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={compareCheck}
-                              onChange={(e) =>
-                                setCompareCheck(e.target.checked)
-                              }
-                              sx={{
-                                "& .MuiSvgIcon-root": { fontSize: 18 },
-                                p: "6px",
+                                }),
                               }}
                             />
-                          }
-                          label="比較対象"
-                          sx={{
-                            "& .MuiFormControlLabel-label": { fontSize: 14 },
-                          }}
-                        />
-                        {/* <FormControlLabel
+                          </Box>
+                          <p>～</p>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              width: "45%",
+                            }}
+                          >
+                            <DatePicker
+                              label=""
+                              value={date2}
+                              onChange={setDate2}
+                              minDate={date1}
+                              maxDate={dayjs()}
+                              slotProps={{
+                                textField: {
+                                  size: "small",
+                                  inputProps: {
+                                    "data-testid": "date-picker-2",
+                                  },
+                                },
+                                day: ({ day }) => ({
+                                  sx: {
+                                    ...(isHoliday(day) && {
+                                      color: theme.palette.secondary.main,
+                                    }),
+                                  },
+                                }),
+                              }}
+                            />
+                          </Box>
+                        </div>
+                        {compareCheck && (
+                          <>
+                            <div className="flex w-full gap-2 lg:gap-4 items-center">
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  width: "45%",
+                                }}
+                              >
+                                <DatePicker
+                                  label="比較対象"
+                                  value={date3}
+                                  onChange={setDate3}
+                                  maxDate={dayjs()}
+                                  slotProps={{
+                                    textField: {
+                                      size: "small",
+                                      inputProps: {
+                                        "data-testid": "date-picker-3",
+                                      },
+                                    },
+                                    day: ({ day }) => ({
+                                      sx: {
+                                        ...(isHoliday(day) && {
+                                          color: theme.palette.secondary.main,
+                                        }),
+                                      },
+                                    }),
+                                  }}
+                                />
+                              </Box>
+                              <p>～</p>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  width: "45%",
+                                }}
+                              >
+                                <DatePicker
+                                  label=""
+                                  value={date4}
+                                  onChange={setDate4}
+                                  minDate={date3}
+                                  maxDate={dayjs()}
+                                  slotProps={{
+                                    textField: {
+                                      size: "small",
+                                      inputProps: {
+                                        "data-testid": "date-picker-4",
+                                      },
+                                    },
+                                    day: ({ day }) => ({
+                                      sx: {
+                                        ...(isHoliday(day) && {
+                                          color: theme.palette.secondary.main,
+                                        }),
+                                      },
+                                    }),
+                                  }}
+                                />
+                              </Box>
+                            </div>
+                          </>
+                        )}
+                        <div className="flex w-full gap-4 items-center justify-between">
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={compareCheck}
+                                onChange={(e) =>
+                                  setCompareCheck(e.target.checked)
+                                }
+                                sx={{
+                                  "& .MuiSvgIcon-root": { fontSize: 18 },
+                                  p: "6px",
+                                }}
+                              />
+                            }
+                            label="比較対象"
+                            sx={{
+                              "& .MuiFormControlLabel-label": { fontSize: 14 },
+                            }}
+                          />
+                          {/* <FormControlLabel
                           control={
                             <Checkbox
                               checked={dailyCheck === "日別"}
@@ -842,214 +877,29 @@ const IndexPage = () => {
                             "& .MuiFormControlLabel-label": { fontSize: 14 },
                           }}
                         /> */}
+                        </div>
                       </div>
-                    </div>
-                  </LocalizationProvider>
+                    </LocalizationProvider>
+                  </div>
                 </div>
               </div>
               <div className="w-full md:w-4/12 lg:w-3/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full">
                   <h2 className="text-base font-bold mb-2 md:mb-1">対象店舗</h2>
-                  <div className="">
-                    <Button
-                      onClick={handleOpenStoreModal}
-                      className="bg-blue-500 hover:bg-blue-800 text-white w-full p-1 md:p-1"
-                      variant="contained"
-                      size="large"
-                    >
-                      店舗選択
-                    </Button>
-                    <Modal
-                      open={openStoreModal}
-                      onClose={handleCloseStoreModal}
-                    >
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: "50%",
-                          left: "50%",
-                          transform: "translate(-50%, -50%)",
-                          width: { xs: "95%", sm: 400 },
-                          bgcolor: "background.paper",
-                          boxShadow: 24,
-                          p: { xs: 2, sm: 4 },
-                          borderRadius: 2,
-                          maxWidth: "95%",
-                        }}
+                  <div className="mb-3 md:mt-3">
+                    <div className="">
+                      <Button
+                        onClick={handleOpenStoreModal}
+                        className="bg-blue-500 hover:bg-blue-800 text-white w-full p-1 md:p-1"
+                        variant="contained"
+                        size="large"
                       >
-                        <IconButton
-                          aria-label="close"
-                          onClick={handleCloseStoreModal}
-                          sx={{
-                            position: "absolute",
-                            right: 8,
-                            top: 8,
-                          }}
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                        <div className="flex justify-between items-center mb-4 mt-4 pt-2">
-                          <Typography
-                            variant="h6"
-                            component="h3"
-                            sx={{
-                              fontSize: "1rem",
-                            }}
-                          >
-                            店舗を選択してください
-                          </Typography>
-                          {/* <Button
-                            size="small"
-                            variant="contained"
-                            className="bg-blue-500 hover:bg-blue-800 text-white"
-                            onClick={toggleAllStores}
-                          >
-                            {selectedStores.length > 0 ? "全解除" : "全選択"}
-                          </Button> */}
-                        </div>
-                        <TextField
-                          margin="normal"
-                          fullWidth
-                          label="店舗を検索"
-                          type="search"
-                          value={searchText}
-                          onChange={handleSearchChange}
-                          onKeyDown={handleSearchKeyDown}
-                        />
-                        <FormControl sx={{ mt: 2, width: "100%" }}>
-                          <InputLabel>店舗選択</InputLabel>
-                          <Select
-                            multiple
-                            value={selectedStores.map((store) => store.id)}
-                            input={<OutlinedInput label="店舗選択" />}
-                            onChange={handleChange}
-                            onOpen={handleSelectOpen}
-                            renderValue={(selected) =>
-                              //選択ボックスに選択店舗名を表示
-                              selectedStores
-                                .filter((store) => selected.includes(store.id))
-                                .map((store) => store.name)
-                                .join(", ")
-                            }
-                            MenuProps={{
-                              PaperProps: {
-                                style: {
-                                  maxHeight: "90vh", // 画面の高さ100
-                                  width: "fit-content",
-                                },
-                              },
-                              // スクロール位置を先頭に設定
-                              TransitionProps: {
-                                onEnter: (node) => {
-                                  if (node) {
-                                    node.scrollTop = 0;
-                                  }
-                                },
-                              },
-                              anchorOrigin: {
-                                vertical: "bottom",
-                                horizontal: "left",
-                              },
-                              transformOrigin: {
-                                vertical: "top",
-                                horizontal: "left",
-                              },
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                position: "sticky",
-                                top: 0,
-                                bgcolor: "background.paper",
-                                zIndex: 1,
-                                borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
-                                display: "flex",
-                                justifyContent: "flex-end",
-                                padding: "4px",
-                              }}
-                            >
-                              <MenuItem
-                                onClick={handleMenuItemClick}
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  width: "100%",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                <Checkbox
-                                  checked={allSelected}
-                                  onChange={toggleAllStores}
-                                  onClick={(e) => e.stopPropagation()} // チェックボックス自体のクリックイベントも伝播を停止
-                                />
-                                <ListItemText primary="全選択/全解除" />
-                              </MenuItem>
-                              <IconButton
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  const selectElement =
-                                    document.querySelector('[role="listbox"]');
-                                  if (selectElement) {
-                                    const closeEvent = new KeyboardEvent(
-                                      "keydown",
-                                      {
-                                        key: "Escape",
-                                        code: "Escape",
-                                        keyCode: 27,
-                                        which: 27,
-                                        bubbles: true,
-                                      }
-                                    );
-                                    selectElement.dispatchEvent(closeEvent);
-                                  }
-                                }}
-                                size="small"
-                              >
-                                <CloseIcon fontSize="small" />
-                              </IconButton>
-                            </Box>
-                            {filteredStores.map((store) => (
-                              <MenuItem
-                                key={store.id}
-                                value={store.id}
-                                dense
-                                sx={{ py: 0 }}
-                              >
-                                <Checkbox
-                                  checked={selectedStores.some(
-                                    (selectedStore) =>
-                                      selectedStore.id === store.id
-                                  )}
-                                  sx={{ py: 0 }}
-                                />
-                                <ListItemText
-                                  primary={store.name}
-                                  primaryTypographyProps={{
-                                    fontSize: "1.2rem",
-                                  }}
-                                />
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Box>
-                    </Modal>
-                  </div>
-                  <div className="">
-                    <Button
-                      onClick={handleOpenPrefectureModal}
-                      className="bg-blue-500 hover:bg-blue-800 text-white w-full p-1 md:p-1 mt-2 md:mt-2"
-                      variant="contained"
-                      color="primary"
-                      size="large"
-                    >
-                      都道府県検索
-                    </Button>
-                    <Modal
-                      open={openPrefectureModal}
-                      onClose={handleClosePrefectureModal}
-                    >
-                      <div>
+                        店舗選択
+                      </Button>
+                      <Modal
+                        open={openStoreModal}
+                        onClose={handleCloseStoreModal}
+                      >
                         <Box
                           sx={{
                             position: "absolute",
@@ -1066,7 +916,7 @@ const IndexPage = () => {
                         >
                           <IconButton
                             aria-label="close"
-                            onClick={handleClosePrefectureModal}
+                            onClick={handleCloseStoreModal}
                             sx={{
                               position: "absolute",
                               right: 8,
@@ -1083,108 +933,26 @@ const IndexPage = () => {
                                 fontSize: "1rem",
                               }}
                             >
-                              都道府県を選択してください
+                              店舗を選択してください
                             </Typography>
-                            {/* <Button
-                              size="small"
-                              variant="contained"
-                              className="bg-blue-500 hover:bg-blue-800 text-white"
-                              onClick={toggleAllStores}
-                            >
-                              {selectedStores.length > 0 ? "全解除" : "全選択"}
-                            </Button> */}
                           </div>
-                          <FormControl fullWidth sx={{ mt: 2 }}>
-                            <InputLabel>都道府県選択</InputLabel>
-                            <Select
-                              label="都道府県選択"
-                              value={selectedPrefecture}
-                              onChange={setPrefectureChange}
-                              multiple
-                              renderValue={(selected: string[]) =>
-                                selected.join(", ")
-                              }
-                              MenuProps={{
-                                PaperProps: {
-                                  style: {
-                                    maxHeight: "90vh", // 画面の高さ100
-                                    width: "fit-content",
-                                  },
-                                },
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  position: "sticky",
-                                  top: 0,
-                                  bgcolor: "background.paper",
-                                  zIndex: 1,
-                                  borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
-                                  display: "flex",
-                                  justifyContent: "flex-end",
-                                  padding: "4px",
-                                }}
-                              >
-                                <IconButton
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    const selectElement =
-                                      document.querySelector(
-                                        '[role="listbox"]'
-                                      );
-                                    if (selectElement) {
-                                      const closeEvent = new KeyboardEvent(
-                                        "keydown",
-                                        {
-                                          key: "Escape",
-                                          code: "Escape",
-                                          keyCode: 27,
-                                          which: 27,
-                                          bubbles: true,
-                                        }
-                                      );
-                                      selectElement.dispatchEvent(closeEvent);
-                                    }
-                                  }}
-                                  size="small"
-                                >
-                                  <CloseIcon fontSize="small" />
-                                </IconButton>
-                              </Box>
-                              {prefectures.map((prefecture) => (
-                                <MenuItem
-                                  key={prefecture}
-                                  value={prefecture}
-                                  dense
-                                  sx={{ py: 0 }}
-                                >
-                                  <Checkbox
-                                    checked={
-                                      selectedPrefecture.indexOf(prefecture) >
-                                      -1
-                                    }
-                                    sx={{ py: 0 }}
-                                  />
-                                  <ListItemText
-                                    primary={prefecture}
-                                    primaryTypographyProps={{
-                                      fontSize: "1.2rem",
-                                    }}
-                                  />
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
+                          <TextField
+                            margin="normal"
+                            fullWidth
+                            label="店舗を検索"
+                            type="search"
+                            value={searchText}
+                            onChange={handleSearchChange}
+                            onKeyDown={handleSearchKeyDown}
+                          />
                           <FormControl sx={{ mt: 2, width: "100%" }}>
-                            <InputLabel id="multiple-store-select-label">
-                              店舗選択
-                            </InputLabel>
+                            <InputLabel>店舗選択</InputLabel>
                             <Select
-                              labelId="multiple-store-select-label"
                               multiple
                               value={selectedStores.map((store) => store.id)}
                               input={<OutlinedInput label="店舗選択" />}
                               onChange={handleChange}
+                              onOpen={handleSelectOpen}
                               renderValue={(selected) =>
                                 //選択ボックスに選択店舗名を表示
                                 selectedStores
@@ -1194,17 +962,14 @@ const IndexPage = () => {
                                   .map((store) => store.name)
                                   .join(", ")
                               }
-                              onOpen={
-                                //フィルタリング
-                                handlePrefectureChange
-                              }
                               MenuProps={{
                                 PaperProps: {
                                   style: {
-                                    maxHeight: "90vh", // 画面高さまで100
+                                    maxHeight: "90vh", // 画面の高さ100
                                     width: "fit-content",
                                   },
                                 },
+                                // スクロール位置を先頭に設定
                                 TransitionProps: {
                                   onEnter: (node) => {
                                     if (node) {
@@ -1301,14 +1066,289 @@ const IndexPage = () => {
                             </Select>
                           </FormControl>
                         </Box>
-                      </div>
-                    </Modal>
+                      </Modal>
+                    </div>
+                    <div className="">
+                      <Button
+                        onClick={handleOpenPrefectureModal}
+                        className="bg-blue-500 hover:bg-blue-800 text-white w-full p-1 md:p-1 mt-2 md:mt-2"
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                      >
+                        都道府県検索
+                      </Button>
+                      <Modal
+                        open={openPrefectureModal}
+                        onClose={handleClosePrefectureModal}
+                      >
+                        <div>
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              transform: "translate(-50%, -50%)",
+                              width: { xs: "95%", sm: 400 },
+                              bgcolor: "background.paper",
+                              boxShadow: 24,
+                              p: { xs: 2, sm: 4 },
+                              borderRadius: 2,
+                              maxWidth: "95%",
+                            }}
+                          >
+                            <IconButton
+                              aria-label="close"
+                              onClick={handleClosePrefectureModal}
+                              sx={{
+                                position: "absolute",
+                                right: 8,
+                                top: 8,
+                              }}
+                            >
+                              <CloseIcon />
+                            </IconButton>
+                            <div className="flex justify-between items-center mb-4 mt-4 pt-2">
+                              <Typography
+                                variant="h6"
+                                component="h3"
+                                sx={{
+                                  fontSize: "1rem",
+                                }}
+                              >
+                                都道府県を選択してください
+                              </Typography>
+                            </div>
+                            <FormControl fullWidth sx={{ mt: 2 }}>
+                              <InputLabel>都道府県選択</InputLabel>
+                              <Select
+                                label="都道府県選択"
+                                value={selectedPrefecture}
+                                onChange={setPrefectureChange}
+                                multiple
+                                renderValue={(selected: string[]) =>
+                                  selected.join(", ")
+                                }
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: "90vh", // 画面の高さ100
+                                      width: "fit-content",
+                                    },
+                                  },
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    position: "sticky",
+                                    top: 0,
+                                    bgcolor: "background.paper",
+                                    zIndex: 1,
+                                    borderBottom:
+                                      "1px solid rgba(0, 0, 0, 0.12)",
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    padding: "4px",
+                                  }}
+                                >
+                                  <IconButton
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      const selectElement =
+                                        document.querySelector(
+                                          '[role="listbox"]'
+                                        );
+                                      if (selectElement) {
+                                        const closeEvent = new KeyboardEvent(
+                                          "keydown",
+                                          {
+                                            key: "Escape",
+                                            code: "Escape",
+                                            keyCode: 27,
+                                            which: 27,
+                                            bubbles: true,
+                                          }
+                                        );
+                                        selectElement.dispatchEvent(closeEvent);
+                                      }
+                                    }}
+                                    size="small"
+                                  >
+                                    <CloseIcon fontSize="small" />
+                                  </IconButton>
+                                </Box>
+                                {prefectures.map((prefecture) => (
+                                  <MenuItem
+                                    key={prefecture}
+                                    value={prefecture}
+                                    dense
+                                    sx={{ py: 0 }}
+                                  >
+                                    <Checkbox
+                                      checked={
+                                        selectedPrefecture.indexOf(prefecture) >
+                                        -1
+                                      }
+                                      sx={{ py: 0 }}
+                                    />
+                                    <ListItemText
+                                      primary={prefecture}
+                                      primaryTypographyProps={{
+                                        fontSize: "1.2rem",
+                                      }}
+                                    />
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <FormControl sx={{ mt: 2, width: "100%" }}>
+                              <InputLabel id="multiple-store-select-label">
+                                店舗選択
+                              </InputLabel>
+                              <Select
+                                labelId="multiple-store-select-label"
+                                multiple
+                                value={selectedStores.map((store) => store.id)}
+                                input={<OutlinedInput label="店舗選択" />}
+                                onChange={handleChange}
+                                renderValue={(selected) =>
+                                  //選択ボックスに選択店舗名を表示
+                                  selectedStores
+                                    .filter((store) =>
+                                      selected.includes(store.id)
+                                    )
+                                    .map((store) => store.name)
+                                    .join(", ")
+                                }
+                                onOpen={
+                                  //フィルタリング
+                                  handlePrefectureChange
+                                }
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: "90vh", // 画面高さまで100
+                                      width: "fit-content",
+                                    },
+                                  },
+                                  TransitionProps: {
+                                    onEnter: (node) => {
+                                      if (node) {
+                                        node.scrollTop = 0;
+                                      }
+                                    },
+                                  },
+                                  anchorOrigin: {
+                                    vertical: "bottom",
+                                    horizontal: "left",
+                                  },
+                                  transformOrigin: {
+                                    vertical: "top",
+                                    horizontal: "left",
+                                  },
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    position: "sticky",
+                                    top: 0,
+                                    bgcolor: "background.paper",
+                                    zIndex: 1,
+                                    borderBottom:
+                                      "1px solid rgba(0, 0, 0, 0.12)",
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    padding: "4px",
+                                  }}
+                                >
+                                  <MenuItem
+                                    onClick={handleMenuItemClick}
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      width: "100%",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <Checkbox
+                                      checked={allSelected}
+                                      onChange={toggleAllStores}
+                                      onClick={(e) => e.stopPropagation()} // チェックボックス自体のクリックイベントも伝播を停止
+                                    />
+                                    <ListItemText primary="全選択/全解除" />
+                                  </MenuItem>
+                                  <IconButton
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      const selectElement =
+                                        document.querySelector(
+                                          '[role="listbox"]'
+                                        );
+                                      if (selectElement) {
+                                        const closeEvent = new KeyboardEvent(
+                                          "keydown",
+                                          {
+                                            key: "Escape",
+                                            code: "Escape",
+                                            keyCode: 27,
+                                            which: 27,
+                                            bubbles: true,
+                                          }
+                                        );
+                                        selectElement.dispatchEvent(closeEvent);
+                                      }
+                                    }}
+                                    size="small"
+                                  >
+                                    <CloseIcon fontSize="small" />
+                                  </IconButton>
+                                </Box>
+                                {filteredStores.map((store) => (
+                                  <MenuItem
+                                    key={store.id}
+                                    value={store.id}
+                                    dense
+                                    sx={{ py: 0 }}
+                                  >
+                                    <Checkbox
+                                      checked={selectedStores.some(
+                                        (selectedStore) =>
+                                          selectedStore.id === store.id
+                                      )}
+                                      sx={{ py: 0 }}
+                                    />
+                                    <ListItemText
+                                      primary={store.name}
+                                      primaryTypographyProps={{
+                                        fontSize: "1.2rem",
+                                      }}
+                                    />
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        </div>
+                      </Modal>
+                    </div>
                   </div>
                 </div>
               </div>
               <div className="md:w-4/12 lg:w-3/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full min-w-32">
-                  <h2 className="text-base font-bold mb-2 md:mb-1">選択店舗</h2>
+                  <div className="flex justify-between items-center mb-1 md:mt-1">
+                    <h2 className="text-base font-bold mb-2 md:mb-1">
+                      選択店舗
+                    </h2>
+                    {/* <Button
+                      size="small"
+                      variant="contained"
+                      className="bg-blue-500 hover:bg-blue-800 text-white"
+                      onClick={selectAllStores}
+                    >
+                      {selectedStores.length > 0 ? "全店舗解除" : "全店舗選択"}
+                    </Button> */}
+                  </div>
                   <div className="mb-2 md:mt-2">
                     <div className="max-h-40 overflow-y-auto">
                       {" "}
@@ -1338,7 +1378,7 @@ const IndexPage = () => {
                 </div>
               </div>
               <div className="md:w-auto">
-                <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full inline-block">
+                <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full w-full md:w-auto">
                   <h2 className="text-base font-bold mb-2 md:mb-1">表示設定</h2>
                   <FormLabel
                     style={{ fontSize: "0.875rem" }}
@@ -1350,7 +1390,7 @@ const IndexPage = () => {
                     aria-labelledby="demo-radio-buttons-group-label"
                     defaultValue={typeValue}
                     name="radio-location-group"
-                    className="flex flex-row gap-3"
+                    className="flex flex-row gap-1"
                     onChange={handleTypeChange}
                   >
                     <FormControlLabel
@@ -1418,7 +1458,7 @@ const IndexPage = () => {
                     aria-labelledby="demo-radio-buttons-group-label"
                     defaultValue={locationValue}
                     name="radio-location-group"
-                    className="flex flex-row gap-3"
+                    className="flex flex-row gap-1"
                     onChange={handleLocationChange}
                   >
                     <FormControlLabel
@@ -1581,27 +1621,31 @@ const IndexPage = () => {
             </div>
             <div className="w-full flex flex-wrap gap-2 justify-between">
               <div className="flex gap-4 ml-auto w-full md:w-auto justify-end">
-                <Button
+                {/* <Button
                   variant="contained"
                   className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
                   startIcon={<ArrowBackIcon className="md:inline hidden" />}
-                  onClick={() => {}}
+                  onClick={() => { }}
                 >
                   店舗別に戻る
-                </Button>
+                </Button> */}
 
                 <Button
                   variant="contained"
                   className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
                   startIcon={<DownloadIcon className="md:inline hidden" />}
-                  //onClick={() => fetchAndTransformData(API_ENDPOINTS.download)}
+                  onClick={() => {
+                    setModalType("info");
+                    setErrorMessage("二次開発で導入予定です");
+                    setOpenErrorModal(true);
+                  }}
                 >
-                  ダウンロード
+                  ダウンロード(開発中)
                 </Button>
 
                 <Button
                   variant="contained"
-                  className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
+                  className={`bg-${isLoading ? 'blue-800' : 'blue-500' } hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
                   startIcon={<SearchIcon className="md:inline hidden" />}
                   onClick={() =>
                     fetchAndTransformData(
@@ -1611,7 +1655,7 @@ const IndexPage = () => {
                     )
                   }
                 >
-                  集計実行
+                  {isLoading ? "集計中..." : "集計実行"}
                 </Button>
               </div>
             </div>
@@ -1686,7 +1730,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("storeNumber")}
                             >
                               {sortKey === "storeNumber" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1706,7 +1750,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("netSalesA")}
                             >
                               {sortKey === "netSalesA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1739,7 +1783,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("usersA")}
                             >
                               {sortKey === "usersA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1772,7 +1816,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("avgPriceA")}
                             >
                               {sortKey === "avgPriceA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1805,7 +1849,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("newUsersA")}
                             >
                               {sortKey === "newUsersA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1838,7 +1882,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("newUsersRateA")}
                             >
                               {sortKey === "newUsersRateA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1863,7 +1907,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("otherSalesA")}
                             >
                               {sortKey === "otherSalesA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -2127,15 +2171,19 @@ const IndexPage = () => {
       <Dialog
         open={openErrorModal}
         onClose={handleCloseErrorModal}
-        aria-labelledby="error-dialog-title"
-        aria-describedby="error-dialog-description"
+        aria-labelledby="modal-dialog-title"
+        aria-describedby="modal-dialog-description"
       >
         <DialogTitle
           id="error-dialog-title"
           className="flex items-center gap-2"
         >
-          <ErrorOutlineIcon className="text-red-500" />
-          <span>エラー</span>
+          {modalType === "error" ? (
+            <ErrorOutlineIcon className="text-red-500" />
+          ) : (
+            <InfoIcon className="text-blue-500" />
+          )}
+          <span>{modalType === "error" ? "エラー" : "お知らせ"}</span>
         </DialogTitle>
         <DialogContent>
           <p className="text-gray-700">{errorMessage}</p>
