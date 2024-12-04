@@ -33,6 +33,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker"
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -721,7 +722,7 @@ const IndexPage = () => {
                               width: "45%",
                             }}
                           >
-                            <DatePicker
+                            <DesktopDatePicker
                               label="抽出対象"
                               value={date1}
                               onChange={setDate1}
@@ -752,7 +753,7 @@ const IndexPage = () => {
                               width: "45%",
                             }}
                           >
-                            <DatePicker
+                            <DesktopDatePicker
                               label=""
                               value={date2}
                               onChange={setDate2}
@@ -786,7 +787,7 @@ const IndexPage = () => {
                                   width: "45%",
                                 }}
                               >
-                                <DatePicker
+                                <DesktopDatePicker
                                   label="比較対象"
                                   value={date3}
                                   onChange={setDate3}
@@ -816,7 +817,7 @@ const IndexPage = () => {
                                   width: "45%",
                                 }}
                               >
-                                <DatePicker
+                                <DesktopDatePicker
                                   label=""
                                   value={date4}
                                   onChange={setDate4}
