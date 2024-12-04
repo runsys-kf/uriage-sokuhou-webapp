@@ -12,9 +12,10 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useRouter } from "next/router";
 import axios from 'axios';  // これを追加
-import { mockLoginResponses } from "../__tests__/loginMockData";
+//import { mockLoginResponses } from "../__tests__/loginMockData";
 import LoginSideImage from "../public/images/login-side-image.webp";
 
+import Cookies from 'js-cookie';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -27,7 +28,7 @@ const LoginPage = () => {
   const handleMouseDownPassword = (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
-    event.preventDefault();
+    // event.preventDefault();
   };
 
   const handleUsernameChange = (event) => setUsername(event.target.value);
@@ -37,20 +38,44 @@ const LoginPage = () => {
   const handleLogin = async () => {
     try {
       let response;
-      if (process.env.NODE_ENV === 'development') { // 開発環境の場合はモックデータを使用
-        response = mockLoginResponses[username] || mockLoginResponses.not200;
+      //if (process.env.NODE_ENV === 'development') { // 開発環境の場合はモックデータを使用
+      if (false) {
+        //response = mockLoginResponses[username] || mockLoginResponses.not200;
       } else {
-        response = await axios.post('http://127.0.0.1:5000/login', { username, password }, { withCredentials: true });
+        response = await axios.post('https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
+          { username, password },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        // 店舗情報チェック
+        // console.log("response", response);
       }
       if (response.status === 200) {
         localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
-        router.push('/');
-      }else {
-        setErrorMessage("ログインに失敗しました。ユーザー名とパスワードを確認してください。");
+        const token = response.data.token;
+        Cookies.set('access_token', token, { expires: 1, path: '/' });
+        router.push('/'); // 成功時にリダイレクト
+      } else {
+        setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
       }
     } catch (error) {
-      console.error('ログインに失敗しました:', error);
-      setErrorMessage("ログインに失敗しました。ユーザー名とパスワードを確認してください。");
+      console.error("ログインに失敗しました:", error);
+
+      // ネットワークエラーの場合
+      if (error.response) {
+        console.error('Response error: ', error.response);
+        setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
+      } else if (error.request) {
+        console.error('No response received: ', error.request);
+        setErrorMessage('ネットワークエラーが発生しました。通信環境を確認してください。');
+      } else {
+        console.error('Error message: ', error.message);
+        setErrorMessage('予期しないエラーが発生しました。');
+      }
     }
   };
 

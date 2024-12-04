@@ -43,7 +43,7 @@ import Holidays from "date-holidays";
 import { fetchData, API_ENDPOINTS } from "./api/apiService";
 import { storeProcessData, dateProcessData } from "./api/dataTransformer";
 import { initialStores } from "../data/shopData";
-import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
+//import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
 // add 20240828
@@ -55,42 +55,42 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+// export const getServerSideProps: GetServerSideProps = async (context) => {
 
-  const cookies = nookies.get(context);
-  const token = cookies['access_token'];
+//   const cookies = nookies.get(context);
+//   const token = cookies['access_token'];
 
-  if (!token) {
-    // トークンがない場合、ログインページにリダイレクト
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
+//   if (!token) {
+//     // トークンがない場合、ログインページにリダイレクト
+//     return {
+//       redirect: {
+//         destination: '/login',
+//         permanent: false,
+//       },
+//     };
+//   }
 
-  try {
-    // トークンを検証
-    const decoded = jwt.verify(token, JWT_SECRET);
+//   try {
+//     // トークンを検証
+//     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // 認証成功
-    return {
-      props: {
-        user: decoded,
-      },
-    };
-  } catch (error) {
-    console.error('Token verification failed:', error.message);
-    // 認証失敗、ログインページにリダイレクト
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
-};
+//     // 認証成功
+//     return {
+//       props: {
+//         user: decoded,
+//       },
+//     };
+//   } catch (error) {
+//     console.error('Token verification failed:', error.message);
+//     // 認証失敗、ログインページにリダイレクト
+//     return {
+//       redirect: {
+//         destination: '/login',
+//         permanent: false,
+//       },
+//     };
+//   }
+// };
 
 const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 
@@ -121,25 +121,25 @@ const IndexPage = () => {
   }, []);
 
   // 認証チェック
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        console.log("index.tsx res:");
-        const response = await axios.get("https://salesrepo.runsystem.co.jp/", {
-          withCredentials: true
-        });
-        console.log("index.tsx res: ", response);
-        // 認証成功
-        console.log("User is authenticated:", response.data.user);
-      } catch (error) {
-        // 認証失敗時はログインページへリダイレクト
-        console.error("Authentication check failed:", error);
-        router.replace('/login'); // pushではなくreplaceを使用
-      }
-    };
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     try {
+  //       console.log("index.tsx res:");
+  //       const response = await axios.get("https://salesrepo.runsystem.co.jp/", {
+  //         withCredentials: true
+  //       });
+  //       console.log("index.tsx res: ", response);
+  //       // 認証成功
+  //       console.log("User is authenticated:", response.data.user);
+  //     } catch (error) {
+  //       // 認証失敗時はログインページへリダイレクト
+  //       console.error("Authentication check failed:", error);
+  //       router.replace('/login'); // pushではなくreplaceを使用
+  //     }
+  //   };
 
-    checkAuth();
-  }, [router]);
+  //   checkAuth();
+  // }, [router]);
 
   // カレンダー用状態 前日を選択させる処理含む
   const [date1, setDate1] = useState(dayjs());
@@ -604,16 +604,16 @@ const IndexPage = () => {
       setSortKey("");
       setSortDirection("desc");
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
-      const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
-      if (isTestMode) {
-        setIsLoading(true); // 集計中...に設定
-        if (dailyCheck === "日別") {
-          //setStoresData(mockDateResponse());
-        } else {
-          setStoresData(mockStoreResponse());
-        }
-        return;
-      }
+      // const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
+      // if (isTestMode) {
+      //   setIsLoading(true); // 集計中...に設定
+      //   if (dailyCheck === "日別") {
+      //     //setStoresData(mockDateResponse());
+      //   } else {
+      //     setStoresData(mockStoreResponse());
+      //   }
+      //   return;
+      // }
 
       /**本番環境用 */
       let params;
@@ -1646,7 +1646,7 @@ const IndexPage = () => {
 
                 <Button
                   variant="contained"
-                  className={`bg-${isLoading ? 'blue-800' : 'blue-500' } hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
+                  className={`bg-${isLoading ? 'blue-800' : 'blue-500'} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
                   startIcon={<SearchIcon className="md:inline hidden" />}
                   onClick={() =>
                     fetchAndTransformData(
