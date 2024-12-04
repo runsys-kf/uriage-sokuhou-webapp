@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout";
-import axios from "axios";  // これを追加
+import axios from "axios"; // これを追加
 
 import React, { useState, useEffect } from "react";
 import {
@@ -19,7 +19,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormLabel,
 } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -31,6 +33,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker"
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -45,48 +48,48 @@ import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
 // add 20240828
 import { useRouter } from "next/router";
-import { GetServerSideProps } from 'next';
+import { GetServerSideProps } from "next";
 // add 20241117 16:23
-import nookies from 'nookies';
-import jwt from 'jsonwebtoken';
+import nookies from "nookies";
+import jwt from "jsonwebtoken";
 
-const JWT_SECRET = '100'; // サーバー側と同じ秘密鍵
+const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
 
-    const cookies = nookies.get(context);
-    const token = cookies['access_token'];
+  const cookies = nookies.get(context);
+  const token = cookies['access_token'];
 
-    if (!token) {
-        // トークンがない場合、ログインページにリダイレクト
-        return {
-            redirect: {
-                destination: '/login',
-                permanent: false,
-            },
-        };
-    }
+  if (!token) {
+    // トークンがない場合、ログインページにリダイレクト
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
 
-    try {
-        // トークンを検証
-        const decoded = jwt.verify(token, JWT_SECRET);
+  try {
+    // トークンを検証
+    const decoded = jwt.verify(token, JWT_SECRET);
 
-        // 認証成功
-        return {
-            props: {
-                user: decoded,
-            },
-        };
-    } catch (error) {
-        console.error('Token verification failed:', error.message);
-        // 認証失敗、ログインページにリダイレクト
-        return {
-            redirect: {
-                destination: '/login',
-                permanent: false,
-            },
-        };
-    }
+    // 認証成功
+    return {
+      props: {
+        user: decoded,
+      },
+    };
+  } catch (error) {
+    console.error('Token verification failed:', error.message);
+    // 認証失敗、ログインページにリダイレクト
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
 };
 
 const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
@@ -95,6 +98,27 @@ const IndexPage = () => {
   //Muiのtheme設定を読み込む
   const theme = useTheme();
   const router = useRouter();
+
+  //初期表示時店舗を選択する
+  useEffect(() => {
+    const authority = JSON.parse(localStorage.getItem("Authority"));
+    if (authority) {
+      if (authority.length === 1 && authority.includes("9999")) {
+        // '9999'のみの場合は全店舗を選択
+        setSelectedStores(initialStores);
+        setAuthorizedStores(initialStores);
+        setFilteredStores(initialStores);
+      } else {
+        // '9999'が含まれていても他の店舗IDがある場合はその店舗のみを選択
+        const authorizedStoreList = initialStores.filter((store) =>
+          authority.includes(store.id)
+        );
+        setSelectedStores(authorizedStoreList); //選択状態店舗
+        setAuthorizedStores(authorizedStoreList); //表示される店舗
+        setFilteredStores(authorizedStoreList); //絞り込み店舗
+      }
+    }
+  }, []);
 
   // 認証チェック
   useEffect(() => {
@@ -127,28 +151,34 @@ const IndexPage = () => {
     dayjs().subtract(1, "day").subtract(1, "year")
   );
 
-  // モーダル用状態
+  // 店舗選択モーダル用状態
   const [openStoreModal, setOpenStoreModal] = useState(false);
   const [openPrefectureModal, setOpenPrefectureModal] = useState(false);
 
-  const [selectedStores, setSelectedStores] = useState([]); //選択した店舗名
-  //const [selectedArea, setSelectedArea] = useState("");
+  const [selectedStores, setSelectedStores] = useState([]); //選択した店舗
+  const [authorizedStores, setAuthorizedStores] = useState(initialStores); //表示できる店舗
+  const [filteredStores, setFilteredStores] = useState(initialStores); //絞り込み店舗
   const [selectedPrefecture, setSelectedPrefecture] = useState<string[]>([]); //選択した都道府県名
-
   const [searchText, setSearchText] = useState(""); //店舗名でフィルタリング時の入力値
-  const [filteredStores, setFilteredStores] = useState(initialStores); // 入力値によるフィルタリング店舗(初期値は全店)
-  //const [selectedPrefectureStores, setSelectedPrefectureStores] = useState([]); // 都道府県選択によるフィルタリング店舗
 
   // チェックボックス用状態
   const [dailyCheck, setDailyCheck] = useState("店舗別"); //日別or店舗別
   const [compareCheck, setCompareCheck] = useState(false); //比較対象チェックボックスの状態
+  const [allSelected, setAllSelected] = useState(false); // 全選択/全解除の状態を管理
 
   //ラジオボタン用状態
   const [locationValue, setLocationValue] = useState("全て"); //"全て or 駅前 or 郊外"
   const [typeValue, setTypeValue] = useState("全て"); //"全て or 直営 or FC"
+  const [closedStoreValue, setClosedStoreValue] = useState("true"); //閉店かどうか
   const [salesInclusionValue, setSalesInclusionValue] = useState("true"); //その他売り上げ込みかどうか
+
+  //集計ボタン
+  const [isLoading, setIsLoading] = useState(false); // 集計中の状態を管理
+
+  //お知らせモーダル関連
   const [openErrorModal, setOpenErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [modalType, setModalType] = useState<"error" | "info">("error"); //エラーかお知らせか
 
   //型指定
   interface TotalData {
@@ -255,20 +285,40 @@ const IndexPage = () => {
     setSelectedPrefecture([]); // 都道府県の選択をクリア
   };
 
-  //全選択/全解除
+  //全選択/全解除チェックボックス
   const toggleAllStores = () => {
+    if (allSelected) {
+      const filteredStoreIds = filteredStores.map((store) => store.id); //絞り込み中店舗のid取得
+      const newSelectedStores = selectedStores.filter(
+        (store) => !filteredStoreIds.includes(store.id)
+      ); //絞り込み絞り込み以外の店舗をフィルタリング
+      setSelectedStores(newSelectedStores); //絞り込み中以外をセット
+    } else {
+      const combinedStores = Array.from(
+        new Set([...selectedStores, ...filteredStores])
+      );
+      setSelectedStores(combinedStores);
+    }
+    setAllSelected(!allSelected);
+  };
+
+  //全店舗選択/全店舗解除ボタン
+  const selectAllStores = () => {
     if (selectedStores.length > 0) {
-      // 1つでも選択されている場合は全解除
       setSelectedStores([]);
     } else {
-      // 何も選択されていない場合は全選択
-      setSelectedStores(initialStores);
+      setSelectedStores(authorizedStores);
     }
   };
 
   //店舗検索入力値の管理ハンドラ
   const handleSearchChange = (e) => {
     setSearchText(e.target.value);
+  };
+  // MenuItemのクリックハンドラを修正
+  const handleMenuItemClick = (event) => {
+    event.stopPropagation(); // イベントの伝播を停止
+    toggleAllStores();
   };
 
   // エンターキー押下時のハンドラを修正
@@ -294,7 +344,7 @@ const IndexPage = () => {
   //入力値からフィルタリング
   const handleSelectOpen = () => {
     //let filtered = radioValueFilterStores();//ラジオボタンフィルタリング
-    let filtered = initialStores;
+    let filtered = authorizedStores;
     if (searchText) {
       filtered = filtered.filter((store) =>
         store.name.toLowerCase().includes(searchText.toLowerCase())
@@ -303,10 +353,10 @@ const IndexPage = () => {
       const newSelectedStores = Array.from(
         new Set([...selectedStores, ...filtered])
       );
-      setSelectedStores(newSelectedStores);
+      //setSelectedStores(newSelectedStores);
     } else {
-      setFilteredStores(filtered); // 未入力の場合は全データを表示
-      setSelectedStores(filtered);
+      setFilteredStores(filtered); //全店舗表示
+      //setSelectedStores(filtered); //全店舗選択
     }
   };
 
@@ -322,7 +372,8 @@ const IndexPage = () => {
   // 都道府県選択からのフィルタリング
   const handlePrefectureChange = () => {
     //let filtered = radioValueFilterStores();//ラジオボタンフィルタリング
-    let filtered = initialStores;
+    //setAllSelected(false);
+    let filtered = authorizedStores;
     if (selectedPrefecture.length > 0) {
       filtered = filtered.filter((store) =>
         selectedPrefecture.includes(store.prefecture)
@@ -331,10 +382,10 @@ const IndexPage = () => {
       const newSelectedStores = Array.from(
         new Set([...selectedStores, ...filtered])
       );
-      setSelectedStores(newSelectedStores);
+      //setSelectedStores(newSelectedStores);
     } else {
       setFilteredStores(filtered); // 未入力の場合は全データを表示
-      setSelectedStores(filtered);
+      //setSelectedStores(filtered);
       //setSelectedStores([]); // 選択都道府県がない場合は選択を解除
     }
   };
@@ -426,6 +477,11 @@ const IndexPage = () => {
   const handleTypeChange = (event) => {
     setTypeValue(event.target.value);
   };
+  //閉店変更ハンドラ
+  const handleClosedStoreChange = (event) => {
+    setClosedStoreValue(event.target.value);
+  };
+  //その他売上変更ハンドラ
   const handleSalesInclusionChange = (event) => {
     setSalesInclusionValue(event.target.value);
   };
@@ -444,35 +500,33 @@ const IndexPage = () => {
     setSortKey(key);
   };
 
-// ソート処理
-const sortedStoresData = [...storesData.storeData].sort((a, b) => {
-  // 空文字列の処理
-  if (a[sortKey] === "" && b[sortKey] === "") return 0;
-  if (a[sortKey] === "") return sortDirection === "asc" ? -1 : 1;
-  if (b[sortKey] === "") return sortDirection === "asc" ? 1 : -1;
+  // ソート処理
+  const sortedStoresData = [...storesData.storeData].sort((a, b) => {
+    // 空文字列の処理
+    if (a[sortKey] === "" && b[sortKey] === "") return 0;
+    if (a[sortKey] === "") return sortDirection === "asc" ? -1 : 1;
+    if (b[sortKey] === "") return sortDirection === "asc" ? 1 : -1;
 
-  // パーセント記号と区切りカンマを除去して数値に変換
-  const cleanValue = (val: string) => {
-    return String(val)
-      .replace(/[,％%]/g, '') // カンマとパーセント記号（全角・半角）を除去
-      .trim();
-  };
+    // パーセント記号と区切りカンマを除去して数値に変換
+    const cleanValue = (val: string) => {
+      return String(val)
+        .replace(/[,％%]/g, "") // カンマとパーセント記号（全角・半角）を除去
+        .trim();
+    };
 
-  const valueA = Number(cleanValue(a[sortKey]));
-  const valueB = Number(cleanValue(b[sortKey]));
+    const valueA = Number(cleanValue(a[sortKey]));
+    const valueB = Number(cleanValue(b[sortKey]));
 
-  // 数値として有効な場合は数値比較
-  if (!isNaN(valueA) && !isNaN(valueB)) {
-    return sortDirection === "asc" 
-      ? valueA - valueB 
-      : valueB - valueA;
-  }
+    // 数値として有効な場合は数値比較
+    if (!isNaN(valueA) && !isNaN(valueB)) {
+      return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
+    }
 
-  // 数値変換できない場合は文字列として比較
-  return sortDirection === "asc"
-    ? String(a[sortKey]).localeCompare(String(b[sortKey]))
-    : String(b[sortKey]).localeCompare(String(a[sortKey]));
-});
+    // 数値変換できない場合は文字列として比較
+    return sortDirection === "asc"
+      ? String(a[sortKey]).localeCompare(String(b[sortKey]))
+      : String(b[sortKey]).localeCompare(String(a[sortKey]));
+  });
 
   ///***<送信時データ変換処理>***///
   const createRequestData = (endpoint) => {
@@ -503,6 +557,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
         businessType: typeValue, // 例: '全て', '直営', 'FC'
       },
       includeSales: salesInclusionValue, // 'true' または 'false'
+      includeClose: closedStoreValue,
     };
   };
   // 初期化処理
@@ -539,6 +594,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
   // add 20240828
   const fetchAndTransformData = async (endpoint) => {
     if (selectedStores.length === 0) {
+      setModalType("error");
       setErrorMessage("対象店舗が選択されていません");
       setOpenErrorModal(true);
       return;
@@ -550,6 +606,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       // const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       // if (isTestMode) {
+      //   setIsLoading(true); // 集計中...に設定
       //   if (dailyCheck === "日別") {
       //     //setStoresData(mockDateResponse());
       //   } else {
@@ -565,11 +622,13 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
 
       if (endpoint === API_ENDPOINTS.display_by_store) {
         //店舗別
+        setIsLoading(true); // 集計中...に設定
         params = createRequestData(endpoint);
         const data = await fetchData(endpoint, params, router);
         setStoresData(storeProcessData(data));
       } else if (endpoint === API_ENDPOINTS.display_by_date) {
         //日別
+        setIsLoading(true); // 集計中...に設定
         params = createRequestData(endpoint);
         const data = await fetchData(endpoint, params, router);
         setStoresData(dateProcessData(data));
@@ -580,8 +639,11 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      setModalType("error");
       setErrorMessage(error.message || "データの取得に失敗しました");
       setOpenErrorModal(true);
+    } finally {
+      setIsLoading(false); // 集計実行に戻す
     }
   };
 
@@ -594,6 +656,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
   const handleLogout = async () => {
     try {
       //await fetchData(API_ENDPOINTS.logout, null, router);
+      localStorage.removeItem("Authority");
       router.replace("/login"); // pushではなくreplaceを使用
     } catch (error) {
       console.error("Logout failed:", error);
@@ -629,160 +692,177 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
             <div className="flex flex-col md:flex-row gap-2 lg:gap-4 items-stretch">
               <div className="w-full md:w-5/12 lg:w-4/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full">
-                  <h2 className="text-base font-bold mb-2 md:mb-1">対象期間</h2>
-                  <LocalizationProvider
-                    dateAdapter={AdapterDayjs}
-                    adapterLocale={dayjsAdapter.locale}
-                  >
-                    <div className="grid grid-cols-1 gap-2 md:gap-2">
-                      <div className="flex w-full gap-2 lg:gap-4 items-center">
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            width: "45%",
-                          }}
-                        >
-                          <DatePicker
-                            label="抽出対象"
-                            value={date1}
-                            onChange={setDate1}
-                            maxDate={dayjs()}
-                            slotProps={{
-                              textField: {
-                                size: "small",
-                                inputProps: {
-                                  "data-testid": "date-picker-1",
-                                },
-                              },
-                              day: ({ day }) => ({
-                                sx: {
-                                  ...(isHoliday(day) && {
-                                    color: theme.palette.secondary.main,
-                                  }),
-                                },
-                              }),
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-start mb-4">
+                    <h2 className="text-base font-bold mb-2 md:mb-0 md:mr-2">
+                      対象期間
+                    </h2>
+                    <div className="text-sm text-left md:text-right md:ml-auto">
+                      {" "}
+                      {/* spanをラップして右寄せ */}
+                      <span>
+                        ※直営の締めデータは翌日の
+                        <span className="whitespace-nowrap bg-gray-100 px-1 py-1 rounded">
+                          12 : 33
+                        </span>
+                        に反映されます
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mb-3 md:mt-3">
+                    <LocalizationProvider
+                      dateAdapter={AdapterDayjs}
+                      adapterLocale={dayjsAdapter.locale}
+                    >
+                      <div className="grid grid-cols-1 gap-2 md:gap-2">
+                        <div className="flex w-full gap-2 lg:gap-4 items-center">
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              width: "45%",
                             }}
-                          />
-                        </Box>
-                        <p>～</p>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            width: "45%",
-                          }}
-                        >
-                          <DatePicker
-                            label=""
-                            value={date2}
-                            onChange={setDate2}
-                            minDate={date1}
-                            maxDate={dayjs()}
-                            slotProps={{
-                              textField: {
-                                size: "small",
-                                inputProps: {
-                                  "data-testid": "date-picker-2",
-                                },
-                              },
-                              day: ({ day }) => ({
-                                sx: {
-                                  ...(isHoliday(day) && {
-                                    color: theme.palette.secondary.main,
-                                  }),
-                                },
-                              }),
-                            }}
-                          />
-                        </Box>
-                      </div>
-                      {compareCheck && (
-                        <>
-                          <div className="flex w-full gap-2 lg:gap-4 items-center">
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                width: "45%",
-                              }}
-                            >
-                              <DatePicker
-                                label="比較対象"
-                                value={date3}
-                                onChange={setDate3}
-                                maxDate={dayjs()}
-                                slotProps={{
-                                  textField: {
-                                    size: "small",
-                                    inputProps: {
-                                      "data-testid": "date-picker-3",
-                                    },
+                          >
+                            <DesktopDatePicker
+                              label="抽出対象"
+                              value={date1}
+                              onChange={setDate1}
+                              maxDate={dayjs()}
+                              //toolbarFormat="yyyy年MM月dd日"
+                              slotProps={{
+                                textField: {
+                                  size: "small",
+                                  inputProps: {
+                                    "data-testid": "date-picker-1",
                                   },
-                                  day: ({ day }) => ({
-                                    sx: {
-                                      ...(isHoliday(day) && {
-                                        color: theme.palette.secondary.main,
-                                      }),
-                                    },
-                                  }),
-                                }}
-                              />
-                            </Box>
-                            <p>～</p>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                width: "45%",
-                              }}
-                            >
-                              <DatePicker
-                                label=""
-                                value={date4}
-                                onChange={setDate4}
-                                minDate={date3}
-                                maxDate={dayjs()}
-                                slotProps={{
-                                  textField: {
-                                    size: "small",
-                                    inputProps: {
-                                      "data-testid": "date-picker-4",
-                                    },
+                                },
+                                day: ({ day }) => ({
+                                  sx: {
+                                    ...(isHoliday(day) && {
+                                      color: theme.palette.secondary.main,
+                                    }),
                                   },
-                                  day: ({ day }) => ({
-                                    sx: {
-                                      ...(isHoliday(day) && {
-                                        color: theme.palette.secondary.main,
-                                      }),
-                                    },
-                                  }),
-                                }}
-                              />
-                            </Box>
-                          </div>
-                        </>
-                      )}
-                      <div className="flex w-full gap-4 items-center justify-between">
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={compareCheck}
-                              onChange={(e) =>
-                                setCompareCheck(e.target.checked)
-                              }
-                              sx={{
-                                "& .MuiSvgIcon-root": { fontSize: 18 },
-                                p: "6px",
+                                }),
                               }}
                             />
-                          }
-                          label="比較対象"
-                          sx={{
-                            "& .MuiFormControlLabel-label": { fontSize: 14 },
-                          }}
-                        />
-                        {/* <FormControlLabel
+                          </Box>
+                          <p>～</p>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              width: "45%",
+                            }}
+                          >
+                            <DesktopDatePicker
+                              label=""
+                              value={date2}
+                              onChange={setDate2}
+                              minDate={date1}
+                              maxDate={dayjs()}
+                              slotProps={{
+                                textField: {
+                                  size: "small",
+                                  inputProps: {
+                                    "data-testid": "date-picker-2",
+                                  },
+                                },
+                                day: ({ day }) => ({
+                                  sx: {
+                                    ...(isHoliday(day) && {
+                                      color: theme.palette.secondary.main,
+                                    }),
+                                  },
+                                }),
+                              }}
+                            />
+                          </Box>
+                        </div>
+                        {compareCheck && (
+                          <>
+                            <div className="flex w-full gap-2 lg:gap-4 items-center">
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  width: "45%",
+                                }}
+                              >
+                                <DesktopDatePicker
+                                  label="比較対象"
+                                  value={date3}
+                                  onChange={setDate3}
+                                  maxDate={dayjs()}
+                                  slotProps={{
+                                    textField: {
+                                      size: "small",
+                                      inputProps: {
+                                        "data-testid": "date-picker-3",
+                                      },
+                                    },
+                                    day: ({ day }) => ({
+                                      sx: {
+                                        ...(isHoliday(day) && {
+                                          color: theme.palette.secondary.main,
+                                        }),
+                                      },
+                                    }),
+                                  }}
+                                />
+                              </Box>
+                              <p>～</p>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  width: "45%",
+                                }}
+                              >
+                                <DesktopDatePicker
+                                  label=""
+                                  value={date4}
+                                  onChange={setDate4}
+                                  minDate={date3}
+                                  maxDate={dayjs()}
+                                  slotProps={{
+                                    textField: {
+                                      size: "small",
+                                      inputProps: {
+                                        "data-testid": "date-picker-4",
+                                      },
+                                    },
+                                    day: ({ day }) => ({
+                                      sx: {
+                                        ...(isHoliday(day) && {
+                                          color: theme.palette.secondary.main,
+                                        }),
+                                      },
+                                    }),
+                                  }}
+                                />
+                              </Box>
+                            </div>
+                          </>
+                        )}
+                        <div className="flex w-full gap-4 items-center justify-between">
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={compareCheck}
+                                onChange={(e) =>
+                                  setCompareCheck(e.target.checked)
+                                }
+                                sx={{
+                                  "& .MuiSvgIcon-root": { fontSize: 18 },
+                                  p: "6px",
+                                }}
+                              />
+                            }
+                            label="比較対象"
+                            sx={{
+                              "& .MuiFormControlLabel-label": { fontSize: 14 },
+                            }}
+                          />
+                          {/* <FormControlLabel
                           control={
                             <Checkbox
                               checked={dailyCheck === "日別"}
@@ -798,198 +878,29 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             "& .MuiFormControlLabel-label": { fontSize: 14 },
                           }}
                         /> */}
+                        </div>
                       </div>
-                    </div>
-                  </LocalizationProvider>
+                    </LocalizationProvider>
+                  </div>
                 </div>
               </div>
               <div className="w-full md:w-4/12 lg:w-3/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full">
                   <h2 className="text-base font-bold mb-2 md:mb-1">対象店舗</h2>
-                  <div className="">
-                    <Button
-                      onClick={handleOpenStoreModal}
-                      className="bg-blue-500 hover:bg-blue-800 text-white w-full p-1 md:p-1"
-                      variant="contained"
-                      size="large"
-                    >
-                      店舗選択
-                    </Button>
-                    <Modal
-                      open={openStoreModal}
-                      onClose={handleCloseStoreModal}
-                    >
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: "50%",
-                          left: "50%",
-                          transform: "translate(-50%, -50%)",
-                          width: { xs: "95%", sm: 400 },
-                          bgcolor: "background.paper",
-                          boxShadow: 24,
-                          p: { xs: 2, sm: 4 },
-                          borderRadius: 2,
-                          maxWidth: "95%",
-                        }}
+                  <div className="mb-3 md:mt-3">
+                    <div className="">
+                      <Button
+                        onClick={handleOpenStoreModal}
+                        className="bg-blue-500 hover:bg-blue-800 text-white w-full p-1 md:p-1"
+                        variant="contained"
+                        size="large"
                       >
-                        <IconButton
-                          aria-label="close"
-                          onClick={handleCloseStoreModal}
-                          sx={{
-                            position: "absolute",
-                            right: 8,
-                            top: 8,
-                          }}
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                        <div className="flex justify-between items-center mb-4 mt-4 pt-2">
-                          <Typography
-                            variant="h6"
-                            component="h3"
-                            sx={{
-                              fontSize: "1rem",
-                            }}
-                          >
-                            店舗を選択してください
-                          </Typography>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            className="bg-blue-500 hover:bg-blue-800 text-white"
-                            onClick={toggleAllStores}
-                          >
-                            {selectedStores.length > 0 ? "全解除" : "全選択"}
-                          </Button>
-                        </div>
-                        <TextField
-                          margin="normal"
-                          fullWidth
-                          label="店舗を検索"
-                          type="search"
-                          value={searchText}
-                          onChange={handleSearchChange}
-                          onKeyDown={handleSearchKeyDown}
-                        />
-                        <FormControl sx={{ mt: 2, width: "100%" }}>
-                          <InputLabel>店舗選択</InputLabel>
-                          <Select
-                            multiple
-                            value={selectedStores.map((store) => store.id)}
-                            input={<OutlinedInput label="店舗選択" />}
-                            onChange={handleChange}
-                            onOpen={handleSelectOpen}
-                            renderValue={(selected) =>
-                              //選択ボックスに選択店舗名を表示
-                              selectedStores
-                                .filter((store) => selected.includes(store.id))
-                                .map((store) => store.name)
-                                .join(", ")
-                            }
-                            MenuProps={{
-                              PaperProps: {
-                                style: {
-                                  maxHeight: "90vh", // 画面の高さ100
-                                  width: "fit-content",
-                                },
-                              },
-                              // スクロール位置を先頭に設定
-                              TransitionProps: {
-                                onEnter: (node) => {
-                                  if (node) {
-                                    node.scrollTop = 0;
-                                  }
-                                },
-                              },
-                              anchorOrigin: {
-                                vertical: "bottom",
-                                horizontal: "left",
-                              },
-                              transformOrigin: {
-                                vertical: "top",
-                                horizontal: "left",
-                              },
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                position: "sticky",
-                                top: 0,
-                                bgcolor: "background.paper",
-                                zIndex: 1,
-                                borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
-                                display: "flex",
-                                justifyContent: "flex-end",
-                                padding: "4px",
-                              }}
-                            >
-                              <IconButton
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  const selectElement =
-                                    document.querySelector('[role="listbox"]');
-                                  if (selectElement) {
-                                    const closeEvent = new KeyboardEvent(
-                                      "keydown",
-                                      {
-                                        key: "Escape",
-                                        code: "Escape",
-                                        keyCode: 27,
-                                        which: 27,
-                                        bubbles: true,
-                                      }
-                                    );
-                                    selectElement.dispatchEvent(closeEvent);
-                                  }
-                                }}
-                                size="small"
-                              >
-                                <CloseIcon fontSize="small" />
-                              </IconButton>
-                            </Box>
-                            {filteredStores.map((store) => (
-                              <MenuItem
-                                key={store.id}
-                                value={store.id}
-                                dense
-                                sx={{ py: 0 }}
-                              >
-                                <Checkbox
-                                  checked={selectedStores.some(
-                                    (selectedStore) =>
-                                      selectedStore.id === store.id
-                                  )}
-                                  sx={{ py: 0 }}
-                                />
-                                <ListItemText
-                                  primary={store.name}
-                                  primaryTypographyProps={{
-                                    fontSize: "1.2rem",
-                                  }}
-                                />
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Box>
-                    </Modal>
-                  </div>
-                  <div className="">
-                    <Button
-                      onClick={handleOpenPrefectureModal}
-                      className="bg-blue-500 hover:bg-blue-800 text-white w-full p-1 md:p-1 mt-2 md:mt-2"
-                      variant="contained"
-                      color="primary"
-                      size="large"
-                    >
-                      都道府県検索
-                    </Button>
-                    <Modal
-                      open={openPrefectureModal}
-                      onClose={handleClosePrefectureModal}
-                    >
-                      <div>
+                        店舗選択
+                      </Button>
+                      <Modal
+                        open={openStoreModal}
+                        onClose={handleCloseStoreModal}
+                      >
                         <Box
                           sx={{
                             position: "absolute",
@@ -1006,7 +917,7 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                         >
                           <IconButton
                             aria-label="close"
-                            onClick={handleClosePrefectureModal}
+                            onClick={handleCloseStoreModal}
                             sx={{
                               position: "absolute",
                               right: 8,
@@ -1023,108 +934,26 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                                 fontSize: "1rem",
                               }}
                             >
-                              都道府県を選択してください
+                              店舗を選択してください
                             </Typography>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              className="bg-blue-500 hover:bg-blue-800 text-white"
-                              onClick={toggleAllStores}
-                            >
-                              {selectedStores.length > 0 ? "全解除" : "全選択"}
-                            </Button>
                           </div>
-                          <FormControl fullWidth sx={{ mt: 2 }}>
-                            <InputLabel>都道府県選択</InputLabel>
-                            <Select
-                              label="都道府県選択"
-                              value={selectedPrefecture}
-                              onChange={setPrefectureChange}
-                              multiple
-                              renderValue={(selected: string[]) =>
-                                selected.join(", ")
-                              }
-                              MenuProps={{
-                                PaperProps: {
-                                  style: {
-                                    maxHeight: "90vh", // 画面の高さ100
-                                    width: "fit-content",
-                                  },
-                                },
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  position: "sticky",
-                                  top: 0,
-                                  bgcolor: "background.paper",
-                                  zIndex: 1,
-                                  borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
-                                  display: "flex",
-                                  justifyContent: "flex-end",
-                                  padding: "4px",
-                                }}
-                              >
-                                <IconButton
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    const selectElement =
-                                      document.querySelector(
-                                        '[role="listbox"]'
-                                      );
-                                    if (selectElement) {
-                                      const closeEvent = new KeyboardEvent(
-                                        "keydown",
-                                        {
-                                          key: "Escape",
-                                          code: "Escape",
-                                          keyCode: 27,
-                                          which: 27,
-                                          bubbles: true,
-                                        }
-                                      );
-                                      selectElement.dispatchEvent(closeEvent);
-                                    }
-                                  }}
-                                  size="small"
-                                >
-                                  <CloseIcon fontSize="small" />
-                                </IconButton>
-                              </Box>
-                              {prefectures.map((prefecture) => (
-                                <MenuItem
-                                  key={prefecture}
-                                  value={prefecture}
-                                  dense
-                                  sx={{ py: 0 }}
-                                >
-                                  <Checkbox
-                                    checked={
-                                      selectedPrefecture.indexOf(prefecture) >
-                                      -1
-                                    }
-                                    sx={{ py: 0 }}
-                                  />
-                                  <ListItemText
-                                    primary={prefecture}
-                                    primaryTypographyProps={{
-                                      fontSize: "1.2rem",
-                                    }}
-                                  />
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
+                          <TextField
+                            margin="normal"
+                            fullWidth
+                            label="店舗を検索"
+                            type="search"
+                            value={searchText}
+                            onChange={handleSearchChange}
+                            onKeyDown={handleSearchKeyDown}
+                          />
                           <FormControl sx={{ mt: 2, width: "100%" }}>
-                            <InputLabel id="multiple-store-select-label">
-                              店舗選択
-                            </InputLabel>
+                            <InputLabel>店舗選択</InputLabel>
                             <Select
-                              labelId="multiple-store-select-label"
                               multiple
                               value={selectedStores.map((store) => store.id)}
                               input={<OutlinedInput label="店舗選択" />}
                               onChange={handleChange}
+                              onOpen={handleSelectOpen}
                               renderValue={(selected) =>
                                 //選択ボックスに選択店舗名を表示
                                 selectedStores
@@ -1134,17 +963,14 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                                   .map((store) => store.name)
                                   .join(", ")
                               }
-                              onOpen={
-                                //フィルタリング
-                                handlePrefectureChange
-                              }
                               MenuProps={{
                                 PaperProps: {
                                   style: {
-                                    maxHeight: "90vh", // 画面高さまで100
+                                    maxHeight: "90vh", // 画面の高さ100
                                     width: "fit-content",
                                   },
                                 },
+                                // スクロール位置を先頭に設定
                                 TransitionProps: {
                                   onEnter: (node) => {
                                     if (node) {
@@ -1174,6 +1000,22 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                                   padding: "4px",
                                 }}
                               >
+                                <MenuItem
+                                  onClick={handleMenuItemClick}
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    width: "100%",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  <Checkbox
+                                    checked={allSelected}
+                                    onChange={toggleAllStores}
+                                    onClick={(e) => e.stopPropagation()} // チェックボックス自体のクリックイベントも伝播を停止
+                                  />
+                                  <ListItemText primary="全選択/全解除" />
+                                </MenuItem>
                                 <IconButton
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -1225,19 +1067,294 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             </Select>
                           </FormControl>
                         </Box>
-                      </div>
-                    </Modal>
+                      </Modal>
+                    </div>
+                    <div className="">
+                      <Button
+                        onClick={handleOpenPrefectureModal}
+                        className="bg-blue-500 hover:bg-blue-800 text-white w-full p-1 md:p-1 mt-2 md:mt-2"
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                      >
+                        都道府県検索
+                      </Button>
+                      <Modal
+                        open={openPrefectureModal}
+                        onClose={handleClosePrefectureModal}
+                      >
+                        <div>
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              transform: "translate(-50%, -50%)",
+                              width: { xs: "95%", sm: 400 },
+                              bgcolor: "background.paper",
+                              boxShadow: 24,
+                              p: { xs: 2, sm: 4 },
+                              borderRadius: 2,
+                              maxWidth: "95%",
+                            }}
+                          >
+                            <IconButton
+                              aria-label="close"
+                              onClick={handleClosePrefectureModal}
+                              sx={{
+                                position: "absolute",
+                                right: 8,
+                                top: 8,
+                              }}
+                            >
+                              <CloseIcon />
+                            </IconButton>
+                            <div className="flex justify-between items-center mb-4 mt-4 pt-2">
+                              <Typography
+                                variant="h6"
+                                component="h3"
+                                sx={{
+                                  fontSize: "1rem",
+                                }}
+                              >
+                                都道府県を選択してください
+                              </Typography>
+                            </div>
+                            <FormControl fullWidth sx={{ mt: 2 }}>
+                              <InputLabel>都道府県選択</InputLabel>
+                              <Select
+                                label="都道府県選択"
+                                value={selectedPrefecture}
+                                onChange={setPrefectureChange}
+                                multiple
+                                renderValue={(selected: string[]) =>
+                                  selected.join(", ")
+                                }
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: "90vh", // 画面の高さ100
+                                      width: "fit-content",
+                                    },
+                                  },
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    position: "sticky",
+                                    top: 0,
+                                    bgcolor: "background.paper",
+                                    zIndex: 1,
+                                    borderBottom:
+                                      "1px solid rgba(0, 0, 0, 0.12)",
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    padding: "4px",
+                                  }}
+                                >
+                                  <IconButton
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      const selectElement =
+                                        document.querySelector(
+                                          '[role="listbox"]'
+                                        );
+                                      if (selectElement) {
+                                        const closeEvent = new KeyboardEvent(
+                                          "keydown",
+                                          {
+                                            key: "Escape",
+                                            code: "Escape",
+                                            keyCode: 27,
+                                            which: 27,
+                                            bubbles: true,
+                                          }
+                                        );
+                                        selectElement.dispatchEvent(closeEvent);
+                                      }
+                                    }}
+                                    size="small"
+                                  >
+                                    <CloseIcon fontSize="small" />
+                                  </IconButton>
+                                </Box>
+                                {prefectures.map((prefecture) => (
+                                  <MenuItem
+                                    key={prefecture}
+                                    value={prefecture}
+                                    dense
+                                    sx={{ py: 0 }}
+                                  >
+                                    <Checkbox
+                                      checked={
+                                        selectedPrefecture.indexOf(prefecture) >
+                                        -1
+                                      }
+                                      sx={{ py: 0 }}
+                                    />
+                                    <ListItemText
+                                      primary={prefecture}
+                                      primaryTypographyProps={{
+                                        fontSize: "1.2rem",
+                                      }}
+                                    />
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <FormControl sx={{ mt: 2, width: "100%" }}>
+                              <InputLabel id="multiple-store-select-label">
+                                店舗選択
+                              </InputLabel>
+                              <Select
+                                labelId="multiple-store-select-label"
+                                multiple
+                                value={selectedStores.map((store) => store.id)}
+                                input={<OutlinedInput label="店舗選択" />}
+                                onChange={handleChange}
+                                renderValue={(selected) =>
+                                  //選択ボックスに選択店舗名を表示
+                                  selectedStores
+                                    .filter((store) =>
+                                      selected.includes(store.id)
+                                    )
+                                    .map((store) => store.name)
+                                    .join(", ")
+                                }
+                                onOpen={
+                                  //フィルタリング
+                                  handlePrefectureChange
+                                }
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: "90vh", // 画面高さまで100
+                                      width: "fit-content",
+                                    },
+                                  },
+                                  TransitionProps: {
+                                    onEnter: (node) => {
+                                      if (node) {
+                                        node.scrollTop = 0;
+                                      }
+                                    },
+                                  },
+                                  anchorOrigin: {
+                                    vertical: "bottom",
+                                    horizontal: "left",
+                                  },
+                                  transformOrigin: {
+                                    vertical: "top",
+                                    horizontal: "left",
+                                  },
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    position: "sticky",
+                                    top: 0,
+                                    bgcolor: "background.paper",
+                                    zIndex: 1,
+                                    borderBottom:
+                                      "1px solid rgba(0, 0, 0, 0.12)",
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    padding: "4px",
+                                  }}
+                                >
+                                  <MenuItem
+                                    onClick={handleMenuItemClick}
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      width: "100%",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <Checkbox
+                                      checked={allSelected}
+                                      onChange={toggleAllStores}
+                                      onClick={(e) => e.stopPropagation()} // チェックボックス自体のクリックイベントも伝播を停止
+                                    />
+                                    <ListItemText primary="全選択/全解除" />
+                                  </MenuItem>
+                                  <IconButton
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      const selectElement =
+                                        document.querySelector(
+                                          '[role="listbox"]'
+                                        );
+                                      if (selectElement) {
+                                        const closeEvent = new KeyboardEvent(
+                                          "keydown",
+                                          {
+                                            key: "Escape",
+                                            code: "Escape",
+                                            keyCode: 27,
+                                            which: 27,
+                                            bubbles: true,
+                                          }
+                                        );
+                                        selectElement.dispatchEvent(closeEvent);
+                                      }
+                                    }}
+                                    size="small"
+                                  >
+                                    <CloseIcon fontSize="small" />
+                                  </IconButton>
+                                </Box>
+                                {filteredStores.map((store) => (
+                                  <MenuItem
+                                    key={store.id}
+                                    value={store.id}
+                                    dense
+                                    sx={{ py: 0 }}
+                                  >
+                                    <Checkbox
+                                      checked={selectedStores.some(
+                                        (selectedStore) =>
+                                          selectedStore.id === store.id
+                                      )}
+                                      sx={{ py: 0 }}
+                                    />
+                                    <ListItemText
+                                      primary={store.name}
+                                      primaryTypographyProps={{
+                                        fontSize: "1.2rem",
+                                      }}
+                                    />
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        </div>
+                      </Modal>
+                    </div>
                   </div>
                 </div>
               </div>
               <div className="md:w-4/12 lg:w-3/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full min-w-32">
-                  <h2 className="text-base font-bold mb-2 md:mb-1">選択店舗</h2>
+                  <div className="flex justify-between items-center mb-1 md:mt-1">
+                    <h2 className="text-base font-bold mb-2 md:mb-1">
+                      選択店舗
+                    </h2>
+                    {/* <Button
+                      size="small"
+                      variant="contained"
+                      className="bg-blue-500 hover:bg-blue-800 text-white"
+                      onClick={selectAllStores}
+                    >
+                      {selectedStores.length > 0 ? "全店舗解除" : "全店舗選択"}
+                    </Button> */}
+                  </div>
                   <div className="mb-2 md:mt-2">
-                    <div className="max-h-32 overflow-y-auto">
+                    <div className="max-h-40 overflow-y-auto">
                       {" "}
                       {/* 最大高さとスクロールを追加 */}
-                      <p className="text-sm text-gray-700">
+                      <div className="text-sm text-gray-700">
                         {selectedStores.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {" "}
@@ -1256,145 +1373,162 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             選択されていません
                           </span>
                         )}
-                      </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="md:w-auto">
-                <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full inline-block">
-                  <h2 className="text-base font-bold mb-2 md:mb-1">
-                    その他条件
-                  </h2>
-                  <div className="flex gap-4">
-                    <RadioGroup
-                      aria-labelledby="demo-radio-buttons-group-label"
-                      defaultValue={locationValue}
-                      name="radio-location-group"
-                      className="flex flex-row md:flex-col mb-2 md:gap-0"
-                      onChange={handleLocationChange}
-                    >
-                      <FormControlLabel
-                        value="全て"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="全て"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                      <FormControlLabel
-                        value="駅前"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="駅前"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                      <FormControlLabel
-                        value="郊外"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="郊外"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                    </RadioGroup>
-                    <RadioGroup
-                      aria-labelledby="demo-radio-buttons-group-label"
-                      defaultValue={typeValue}
-                      name="radio-type-group"
-                      className="flex flex-row md:flex-col md:gap-0"
-                      onChange={handleTypeChange}
-                    >
-                      <FormControlLabel
-                        value="全て"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": { fontSize: 16 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="全て"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                      <FormControlLabel
-                        value="直営"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": { fontSize: 16 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="直営"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                      <FormControlLabel
-                        value="FC"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": { fontSize: 16 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="FC"
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                    </RadioGroup>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="w-full flex flex-wrap gap-2 justify-between">
-              <div className="bg-white border rounded-lg p-2 px-4 md:px-4 mr-0 md:mr-4 w-full md:w-auto">
-                <FormControl>
+                <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full w-full md:w-auto">
+                  <h2 className="text-base font-bold mb-2 md:mb-1">表示設定</h2>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---区分---
+                  </FormLabel>
                   <RadioGroup
-                    row
-                    aria-labelledby="demo-row-radio-buttons-group-label"
-                    name="row-radio-salesInclusion-group"
-                    defaultValue={salesInclusionValue}
-                    onChange={handleSalesInclusionChange}
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue={typeValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-1"
+                    onChange={handleTypeChange}
+                  >
+                    <FormControlLabel
+                      value="全て"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="全て"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="直営"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="直営"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="FC"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="FC"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---エリア---
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue={locationValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-1"
+                    onChange={handleLocationChange}
+                  >
+                    <FormControlLabel
+                      value="全て"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="全て"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="駅前"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="駅前"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="郊外"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="郊外"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---閉店店舗を---
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue={closedStoreValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={handleClosedStoreChange}
                   >
                     <FormControlLabel
                       value="true"
@@ -1404,11 +1538,12 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             "& .MuiSvgIcon-root": {
                               fontSize: 16,
                             },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
                             p: "4px",
                           }}
                         />
                       }
-                      label="その他売上込み"
+                      label="含める"
                       sx={{
                         "& .MuiFormControlLabel-label": { fontSize: 14 },
                       }}
@@ -1421,40 +1556,97 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             "& .MuiSvgIcon-root": {
                               fontSize: 16,
                             },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
                             p: "4px",
                           }}
                         />
                       }
-                      label="その他売上抜き"
+                      label="含めない"
                       sx={{
                         "& .MuiFormControlLabel-label": { fontSize: 14 },
                       }}
                     />
                   </RadioGroup>
-                </FormControl>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---税抜売上にその他売上を---
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue={salesInclusionValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={handleSalesInclusionChange}
+                  >
+                    <FormControlLabel
+                      value="true"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含める"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="false"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含めない"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
+                </div>
               </div>
-              <div className="flex gap-4 self-end w-full md:w-auto justify-end">
-                <Button
+            </div>
+            <div className="w-full flex flex-wrap gap-2 justify-between">
+              <div className="flex gap-4 ml-auto w-full md:w-auto justify-end">
+                {/* <Button
                   variant="contained"
                   className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
                   startIcon={<ArrowBackIcon className="md:inline hidden" />}
                   onClick={() => { }}
                 >
                   店舗別に戻る
-                </Button>
+                </Button> */}
 
                 <Button
                   variant="contained"
                   className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
                   startIcon={<DownloadIcon className="md:inline hidden" />}
-                //onClick={() => fetchAndTransformData(API_ENDPOINTS.download)}
+                  onClick={() => {
+                    setModalType("info");
+                    setErrorMessage("二次開発で導入予定です");
+                    setOpenErrorModal(true);
+                  }}
                 >
-                  ダウンロード
+                  ダウンロード(開発中)
                 </Button>
 
                 <Button
                   variant="contained"
-                  className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
+                  className={`bg-${isLoading ? 'blue-800' : 'blue-500'} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
                   startIcon={<SearchIcon className="md:inline hidden" />}
                   onClick={() =>
                     fetchAndTransformData(
@@ -1464,22 +1656,26 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                     )
                   }
                 >
-                  集計実行
+                  {isLoading ? "集計中..." : "集計実行"}
                 </Button>
               </div>
             </div>
             <div className="w-full">
-              <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[400px]">
+              <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[600px]">
                 <table className="min-w-full divide-y divide-x divide-gray-200">
                   <thead className="bg-gray-50 sticky top-0 z-20">
                     {/*大分類*/}
                     <tr>
                       <th
-                        colSpan={2}
-                        className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
+                        colSpan={1}
+                        className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         店舗情報
                       </th>
+                      <th
+                        colSpan={1}
+                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
+                      ></th>
                       <th
                         colSpan={compareCheck ? 4 : 1}
                         className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
@@ -1519,10 +1715,14 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                     </tr>
                     <tr>
                       {/*小分類*/}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                      >
                         店舗名
                       </th>
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400`}
+                      >
                         <div className="flex items-center justify-between">
                           店番
                           <div>
@@ -1540,7 +1740,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </div>
                         </div>
                       </th>
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1571,7 +1773,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </th>
                         </>
                       )}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1602,7 +1806,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </th>
                         </>
                       )}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1633,7 +1839,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </th>
                         </>
                       )}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1662,8 +1870,11 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
                             比率
                           </th>
-                        </>)}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        </>
+                      )}
+                      <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1686,7 +1897,8 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
                             比較期間
                           </th>
-                        </>)}
+                        </>
+                      )}
                       <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                         <div className="flex items-center justify-between">
                           対象期間
@@ -1723,13 +1935,19 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                   {/* 合計行 */}
                   <tbody className="bg-white divide-y divide-x divide-gray-200">
                     <tr>
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                      >
                         {storesData.totalData.storeName.toLocaleString()}
                       </td>
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
+                      >
                         {storesData.totalData.storeNumber.toLocaleString()}
                       </td>
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.netSalesA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1745,7 +1963,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </td>
                         </>
                       )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.usersA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1761,7 +1981,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </td>
                         </>
                       )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.avgPriceA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1777,7 +1999,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </td>
                         </>
                       )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.newUsersA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1793,7 +2017,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                           </td>
                         </>
                       )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                      <td
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                      >
                         {storesData.totalData.newUsersRateA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -1823,13 +2049,19 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                     {/* データ行 */}
                     {sortedStoresData.map((store, index) => (
                       <tr key={`${store.storeNumber}-${index}`}>
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                        >
                           {store.storeName}
                         </td>
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
+                        >
                           {store.storeNumber}
                         </td>
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.netSalesA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1846,7 +2078,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             </td>
                           </>
                         )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.usersA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1862,7 +2096,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             </td>
                           </>
                         )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.avgPriceA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1878,7 +2114,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             </td>
                           </>
                         )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.newUsersA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1894,7 +2132,9 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             </td>
                           </>
                         )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? 'border-r-2 border-r-gray-400' : ''}`}>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
+                        >
                           {store.newUsersRateA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -1902,7 +2142,8 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
                             <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
                               {store.newUsersRateB.toLocaleString()}
                             </td>
-                          </>)}
+                          </>
+                        )}
                         <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                           {store.otherSalesA.toLocaleString()}
                         </td>
@@ -1931,15 +2172,19 @@ const sortedStoresData = [...storesData.storeData].sort((a, b) => {
       <Dialog
         open={openErrorModal}
         onClose={handleCloseErrorModal}
-        aria-labelledby="error-dialog-title"
-        aria-describedby="error-dialog-description"
+        aria-labelledby="modal-dialog-title"
+        aria-describedby="modal-dialog-description"
       >
         <DialogTitle
           id="error-dialog-title"
           className="flex items-center gap-2"
         >
-          <ErrorOutlineIcon className="text-red-500" />
-          <span>エラー</span>
+          {modalType === "error" ? (
+            <ErrorOutlineIcon className="text-red-500" />
+          ) : (
+            <InfoIcon className="text-blue-500" />
+          )}
+          <span>{modalType === "error" ? "エラー" : "お知らせ"}</span>
         </DialogTitle>
         <DialogContent>
           <p className="text-gray-700">{errorMessage}</p>

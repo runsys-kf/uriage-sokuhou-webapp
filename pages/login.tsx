@@ -12,7 +12,7 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useRouter } from "next/router";
 import axios from 'axios';  // これを追加
-
+//import { mockLoginResponses } from "../__tests__/loginMockData";
 import LoginSideImage from "../public/images/login-side-image.webp";
 
 import Cookies from 'js-cookie';
@@ -34,24 +34,30 @@ const LoginPage = () => {
   const handleUsernameChange = (event) => setUsername(event.target.value);
   const handlePasswordChange = (event) => setPassword(event.target.value);
 
+  // ログインボタン押下時の処理
   const handleLogin = async () => {
     try {
-      const response = await axios.post(
-        'https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
-        { username, password },
-        { 
-                headers: {
-        	          'Content-Type': 'application/json'
+      let response;
+      //if (process.env.NODE_ENV === 'development') { // 開発環境の場合はモックデータを使用
+      if (false) {
+        //response = mockLoginResponses[username] || mockLoginResponses.not200;
+      } else {
+        response = await axios.post('https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
+          { username, password },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
           }
-        }
-      );
+        );
 
-      // 店舗情報チェック
-      // console.log("response", response);
-
+        // 店舗情報チェック
+        // console.log("response", response);
+      }
       if (response.status === 200) {
+        localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
         const token = response.data.token;
-        Cookies.set('access_token', token, { expires: 1, path:'/'});
+        Cookies.set('access_token', token, { expires: 1, path: '/' });
         router.push('/'); // 成功時にリダイレクト
       } else {
         setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
@@ -72,7 +78,7 @@ const LoginPage = () => {
       }
     }
   };
- 
+
   return (
     <Layout title="ログイン | 売上速報">
       <div className="flex flex-row-reverse min-h-screen items-stretch">
