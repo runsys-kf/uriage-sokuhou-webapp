@@ -142,8 +142,8 @@ const IndexPage = () => {
   }, [router]);
 
   // カレンダー用状態 前日を選択させる処理含む
-  const [date1, setDate1] = useState(dayjs());
-  const [date2, setDate2] = useState(dayjs());
+  const [date1, setDate1] = useState(dayjs().subtract(1, "day"));
+  const [date2, setDate2] = useState(dayjs().subtract(1, "day"));
   const [date3, setDate3] = useState(
     dayjs().subtract(1, "day").subtract(1, "year")
   );
@@ -485,6 +485,7 @@ const IndexPage = () => {
   const handleSalesInclusionChange = (event) => {
     setSalesInclusionValue(event.target.value);
   };
+  //比較対象日付を抽出対象の1年前にする
   useEffect(() => {
     if (compareCheck) {
       setDate3(date1.subtract(1, "year"));
