@@ -60,7 +60,7 @@ const LoginPage = () => {
         const token = response.data.token;
 	console.log("token: ", token);
         Cookies.set('access_token', token, { expires: 1, path: '/' });
-        router.push('/'); // 成功時にリダイレクト
+        // router.push('/'); // 成功時にリダイレクト
       } else {
         setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
       }
