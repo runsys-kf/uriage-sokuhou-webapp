@@ -36,6 +36,10 @@ const LoginPage = () => {
 
   // ログインボタン押下時の処理
   const handleLogin = async () => {
+    if (!username || !password) {
+      setErrorMessage('ユーザー名またはパスワードを入力してください。');
+      return;
+    }
     try {
       let response;
       //if (process.env.NODE_ENV === 'development') { // 開発環境の場合はモックデータを使用
