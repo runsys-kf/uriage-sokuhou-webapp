@@ -57,7 +57,6 @@ export const initialStores = [
     { name: "新橋", id: "1240", prefecture: "東京都" },
     { name: "横浜西口2号", id: "1241", prefecture: "神奈川県" },
     { name: "原宿", id: "1244", prefecture: "東京都" },
-    { name: "AC伊勢佐木長者町", id: "1254", prefecture: "神奈川県" },
     { name: "井土ヶ谷", id: "1608", prefecture: "神奈川県" },
     { name: "池袋西口ROSA", id: "1233", prefecture: "東京都" },
     { name: "NEXT蒲田西口", id: "1234", prefecture: "東京都" },
@@ -89,7 +88,6 @@ export const initialStores = [
     { name: "札幌北光", id: "1835", prefecture: "北海道" },
     { name: "札幌西町", id: "1839", prefecture: "北海道" },
     { name: "札幌清田", id: "1844", prefecture: "北海道" },
-    { name: "AC新京極", id: "1255", prefecture: "京都府" },
-    { name: "ジクー西武新宿駅前", id: "1232", prefecture: "東京都" },
+    { name: "室蘭中島サンプラザ", id: "1322", prefecture: "北海道" },
     { name: "築地虎杖 〆虎", id: "9999", prefecture: "なし" }
 ];
