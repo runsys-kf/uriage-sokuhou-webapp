@@ -50,6 +50,7 @@ const LoginPage = () => {
             }
           }
         );
+	console.log("response: ", response);
 
         // 店舗情報チェック
         // console.log("response", response);
@@ -57,6 +58,7 @@ const LoginPage = () => {
       if (response.status === 200) {
         localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
         const token = response.data.token;
+	console.log("token: ", token);
         Cookies.set('access_token', token, { expires: 1, path: '/' });
         router.push('/'); // 成功時にリダイレクト
       } else {
