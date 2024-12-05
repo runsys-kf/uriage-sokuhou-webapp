@@ -15,7 +15,7 @@ import axios from 'axios';  // これを追加
 //import { mockLoginResponses } from "../__tests__/loginMockData";
 import LoginSideImage from "../public/images/login-side-image.webp";
 
-import Cookies from 'js-cookie';
+//import Cookies from 'js-cookie';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -36,6 +36,11 @@ const LoginPage = () => {
 
   // ログインボタン押下時の処理
   const handleLogin = async () => {
+    // 入力チェック
+    if (!username || !password) {
+      setErrorMessage('ユーザー名またはパスワードを入力してください。');
+      return;
+    }
     try {
       let response;
       //if (process.env.NODE_ENV === 'development') { // 開発環境の場合はモックデータを使用
