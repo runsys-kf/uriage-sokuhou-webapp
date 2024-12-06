@@ -89,5 +89,4 @@ export const initialStores = [
     { name: "札幌西町", id: "1839", prefecture: "北海道" },
     { name: "札幌清田", id: "1844", prefecture: "北海道" },
     { name: "室蘭中島サンプラザ", id: "1322", prefecture: "北海道" },
-    { name: "築地虎杖 〆虎", id: "9999", prefecture: "未指定" }
 ];
