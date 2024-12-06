@@ -34,7 +34,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker"
+import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -1391,7 +1391,7 @@ const IndexPage = () => {
                   </FormLabel>
                   <RadioGroup
                     aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue={typeValue}
+                    value={typeValue}
                     name="radio-location-group"
                     className="flex flex-row gap-1"
                     onChange={handleTypeChange}
@@ -1459,7 +1459,7 @@ const IndexPage = () => {
                   </FormLabel>
                   <RadioGroup
                     aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue={locationValue}
+                    value={locationValue}
                     name="radio-location-group"
                     className="flex flex-row gap-1"
                     onChange={handleLocationChange}
@@ -1526,70 +1526,50 @@ const IndexPage = () => {
                   >
                     ---閉店店舗を---
                   </FormLabel>
-                  <Tooltip title="二次開発で導入予定です"
-                    PopperProps={{
-                      modifiers: [
-                        {
-                          name: 'offset',
-                          options: {
-                            offset: [0, -10], // ツールチップの位置を少し上に調整
-                          },
-                        },
-                      ],
-                    }}
-                    sx={{
-                      '& .MuiTooltip-tooltip': {
-                        fontSize: '1rem', // ツールチップの文字を大きくする
-                      },
-                    }}
+                  <RadioGroup
+                    id="closed-store-group"
+                    value={closedStoreValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={handleClosedStoreChange}
                   >
-                    <RadioGroup
-                      id="closed-store-group"
-                      defaultValue={closedStoreValue}
-                      name="radio-location-group"
-                      className="flex flex-row gap-3"
-                      onChange={handleClosedStoreChange}
-                    >
-                      <FormControlLabel
-                        value="true"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="含める"
-                        disabled
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                      <FormControlLabel
-                        value="false"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="含めない"
-                        disabled
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                    </RadioGroup>
-                  </Tooltip>
+                    <FormControlLabel
+                      value="true"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含める"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="false"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含めない"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
                   <FormLabel
                     style={{ fontSize: "0.875rem" }}
                     component="legend"
@@ -1598,7 +1578,7 @@ const IndexPage = () => {
                   </FormLabel>
                   <RadioGroup
                     aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue={salesInclusionValue}
+                    value={salesInclusionValue}
                     name="radio-location-group"
                     className="flex flex-row gap-3"
                     onChange={handleSalesInclusionChange}
@@ -1736,8 +1716,8 @@ const IndexPage = () => {
                         その他売上
                       </th>
                     </tr>
+                    {/*小分類*/}
                     <tr>
-                      {/*小分類*/}
                       <th
                         className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}
                       >
@@ -1954,9 +1934,7 @@ const IndexPage = () => {
                         </>
                       )}
                     </tr>
-                  </thead>
-                  {/* 合計行 */}
-                  <tbody className="bg-white divide-y divide-x divide-gray-200">
+                    {/* 合計行 */}
                     <tr>
                       <td
                         className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
@@ -2069,6 +2047,8 @@ const IndexPage = () => {
                         </>
                       )}
                     </tr>
+                  </thead>
+                  <tbody>
                     {/* データ行 */}
                     {sortedStoresData.map((store, index) => (
                       <tr key={`${store.storeNumber}-${index}`}>
