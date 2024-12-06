@@ -105,7 +105,7 @@ const LoginPage = () => {
               <div className="flex flex-col gap-2 md:gap-4 items-center">
                 <TextField
                   id="outlined-search"
-                  label="スタッフ番号"
+                  label="ID"
                   type="search"
                   sx={{ width: "288px" }}
                   value={username}

@@ -34,7 +34,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker"
+import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -44,7 +44,7 @@ import Holidays from "date-holidays";
 import { fetchData, API_ENDPOINTS } from "./api/apiService";
 import { storeProcessData, dateProcessData } from "./api/dataTransformer";
 import { initialStores } from "../data/shopData";
-//import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
+import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
 // add 20240828
@@ -606,16 +606,16 @@ const IndexPage = () => {
       setSortKey("");
       setSortDirection("desc");
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
-      // const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
-      // if (isTestMode) {
-      //   setIsLoading(true); // 集計中...に設定
-      //   if (dailyCheck === "日別") {
-      //     //setStoresData(mockDateResponse());
-      //   } else {
-      //     setStoresData(mockStoreResponse());
-      //   }
-      //   return;
-      // }
+      const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
+      if (isTestMode) {
+        setIsLoading(true); // 集計中...に設定
+        if (dailyCheck === "日別") {
+          //setStoresData(mockDateResponse());
+        } else {
+          setStoresData(mockStoreResponse());
+        }
+        return;
+      }
 
       /**本番環境用 */
       let params;
@@ -1391,7 +1391,7 @@ const IndexPage = () => {
                   </FormLabel>
                   <RadioGroup
                     aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue={typeValue}
+                    value={typeValue}
                     name="radio-location-group"
                     className="flex flex-row gap-1"
                     onChange={handleTypeChange}
@@ -1459,7 +1459,7 @@ const IndexPage = () => {
                   </FormLabel>
                   <RadioGroup
                     aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue={locationValue}
+                    value={locationValue}
                     name="radio-location-group"
                     className="flex flex-row gap-1"
                     onChange={handleLocationChange}
@@ -1519,7 +1519,6 @@ const IndexPage = () => {
                       }}
                     />
                   </RadioGroup>
-
                   <FormLabel
                     htmlFor="closed-store-group"
                     style={{ fontSize: "0.875rem" }}
@@ -1527,72 +1526,50 @@ const IndexPage = () => {
                   >
                     ---閉店店舗を---
                   </FormLabel>
-                  <Tooltip title="二次開発で導入予定です"
-                  PopperProps={{
-                    modifiers: [
-                      {
-                        name: 'offset',
-                        options: {
-                          offset: [0, -10], // ツールチップの位置を少し上に調整
-                        },
-                      },
-                    ],
-                  }}
-                  sx={{
-                    '& .MuiTooltip-tooltip': {
-                      fontSize: '1rem', // ツールチップの文字を大きくする
-                    },
-                  }}
+                  <RadioGroup
+                    id="closed-store-group"
+                    value={closedStoreValue}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={handleClosedStoreChange}
                   >
-                    <RadioGroup
-                      id="closed-store-group"
-                      defaultValue={closedStoreValue}
-                      name="radio-location-group"
-                      className="flex flex-row gap-3"
-                      onChange={handleClosedStoreChange}
-                    >
-
-                      <FormControlLabel
-                        value="true"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="含める"
-                        disabled
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-
-                      <FormControlLabel
-                        value="false"
-                        control={
-                          <Radio
-                            sx={{
-                              "& .MuiSvgIcon-root": {
-                                fontSize: 16,
-                              },
-                              ".MuiFormControlLabel-label": { fontSize: 14 },
-                              p: "4px",
-                            }}
-                          />
-                        }
-                        label="含めない"
-                        disabled
-                        sx={{
-                          "& .MuiFormControlLabel-label": { fontSize: 14 },
-                        }}
-                      />
-                    </RadioGroup>
-                  </Tooltip>
+                    <FormControlLabel
+                      value="true"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含める"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value="false"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含めない"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
                   <FormLabel
                     style={{ fontSize: "0.875rem" }}
                     component="legend"
@@ -1601,7 +1578,7 @@ const IndexPage = () => {
                   </FormLabel>
                   <RadioGroup
                     aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue={salesInclusionValue}
+                    value={salesInclusionValue}
                     name="radio-location-group"
                     className="flex flex-row gap-3"
                     onChange={handleSalesInclusionChange}
@@ -1672,7 +1649,7 @@ const IndexPage = () => {
 
                 <Button
                   variant="contained"
-                  className={`bg-${isLoading ? 'blue-800' : 'blue-500'} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
+                  className={`bg-${isLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
                   startIcon={<SearchIcon className="md:inline hidden" />}
                   onClick={() =>
                     fetchAndTransformData(
@@ -1739,8 +1716,8 @@ const IndexPage = () => {
                         その他売上
                       </th>
                     </tr>
+                    {/*小分類*/}
                     <tr>
-                      {/*小分類*/}
                       <th
                         className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}
                       >
@@ -1757,7 +1734,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("storeNumber")}
                             >
                               {sortKey === "storeNumber" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1777,7 +1754,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("netSalesA")}
                             >
                               {sortKey === "netSalesA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1810,7 +1787,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("usersA")}
                             >
                               {sortKey === "usersA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1843,7 +1820,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("avgPriceA")}
                             >
                               {sortKey === "avgPriceA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1876,7 +1853,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("newUsersA")}
                             >
                               {sortKey === "newUsersA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1909,7 +1886,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("newUsersRateA")}
                             >
                               {sortKey === "newUsersRateA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1934,7 +1911,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("otherSalesA")}
                             >
                               {sortKey === "otherSalesA" &&
-                                sortDirection === "asc" ? (
+                              sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1957,9 +1934,7 @@ const IndexPage = () => {
                         </>
                       )}
                     </tr>
-                  </thead>
-                  {/* 合計行 */}
-                  <tbody className="bg-white divide-y divide-x divide-gray-200">
+                    {/* 合計行 */}
                     <tr>
                       <td
                         className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
@@ -2072,6 +2047,8 @@ const IndexPage = () => {
                         </>
                       )}
                     </tr>
+                  </thead>
+                  <tbody>
                     {/* データ行 */}
                     {sortedStoresData.map((store, index) => (
                       <tr key={`${store.storeNumber}-${index}`}>
@@ -2194,7 +2171,7 @@ const IndexPage = () => {
             </div>
           </div>
         </div>
-      </Layout >
+      </Layout>
       <Dialog
         open={openErrorModal}
         onClose={handleCloseErrorModal}
