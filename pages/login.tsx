@@ -63,16 +63,18 @@ const LoginPage = () => {
         const token = response.data.token;
         Cookies.set('access_token', token, { expires: 1, path: '/' });
         router.push('/'); // 成功時にリダイレクト
-      } else if (response.status === 401){
-        setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
-      }
+      } 
     } catch (error) {
       console.error("ログインに失敗しました:", error);
-
-      // ネットワークエラーの場合
+      // ステータスコードに応じたエラー処理
       if (error.response) {
         console.error('Response error: ', error.response);
-        setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
+
+        if (error.response.status === 401) {
+          setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
+        } else {
+          setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
+        }
       } else if (error.request) {
         console.error('No response received: ', error.request);
         setErrorMessage('ネットワークエラーが発生しました。通信環境を確認してください。');
@@ -80,6 +82,17 @@ const LoginPage = () => {
         console.error('Error message: ', error.message);
         setErrorMessage('予期しないエラーが発生しました。');
       }
+      //// ネットワークエラーの場合
+      //if (error.response) {
+      //  console.error('Response error: ', error.response);
+      //  setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
+      //} else if (error.request) {
+      //  console.error('No response received: ', error.request);
+      //  setErrorMessage('ネットワークエラーが発生しました。通信環境を確認してください。');
+      //} else {
+      //  console.error('Error message: ', error.message);
+      //  setErrorMessage('予期しないエラーが発生しました。');
+      //}
     }
   };
 
