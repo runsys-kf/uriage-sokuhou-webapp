@@ -21,6 +21,7 @@ import {
   DialogActions,
   FormLabel,
 } from "@mui/material";
+import Tooltip from "@mui/material/Tooltip";
 import InfoIcon from "@mui/icons-material/Info";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -1518,56 +1519,80 @@ const IndexPage = () => {
                       }}
                     />
                   </RadioGroup>
+
                   <FormLabel
+                    htmlFor="closed-store-group"
                     style={{ fontSize: "0.875rem" }}
                     component="legend"
                   >
                     ---閉店店舗を---
                   </FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue={closedStoreValue}
-                    name="radio-location-group"
-                    className="flex flex-row gap-3"
-                    onChange={handleClosedStoreChange}
+                  <Tooltip title="二次開発で導入予定です"
+                  PopperProps={{
+                    modifiers: [
+                      {
+                        name: 'offset',
+                        options: {
+                          offset: [0, -10], // ツールチップの位置を少し上に調整
+                        },
+                      },
+                    ],
+                  }}
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      fontSize: '1rem', // ツールチップの文字を大きくする
+                    },
+                  }}
                   >
-                    <FormControlLabel
-                      value="true"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="含める"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                    <FormControlLabel
-                      value="false"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="含めない"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                  </RadioGroup>
+                    <RadioGroup
+                      id="closed-store-group"
+                      defaultValue={closedStoreValue}
+                      name="radio-location-group"
+                      className="flex flex-row gap-3"
+                      onChange={handleClosedStoreChange}
+                    >
+
+                      <FormControlLabel
+                        value="true"
+                        control={
+                          <Radio
+                            sx={{
+                              "& .MuiSvgIcon-root": {
+                                fontSize: 16,
+                              },
+                              ".MuiFormControlLabel-label": { fontSize: 14 },
+                              p: "4px",
+                            }}
+                          />
+                        }
+                        label="含める"
+                        disabled
+                        sx={{
+                          "& .MuiFormControlLabel-label": { fontSize: 14 },
+                        }}
+                      />
+
+                      <FormControlLabel
+                        value="false"
+                        control={
+                          <Radio
+                            sx={{
+                              "& .MuiSvgIcon-root": {
+                                fontSize: 16,
+                              },
+                              ".MuiFormControlLabel-label": { fontSize: 14 },
+                              p: "4px",
+                            }}
+                          />
+                        }
+                        label="含めない"
+                        disabled
+                        sx={{
+                          "& .MuiFormControlLabel-label": { fontSize: 14 },
+                        }}
+                      />
+                    </RadioGroup>
+                  </Tooltip>
                   <FormLabel
                     style={{ fontSize: "0.875rem" }}
                     component="legend"
@@ -2169,7 +2194,7 @@ const IndexPage = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </Layout >
       <Dialog
         open={openErrorModal}
         onClose={handleCloseErrorModal}
