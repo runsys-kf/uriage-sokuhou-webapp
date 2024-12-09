@@ -70,7 +70,7 @@ const LoginPage = () => {
       if (error.response) {
         console.error('Response error: ', error.response);
 
-        if (error.response.status === 401) {
+        if (error.response.status === 500) {
           setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
         } else {
           setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
