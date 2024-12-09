@@ -56,8 +56,9 @@ const LoginPage = () => {
         );
 
         // 店舗情報チェック
-        // console.log("response", response);
+        console.log("response", response);
       }
+      console.log("response.status: ", response.status)
       if (response.status === 200) {
         localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
         const token = response.data.token;
@@ -69,8 +70,7 @@ const LoginPage = () => {
       // ステータスコードに応じたエラー処理
       if (error.response) {
         console.error('Response error: ', error.response);
-
-        if (error.response.status === 500) {
+        if (error.response.status === 401) {
           setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
         } else {
           setErrorMessage('サーバーでエラーが発生しました。もう一度お試しください。');
