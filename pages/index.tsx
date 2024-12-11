@@ -44,7 +44,9 @@ import Holidays from "date-holidays";
 import { fetchData, API_ENDPOINTS } from "./api/apiService";
 import { storeProcessData, dateProcessData } from "./api/dataTransformer";
 import { initialStores } from "../data/shopData";
+import ErrorModal from "../components/ErrorModal";
 import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
+import { convertToCSV, downloadCSV } from "./api/downloadCSV";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
 // add 20240828
@@ -122,25 +124,25 @@ const IndexPage = () => {
   }, []);
 
   // 認証チェック
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       console.log("index.tsx res:");
-  //       const response = await axios.get("https://salesrepo.runsystem.co.jp/", {
-  //         withCredentials: true
-  //       });
-  //       console.log("index.tsx res: ", response);
-  //       // 認証成功
-  //       console.log("User is authenticated:", response.data.user);
-  //     } catch (error) {
-  //       // 認証失敗時はログインページへリダイレクト
-  //       console.error("Authentication check failed:", error);
-  //       router.replace('/login'); // pushではなくreplaceを使用
-  //     }
-  //   };
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        console.log("index.tsx res:");
+        const response = await axios.get("http://localhost:3000", {
+          withCredentials: true
+        });
+        console.log("index.tsx res: ", response);
+        // 認証成功
+        console.log("User is authenticated:", response.data.user);
+      } catch (error) {
+        // 認証失敗時はログインページへリダイレクト
+        console.error("Authentication check failed:", error);
+        router.replace('/login'); // pushではなくreplaceを使用
+      }
+    };
 
-  //   checkAuth();
-  // }, [router]);
+    checkAuth();
+  }, [router]);
 
   // カレンダー用状態 前日を選択させる処理含む
   const [date1, setDate1] = useState(dayjs().subtract(1, "day"));
@@ -531,7 +533,7 @@ const IndexPage = () => {
   });
 
   ///***<送信時データ変換処理>***///
-  const createRequestData = (endpoint) => {
+  const createRequestData = () => {
     let startDate3 = "";
     let endDate4 = "";
     if (compareCheck) {
@@ -605,6 +607,7 @@ const IndexPage = () => {
       setStoresData(initialStoresData); //初期化処理
       setSortKey("");
       setSortDirection("desc");
+      setIsLoading(true); // 集計中...に設定
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       if (isTestMode) {
@@ -618,27 +621,13 @@ const IndexPage = () => {
       }
 
       /**本番環境用 */
-      let params;
       console.log("API_ENDPOINT: ", API_ENDPOINTS);
       console.log("endpoint: ", endpoint);
 
-      if (endpoint === API_ENDPOINTS.display_by_store) {
-        //店舗別
-        setIsLoading(true); // 集計中...に設定
-        params = createRequestData(endpoint);
-        const data = await fetchData(endpoint, params, router);
-        setStoresData(storeProcessData(data));
-      } else if (endpoint === API_ENDPOINTS.display_by_date) {
-        //日別
-        setIsLoading(true); // 集計中...に設定
-        params = createRequestData(endpoint);
-        const data = await fetchData(endpoint, params, router);
-        setStoresData(dateProcessData(data));
-      } else if (endpoint === API_ENDPOINTS.download) {
-        //ダウンロード
-        // const data = await fetchData(endpoint, params, router);
-        // setStoresData(processData(data));
-      }
+      const params = createRequestData();                    //送信データ作成
+      const data = await fetchData(endpoint, params, router);//バックエンドへ送信
+      setStoresData(dateProcessData(data));                  //取得データ変換、格納
+
     } catch (error) {
       console.error("Error fetching data:", error);
       setModalType("error");
@@ -864,22 +853,22 @@ const IndexPage = () => {
                               "& .MuiFormControlLabel-label": { fontSize: 14 },
                             }}
                           />
-                          {/* <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={dailyCheck === "日別"}
-                              onChange={handleDailyCheckChange}
-                              sx={{
-                                "& .MuiSvgIcon-root": { fontSize: 18 },
-                                p: "6px",
-                              }}
-                            />
-                          }
-                          label="日別"
-                          sx={{
-                            "& .MuiFormControlLabel-label": { fontSize: 14 },
-                          }}
-                        /> */}
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={dailyCheck === "日別"}
+                                onChange={handleDailyCheckChange}
+                                sx={{
+                                  "& .MuiSvgIcon-root": { fontSize: 18 },
+                                  p: "6px",
+                                }}
+                              />
+                            }
+                            label="日別"
+                            sx={{
+                              "& .MuiFormControlLabel-label": { fontSize: 14 },
+                            }}
+                          />
                         </div>
                       </div>
                     </LocalizationProvider>
@@ -1450,6 +1439,24 @@ const IndexPage = () => {
                         "& .MuiFormControlLabel-label": { fontSize: 14 },
                       }}
                     />
+                    <FormControlLabel
+                      value="ランセカンド"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="ランセカンド"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
                   </RadioGroup>
                   <FormLabel
                     style={{ fontSize: "0.875rem" }}
@@ -1636,15 +1643,14 @@ const IndexPage = () => {
 
                 <Button
                   variant="contained"
-                  className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
+                  className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
                   startIcon={<DownloadIcon className="md:inline hidden" />}
                   onClick={() => {
-                    setModalType("info");
-                    setErrorMessage("二次開発で導入予定です");
-                    setOpenErrorModal(true);
+                    const csvContent = convertToCSV(sortedStoresData);
+                    downloadCSV(csvContent, "table_data.csv");
                   }}
                 >
-                  ダウンロード(開発中)
+                  ダウンロード
                 </Button>
 
                 <Button
@@ -1734,7 +1740,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("storeNumber")}
                             >
                               {sortKey === "storeNumber" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1754,7 +1760,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("netSalesA")}
                             >
                               {sortKey === "netSalesA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1787,7 +1793,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("usersA")}
                             >
                               {sortKey === "usersA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1820,7 +1826,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("avgPriceA")}
                             >
                               {sortKey === "avgPriceA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1853,7 +1859,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("newUsersA")}
                             >
                               {sortKey === "newUsersA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1886,7 +1892,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("newUsersRateA")}
                             >
                               {sortKey === "newUsersRateA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -1911,7 +1917,7 @@ const IndexPage = () => {
                               onClick={() => handleSort("otherSalesA")}
                             >
                               {sortKey === "otherSalesA" &&
-                              sortDirection === "asc" ? (
+                                sortDirection === "asc" ? (
                                 <ArrowUpwardIcon fontSize="inherit" />
                               ) : (
                                 <ArrowDownwardIcon fontSize="inherit" />
@@ -2172,36 +2178,12 @@ const IndexPage = () => {
           </div>
         </div>
       </Layout>
-      <Dialog
+      <ErrorModal
         open={openErrorModal}
         onClose={handleCloseErrorModal}
-        aria-labelledby="modal-dialog-title"
-        aria-describedby="modal-dialog-description"
-      >
-        <DialogTitle
-          id="error-dialog-title"
-          className="flex items-center gap-2"
-        >
-          {modalType === "error" ? (
-            <ErrorOutlineIcon className="text-red-500" />
-          ) : (
-            <InfoIcon className="text-blue-500" />
-          )}
-          <span>{modalType === "error" ? "エラー" : "お知らせ"}</span>
-        </DialogTitle>
-        <DialogContent>
-          <p className="text-gray-700">{errorMessage}</p>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleCloseErrorModal}
-            variant="contained"
-            className="bg-blue-500 hover:bg-blue-800"
-          >
-            閉じる
-          </Button>
-        </DialogActions>
-      </Dialog>
+        modalType={modalType}
+        errorMessage={errorMessage}
+      />
     </>
   );
 };

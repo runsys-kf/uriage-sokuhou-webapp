@@ -2,18 +2,18 @@ import React from "react";
 import Layout from "@/components/Layout";
 import { useState, useEffect } from "react";
 import {
-	Select,
-	MenuItem,
-	IconButton,
-	Drawer,
-	Button,
-	FormControl,
-	InputLabel,
-	SelectChangeEvent,
-	Checkbox,
-	ListItemText,
-	List,
-	TextField,
+    Select,
+    MenuItem,
+    IconButton,
+    Drawer,
+    Button,
+    FormControl,
+    InputLabel,
+    SelectChangeEvent,
+    Checkbox,
+    ListItemText,
+    List,
+    TextField,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useMobile } from "../../contexts/MobileContext";
@@ -23,17 +23,17 @@ import ErrorModal from "./../../components/ErrorModal";
 import { fetchData, API_ENDPOINTS } from "../api/apiService";
 
 const Settings = () => {
-	const router = useRouter();
-	const isMobile = useMobile();
-	const [storeNumber, setStoreNumber] = useState(""); //店舗番号    
-	const [storeName, setStoreName] = useState(""); //店舗名
+    const router = useRouter();
+    const isMobile = useMobile();
+    const [storeNumber, setStoreNumber] = useState(""); //店舗番号
+    const [storeName, setStoreName] = useState(""); //店舗名
     const [category, setCategory] = useState("直営"); //区分
     const [area, setArea] = useState("駅前"); //エリア
     const [openClose, setOpenClose] = useState("開店"); //開店・閉店
-	const [owners, setOwners] = useState<string[]>([]); //取得したオーナー名
-	// const [selectedOwners, setSelectedOwners] = useState<string[]>([]);//選択されたオーナー名
-	// const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-	// エラーモーダルの状態
+    const [owners, setOwners] = useState<string[]>([]); //取得したオーナー名
+    // const [selectedOwners, setSelectedOwners] = useState<string[]>([]);//選択されたオーナー名
+    // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // エラーモーダルの状態
     const [openErrorModal, setOpenErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [modalType, setModalType] = useState<"error" | "info">("error");
@@ -41,37 +41,23 @@ const Settings = () => {
     // エラーモーダルを閉じる関数
     const handleCloseErrorModal = () => {
         setOpenErrorModal(false);
-	};
+    };
 
-	// パラメーターを取得
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		const storeNumberParam = params.get("storeNumber");
-		const categoryParam = params.get("category");
-		const areaParam = params.get("area");
-		const ownerParam = params.get("owner");
-		console.log("owners" + owners);
-		if (storeNumberParam) {
-			setStoreNumber(decodeURIComponent(storeNumberParam));
-		}
-		if (categoryParam) {
-			setCategory(decodeURIComponent(categoryParam));
-		}
-		if (areaParam) {
-			setArea(decodeURIComponent(areaParam));
-		}
-		if (ownerParam) {
-			setOwners(decodeURIComponent(ownerParam).split(","));
-		}
-	}, [router.isReady, router.query]);
+    // プルダウン
+    const handleOwnersChange = (event: SelectChangeEvent<string[]>) => {
+        console.log("owners" + owners);
+        setOwners(event.target.value as string[]);
+    };
 
-	// プルダウン
-	const handleOwnersChange = (event: SelectChangeEvent<string[]>) => {
-		console.log("owners" + owners);
-		setOwners(event.target.value as string[]);
-	};
+    // 店舗番号の入力制限
+    const handleStoreNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        if (/^\d{0,4}$/.test(value)) {
+            setStoreNumber(value);
+        }
+    };
 
-	// オーナー名　カンマで区切って配列に変換し、trimで両端の空白、filterで未入力を削除
+    // オーナー名　カンマで区切って配列に変換し、trimで両端の空白、filterで未入力を削除
     const handleOwnerInput = (event: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = event.target.value;
         const ownerArray = inputValue
@@ -81,11 +67,11 @@ const Settings = () => {
         setOwners(ownerArray);
     };
 
-	//送信データ
+    //送信データ
     const createRequestData = () => {
         return {
             BaseNo: storeNumber,     // 店舗番号
-            //BaseName: storeName,     // 店舗名
+            BaseName: storeName,     // 店舗名
             BusinessType: category,  // 区分
             Area: area,              // エリア
             Owner: owners,           // オーナー名
@@ -99,9 +85,9 @@ const Settings = () => {
         if (!storeNumber) {
             errorMessages.push("店舗番号");
         }
-        // if (!storeName) {
-        //     errorMessages.push("店舗名");
-        // }
+        if (!storeName) {
+            errorMessages.push("店舗名");
+        }
         if (owners.length === 0) {
             errorMessages.push("オーナー名");
         }
@@ -138,36 +124,48 @@ const Settings = () => {
         router.push("/admin");
     };
 
-	return (
-		<>
-			<Layout title="権限編集 | 売上速報">
-				<div className="bg-gray-50 min-h-screen">
-					<div className="flex">
-						<Sidebar
-							isMobile={isMobile}
-						/>
-						{/* メインコンテンツ */}
-						<div className="p-2 md:p-4 w-full md:mt-0 mt-14">
-							{/* コンテンツ */}
-							<div className="p-2 md:p-4 w-full">
-								<h2 className="text-xl font-bold mb-4">編集</h2>
-								<div className="flex flex-col md-2 md:mb-4 gap-4">
-									<div className="border p-4 rounded-lg w-full">
-										<div className="flex flex-col gap-4 mb-4">
-											{/* 店舗番号 */}
-											<div className="flex flex-wrap items-center gap-4">
-												<label
-													htmlFor="storeNumber"
-													className="block text-gray-700 text-sm font-bold w-[70px]"
-												>
-													店舗番号
-												</label>
-												<span className="text-lg font-semibold">
-													{storeNumber}
-												</span>
-											</div>
-											{/* 店舗名 */}
-                                            {/* <div className="flex flex-wrap items-center gap-4">
+    return (
+        <>
+            <Layout title="新規追加 | 売上速報">
+                <div className="bg-gray-50 min-h-screen">
+                    <div className="flex">
+                        <Sidebar
+                            isMobile={isMobile}
+                        />
+                        {/* メインコンテンツ */}
+                        <div className="p-2 md:p-4 w-full md:mt-0 mt-14">
+                            {/* コンテンツ */}
+                            <div className="p-2 md:p-4 w-full">
+                                <h2 className="text-xl font-bold mb-4">新規店舗を追加</h2>
+                                <div className="flex flex-col md-2 md:mb-4 gap-4">
+                                    <div className="border p-4 rounded-lg w-full">
+                                        <div className="flex flex-col gap-4 mb-4">
+                                            {/* 店舗番号 */}
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                <label
+                                                    htmlFor="storeNumber"
+                                                    className="block text-gray-700 text-sm font-bold w-[70px]"
+                                                >
+                                                    店舗番号
+                                                </label>
+                                                <FormControl
+                                                    variant="outlined"
+                                                    style={{ width: "300px" }}
+                                                >
+                                                    <TextField
+                                                        id="storeNumber"
+                                                        label="店舗番号"
+                                                        variant="outlined"
+                                                        className="w-50"
+                                                        type="number"
+                                                        inputProps={{ min: 0, max: 9999 }}
+                                                        value={storeNumber}
+                                                        onChange={handleStoreNumberChange}
+                                                    />
+                                                </FormControl>
+                                            </div>
+                                            {/* 店舗名 */}
+                                            <div className="flex flex-wrap items-center gap-4">
                                                 <label
                                                     htmlFor="storeName"
                                                     className="block text-gray-700 text-sm font-bold w-[70px]"
@@ -186,9 +184,9 @@ const Settings = () => {
                                                         onChange={(e) => setStoreName(e.target.value)}
                                                     />
                                                 </FormControl>
-                                            </div> */}
+                                            </div>
 
-											{/* 区分 */}
+                                            {/* 区分 */}
                                             <div className="flex flex-wrap items-center gap-4">
                                                 <label
                                                     htmlFor="category"
@@ -215,9 +213,9 @@ const Settings = () => {
                                                         <MenuItem value="ランセカンド">ランセカンド</MenuItem>
                                                     </Select>
                                                 </FormControl>
-											</div>
+                                            </div>
 
-											{/* エリア */}
+                                            {/* エリア */}
                                             <div className="flex flex-wrap items-center gap-4">
                                                 <label
                                                     htmlFor="area"
@@ -255,7 +253,7 @@ const Settings = () => {
                                                     variant="outlined"
                                                     style={{ width: "300px" }}
                                                 >
-													<TextField
+                                                    <TextField
                                                         id="ownerName"
                                                         variant="outlined"
                                                         className="w-50"
@@ -297,42 +295,35 @@ const Settings = () => {
                                     </div>
 
                                     <div className="flex justify-end gap-4">
-										<Button
-											variant="outlined"
-											className="px-2 md:px-4 py-2 border-blue-500 text-blue-500 hover:text-blue-800 hover:border-blue-800"
-											onClick={() => handleSubmit(API_ENDPOINTS.store_deletiet)}
-										>
-											削除
-										</Button>
-										<Button
-											variant="outlined"
-											className="px-2 md:px-4 py-2 border-blue-500 text-blue-500 hover:text-blue-800 hover:border-blue-800"
-											onClick={handleCancelClick}
-										>
-											キャンセル
-										</Button>
-										<Button
-											variant="contained"
-											className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
-											onClick={() => handleSubmit(API_ENDPOINTS.store_info_edit)}
-										>
-											変更
-										</Button>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</Layout>
-			<ErrorModal
+                                        <Button
+                                            variant="outlined"
+                                            className="px-2 md:px-4 py-2 border-blue-500 text-blue-500 hover:text-blue-800 hover:border-blue-800"
+                                            onClick={handleCancelClick}
+                                        >
+                                            キャンセル
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
+                                            onClick={() => handleSubmit(API_ENDPOINTS.new_shop_addition)}
+                                        >
+                                            追加
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Layout>
+            <ErrorModal
                 open={openErrorModal}
                 onClose={handleCloseErrorModal}
                 modalType={modalType}
                 errorMessage={errorMessage}
             />
-		</>
-	);
+        </>
+    );
 };
 
 export default Settings;
