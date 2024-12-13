@@ -31,7 +31,11 @@ export const storeProcessData = (response) => {
     otherSalesA: response.合計.other_sales_total1,
     otherSalesB: response.合計.other_sales_total2,
     otherSalesChange: response.合計.other_sales_total_diff,
-    otherSalesRatio: response.合計.other_sales_total_ab_ratio
+    otherSalesRatio: response.合計.other_sales_total_ab_ratio,
+    consignmentSalesA: response.合計.委託_total1,
+    consignmentSalesB: response.合計.委託_total2,
+    consignmentSalesChange: response.合計.委託_total_diff,
+    consignmentSalesRatio: response.合計.委託_total_ab_ratio
   };
 
   const storeData = storeTransformData(response.店舗データ);
@@ -65,7 +69,11 @@ const storeTransformData = (data) => {
     otherSalesA: item.other_sales_total1,
     otherSalesB: item.other_sales_total2,
     otherSalesChange: item.other_sales_total_diff,
-    otherSalesRatio: item.other_sales_total_ab_ratio
+    otherSalesRatio: item.other_sales_total_ab_ratio,
+    consignmentSalesA: item.委託_total1,
+    consignmentSalesB: item.委託_total2,
+    consignmentSalesChange: item.委託_total_diff,
+    consignmentSalesRatio: item.委託_total_ab_ratio
   }));
 };
 // 日別　APIレスポンスを受け取り、合計データと店舗データに分ける処理
@@ -95,7 +103,11 @@ export const dateProcessData = (response) => {
     otherSalesA: response.合計.other_sales_total1,
     otherSalesB: response.合計.other_sales_total2,
     otherSalesChange: response.合計.other_sales_total_diff,
-    otherSalesRatio: response.合計.other_sales_total_ab_ratio
+    otherSalesRatio: response.合計.other_sales_total_ab_ratio,
+    consignmentSalesA: response.合計.委託_total1,
+    consignmentSalesB: response.合計.委託_total2,
+    consignmentSalesChange: response.合計.委託_total_diff,
+    consignmentSalesRatio: response.合計.委託_total_ab_ratio
   };
 
   const storeData = dateTransformData(response.店舗データ);
@@ -129,7 +141,11 @@ const dateTransformData = (data) => {
     otherSalesA: item.other_sales_total1,
     otherSalesB: item.other_sales_total2,
     otherSalesChange: item.other_sales_total_diff,
-    otherSalesRatio: item.other_sales_total_ab_ratio
+    otherSalesRatio: item.other_sales_total_ab_ratio,
+    consignmentSalesA: item.委託_total1,
+    consignmentSalesB: item.委託_total2,
+    consignmentSalesChange: item.委託_total_diff,
+    consignmentSalesRatio: item.委託_total_ab_ratio
   }));
 };
 

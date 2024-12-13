@@ -240,20 +240,15 @@ const AdminPage = () => {
 								<h2 className="text-xl font-bold mb-4">
 									管理者システム - 権限一覧
 								</h2>
-								<div className="flex flex-wrap md:flex-row md-2 md:mb-4 gap-2">
-										<div className="flex items-start flex-col md:flex-row flex-wrap gap-2">
-											<div className="flex gap-4">
-
-												<Button
-													variant="outlined"
-													className="px-2 md:px-4 py-2 font-bold text-blue-500 border-2 border-blue-500 hover:border-2 hover:bg-blue-500 hover:border-blue-500 hover:text-white"
-													onClick={()=> router.push("/admin/add_settings")}
-												>
-													新規店舗を追加
-												</Button>
-											</div>
-											</div>
-								</div>
+								<div className="flex flex-wrap md:flex-row md-2 md:mb-4 gap-2 justify-end">
+                                    <Button
+                                        variant="outlined"
+                                        className="px-2 md:px-4 py-2 font-bold text-blue-500 border-2 border-blue-500 hover:border-2 hover:bg-blue-500 hover:border-blue-500 hover:text-white"
+                                        onClick={() => router.push("/admin/add_settings")}
+                                    >
+                                        新規店舗を追加
+                                    </Button>
+                                </div>
 								<div className="flex gap-4 items-center md:mr-4">
 								</div>
 								<div className="flex justify-between flex-col md:flex-row md-2 gap-2">

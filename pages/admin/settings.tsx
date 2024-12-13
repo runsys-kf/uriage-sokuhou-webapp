@@ -296,29 +296,31 @@ const Settings = () => {
                                         {/* キャンセルと変更ボタン */}
                                     </div>
 
-                                    <div className="flex justify-end gap-4">
-										<Button
-											variant="outlined"
-											className="px-2 md:px-4 py-2 border-blue-500 text-blue-500 hover:text-blue-800 hover:border-blue-800"
-											onClick={() => handleSubmit(API_ENDPOINTS.store_deletiet)}
-										>
-											削除
-										</Button>
-										<Button
-											variant="outlined"
-											className="px-2 md:px-4 py-2 border-blue-500 text-blue-500 hover:text-blue-800 hover:border-blue-800"
-											onClick={handleCancelClick}
-										>
-											キャンセル
-										</Button>
-										<Button
-											variant="contained"
-											className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
-											onClick={() => handleSubmit(API_ENDPOINTS.store_info_edit)}
-										>
-											変更
-										</Button>
-									</div>
+                                    <div className="flex justify-between gap-4">
+                                        <Button
+                                            variant="outlined"
+                                            className="bg-red-500 hover:bg-red-800 text-white px-2 md:px-4 py-2"
+                                            onClick={() => handleSubmit(API_ENDPOINTS.store_deletiet)}
+                                        >
+                                            削除
+                                        </Button>
+                                        <div className="flex gap-4">
+                                            <Button
+                                                variant="outlined"
+                                                className="px-2 md:px-4 py-2 border-blue-500 text-blue-500 hover:text-blue-800 hover:border-blue-800"
+                                                onClick={handleCancelClick}
+                                            >
+                                                キャンセル
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
+                                                onClick={() => handleSubmit(API_ENDPOINTS.store_info_edit)}
+                                            >
+                                                変更
+                                            </Button>
+                                        </div>
+                                    </div>
 								</div>
 							</div>
 						</div>

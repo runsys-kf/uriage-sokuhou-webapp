@@ -21,16 +21,20 @@ import { useRouter } from "next/router";
 import Sidebar from "./../../components/SidebarButton";
 import ErrorModal from "./../../components/ErrorModal";
 import { fetchData, API_ENDPOINTS } from "../api/apiService";
+import { prefectures } from './../../data/prefecturesData';
 
 const Settings = () => {
     const router = useRouter();
     const isMobile = useMobile();
     const [storeNumber, setStoreNumber] = useState(""); //店舗番号
     const [storeName, setStoreName] = useState(""); //店舗名
-    const [category, setCategory] = useState("直営"); //区分
-    const [area, setArea] = useState("駅前"); //エリア
-    const [openClose, setOpenClose] = useState("開店"); //開店・閉店
+    const [abbreviation, setAbbreviation] = useState("");//略名
+    const [category, setCategory] = useState(""); //区分
+    const [area, setArea] = useState(""); //エリア
+    const [region, setRegion] = useState(""); //地方名
+    const [prefecture, setPrefecture] = useState("") //都道府県
     const [owners, setOwners] = useState<string[]>([]); //取得したオーナー名
+    const [openClose, setOpenClose] = useState(""); //開店・閉店
     // const [selectedOwners, setSelectedOwners] = useState<string[]>([]);//選択されたオーナー名
     // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     // エラーモーダルの状態
@@ -94,7 +98,7 @@ const Settings = () => {
 
         if (errorMessages.length > 0) {
             setModalType("error");
-            setErrorMessage(errorMessages.join("、")+" が未入力です。");
+            setErrorMessage(errorMessages.join("、") + " が未入力です。");
             setOpenErrorModal(true);
             return;
         }
@@ -185,6 +189,27 @@ const Settings = () => {
                                                     />
                                                 </FormControl>
                                             </div>
+                                            {/* 略名 */}
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                <label
+                                                    htmlFor="abbreviation"
+                                                    className="block text-gray-700 text-sm font-bold w-[70px]"
+                                                >
+                                                    略名
+                                                </label>
+                                                <FormControl
+                                                    variant="outlined"
+                                                    style={{ width: "300px" }}
+                                                >
+                                                    <TextField
+                                                        id="abbreviation"
+                                                        label="略名"
+                                                        variant="outlined"
+                                                        className="w-50"
+                                                        onChange={(e) => setAbbreviation(e.target.value)}
+                                                    />
+                                                </FormControl>
+                                            </div>
 
                                             {/* 区分 */}
                                             <div className="flex flex-wrap items-center gap-4">
@@ -240,6 +265,54 @@ const Settings = () => {
                                                     </Select>
                                                 </FormControl>
                                             </div>
+                                            {/* 地区 */}
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                <label
+                                                    htmlFor="region"
+                                                    className="block text-gray-700 text-sm font-bold w-[70px]"
+                                                >
+                                                    地区
+                                                </label>
+                                                <FormControl
+                                                    variant="outlined"
+                                                    style={{ width: "300px" }}
+                                                >
+                                                    <InputLabel id="region">地区</InputLabel>
+                                                    <Select
+                                                        labelId="region"
+                                                        id="region"
+                                                        value={region}
+                                                        onChange={(e) => setRegion(e.target.value as string)}
+                                                        label="region"
+                                                    >
+                                                        <MenuItem value="項目1">項目1</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </div>
+                                            {/* 都道府県 */}
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                <label
+                                                    htmlFor="prefecture"
+                                                    className="block text-gray-700 text-sm font-bold w-[70px]"
+                                                >
+                                                    都道府県
+                                                </label>
+                                                <FormControl
+                                                    variant="outlined"
+                                                    style={{ width: "300px" }}
+                                                >
+                                                    <InputLabel id="prefecture">都道府県</InputLabel>
+                                                    <Select
+                                                        labelId="prefecture"
+                                                        id="prefecture"
+                                                        value={prefecture}
+                                                        onChange={(e) => setPrefecture(e.target.value as string)}
+                                                        label="prefecture"
+                                                    >
+                                                        <MenuItem value="項目1">項目1</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </div>
 
                                             {/* オーナー名 */}
                                             <div className="flex flex-wrap items-center gap-4">
@@ -288,7 +361,6 @@ const Settings = () => {
                                                     </Select>
                                                 </FormControl>
                                             </div>
-
                                         </div>
 
                                         {/* キャンセルと変更ボタン */}
