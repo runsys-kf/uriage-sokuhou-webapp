@@ -71,7 +71,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
         'Content-Type': 'application/json'
       }
     });
-
+    console.log("response : " + response);
     return response.data;
   } catch (error) {
     // 開発環境でのみ詳細なエラーログを表示
