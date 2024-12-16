@@ -9,12 +9,11 @@ const BackApiURL = "https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api";
 
 //ENDPOINTS
 export const API_ENDPOINTS = {
-  login: "login",
-  display_by_store: "display_by_store",
-  display_by_date: "display_by_date",
-  download: "download",
-  adimn_login: "admin_login",
-  logout: "logout",
+  login: "login",//メイン画面ログイン
+  display_by_store: "display_by_store",//店舗別
+  display_by_date: "display_by_date",//日別
+  download: "download",//ダウンロード
+  adimn_login: "admin_login",//管理画面ログイン
   new_shop_addition: "new_shop_addition",//新規店舗追加
   store_info_edit: "store_info_edit",//新規情報編集
   store_deletiet: "store_deletiet",//新規削除
@@ -36,13 +35,18 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
       url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store";
     }
     // 日別データ表示
-    // if (endpoint === "display_by_date") {
-    //     url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store";
-    // }
+    if (endpoint === "display_by_date") {
+      url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_date";
+    }
+    //ダウンロード
+    if (endpoint === "download") {
+      url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/download";
+    }
     // 管理画面ログイン認証
     if (endpoint === "admin/admin_login") {
       url = "https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin/admin_login";
     }
+
     //新規店舗追加
     if (endpoint === "new_shop_addition") {
       url = "";

@@ -557,23 +557,23 @@ const IndexPage = () => {
       displayType: dailyCheck, //  '日別' または '店舗別'
 
       range: {
-        start: date1.format("YYYY-MM-DD"),
-        end: date2.format("YYYY-MM-DD"),
+        start: date1.format("YYYY-MM-DD"), //始まり日付
+        end: date2.format("YYYY-MM-DD"), //終わり日付
       },
       comparisonRange: {
-        start: startDate3,
-        end: endDate4,
+        start: startDate3, //始まり日付
+        end: endDate4, //終わり日付
       },
       storeSelection: {
         selectedStore: selectedStores.map((store) => store.id).join(", "), // 店舗IDをカンマ区切りで連結
         prefecture: selectedStores.map((store) => store.prefecture).join(", "), // 選択された店舗の都道府県をカンマ区切りで連結
       },
       otherConditions: {
-        storeLocation: locationValue, // 例: '全て', '駅前', '郊外'
-        businessType: typeValue, // 例: '全て', '直営', 'FC'
+        storeLocation: locationValue, // 区分
+        businessType: typeValue, // エリア
       },
-      includeSales: salesInclusionValue, // 'true' または 'false'
-      includeClose: closedStoreValue,
+      includeSales: salesInclusionValue, // 税抜
+      includeClose: closedStoreValue, // 閉店
     };
   };
   // 初期化処理
@@ -1662,9 +1662,9 @@ const IndexPage = () => {
                   className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
                   startIcon={<DownloadIcon className="md:inline hidden" />}
                   onClick={() => {
-                    const csvContent = convertToCSV(sortedStoresData);
-                    downloadCSV(csvContent, "table_data.csv");
+                    fetchAndTransformData(API_ENDPOINTS.download);
                   }}
+                  disabled
                 >
                   ダウンロード
                 </Button>
