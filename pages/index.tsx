@@ -44,6 +44,7 @@ import Holidays from "date-holidays";
 import { fetchData, API_ENDPOINTS } from "./api/apiService";
 import { storeProcessData, dateProcessData } from "./api/dataTransformer";
 import { initialStores } from "../data/shopData";
+import ErrorModal from "../components/ErrorModal";
 //import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
@@ -207,6 +208,10 @@ const IndexPage = () => {
     otherSalesB: string;
     otherSalesChange: string;
     otherSalesRatio: string;
+    consignmentSalesA: string;
+    consignmentSalesB: string;
+    consignmentSalesChange: string;
+    consignmentSalesRatio: string;
   }
   interface StoreData {
     storeName: string;
@@ -233,6 +238,10 @@ const IndexPage = () => {
     otherSalesB: string;
     otherSalesChange: string;
     otherSalesRatio: string;
+    consignmentSalesA: string;
+    consignmentSalesB: string;
+    consignmentSalesChange: string;
+    consignmentSalesRatio: string;
   }
   interface StoresData {
     totalData: TotalData;
@@ -265,6 +274,10 @@ const IndexPage = () => {
       otherSalesB: "",
       otherSalesChange: "",
       otherSalesRatio: "",
+      consignmentSalesA: "",
+      consignmentSalesB: "",
+      consignmentSalesChange: "",
+      consignmentSalesRatio: "",
     },
     storeData: [],
   });
@@ -531,7 +544,7 @@ const IndexPage = () => {
   });
 
   ///***<送信時データ変換処理>***///
-  const createRequestData = (endpoint) => {
+  const createRequestData = () => {
     let startDate3 = "";
     let endDate4 = "";
     if (compareCheck) {
@@ -543,23 +556,23 @@ const IndexPage = () => {
       displayType: dailyCheck, //  '日別' または '店舗別'
 
       range: {
-        start: date1.format("YYYY-MM-DD"),
-        end: date2.format("YYYY-MM-DD"),
+        start: date1.format("YYYY-MM-DD"), //始まり日付
+        end: date2.format("YYYY-MM-DD"), //終わり日付
       },
       comparisonRange: {
-        start: startDate3,
-        end: endDate4,
+        start: startDate3, //始まり日付
+        end: endDate4, //終わり日付
       },
       storeSelection: {
         selectedStore: selectedStores.map((store) => store.id).join(", "), // 店舗IDをカンマ区切りで連結
         prefecture: selectedStores.map((store) => store.prefecture).join(", "), // 選択された店舗の都道府県をカンマ区切りで連結
       },
       otherConditions: {
-        storeLocation: locationValue, // 例: '全て', '駅前', '郊外'
-        businessType: typeValue, // 例: '全て', '直営', 'FC'
+        storeLocation: locationValue, // 区分
+        businessType: typeValue, // エリア
       },
-      includeSales: salesInclusionValue, // 'true' または 'false'
-      includeClose: closedStoreValue,
+      includeSales: salesInclusionValue, // 税抜
+      includeClose: closedStoreValue, // 閉店
     };
   };
   // 初期化処理
@@ -589,6 +602,10 @@ const IndexPage = () => {
       otherSalesB: "",
       otherSalesChange: "",
       otherSalesRatio: "",
+      consignmentSalesA: "",
+      consignmentSalesB: "",
+      consignmentSalesChange: "",
+      consignmentSalesRatio: ""
     },
     storeData: [],
   };
@@ -605,40 +622,27 @@ const IndexPage = () => {
       setStoresData(initialStoresData); //初期化処理
       setSortKey("");
       setSortDirection("desc");
+      setIsLoading(true); // 集計中...に設定
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
-      // const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
-      // if (isTestMode) {
-      //   setIsLoading(true); // 集計中...に設定
-      //   if (dailyCheck === "日別") {
-      //     //setStoresData(mockDateResponse());
-      //   } else {
-      //     setStoresData(mockStoreResponse());
-      //   }
-      //   return;
-      // }
+      const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
+      if (isTestMode) {
+        setIsLoading(true); // 集計中...に設定
+        if (dailyCheck === "日別") {
+          //setStoresData(mockDateResponse());
+        } else {
+          //setStoresData(mockStoreResponse());
+        }
+        return;
+      }
 
       /**本番環境用 */
-      let params;
       console.log("API_ENDPOINT: ", API_ENDPOINTS);
       console.log("endpoint: ", endpoint);
 
-      if (endpoint === API_ENDPOINTS.display_by_store) {
-        //店舗別
-        setIsLoading(true); // 集計中...に設定
-        params = createRequestData(endpoint);
-        const data = await fetchData(endpoint, params, router);
-        setStoresData(storeProcessData(data));
-      } else if (endpoint === API_ENDPOINTS.display_by_date) {
-        //日別
-        setIsLoading(true); // 集計中...に設定
-        params = createRequestData(endpoint);
-        const data = await fetchData(endpoint, params, router);
-        setStoresData(dateProcessData(data));
-      } else if (endpoint === API_ENDPOINTS.download) {
-        //ダウンロード
-        // const data = await fetchData(endpoint, params, router);
-        // setStoresData(processData(data));
-      }
+      const params = createRequestData();                    //送信データ作成
+      const data = await fetchData(endpoint, params, router);//バックエンドへ送信
+      setStoresData(dateProcessData(data));                  //取得データ変換、格納
+
     } catch (error) {
       console.error("Error fetching data:", error);
       setModalType("error");
@@ -864,22 +868,22 @@ const IndexPage = () => {
                               "& .MuiFormControlLabel-label": { fontSize: 14 },
                             }}
                           />
-                          {/* <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={dailyCheck === "日別"}
-                              onChange={handleDailyCheckChange}
-                              sx={{
-                                "& .MuiSvgIcon-root": { fontSize: 18 },
-                                p: "6px",
-                              }}
-                            />
-                          }
-                          label="日別"
-                          sx={{
-                            "& .MuiFormControlLabel-label": { fontSize: 14 },
-                          }}
-                        /> */}
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={dailyCheck === "日別"}
+                                onChange={handleDailyCheckChange}
+                                sx={{
+                                  "& .MuiSvgIcon-root": { fontSize: 18 },
+                                  p: "6px",
+                                }}
+                              />
+                            }
+                            label="日別"
+                            sx={{
+                              "& .MuiFormControlLabel-label": { fontSize: 14 },
+                            }}
+                          />
                         </div>
                       </div>
                     </LocalizationProvider>
@@ -1450,6 +1454,24 @@ const IndexPage = () => {
                         "& .MuiFormControlLabel-label": { fontSize: 14 },
                       }}
                     />
+                    <FormControlLabel
+                      value="ランセカンド"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="ランセカンド"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
                   </RadioGroup>
                   <FormLabel
                     style={{ fontSize: "0.875rem" }}
@@ -1636,20 +1658,19 @@ const IndexPage = () => {
 
                 <Button
                   variant="contained"
-                  className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
+                  className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
                   startIcon={<DownloadIcon className="md:inline hidden" />}
                   onClick={() => {
-                    setModalType("info");
-                    setErrorMessage("二次開発で導入予定です");
-                    setOpenErrorModal(true);
+                    fetchAndTransformData(API_ENDPOINTS.download);
                   }}
+                  disabled
                 >
-                  ダウンロード(開発中)
+                  ダウンロード
                 </Button>
 
                 <Button
                   variant="contained"
-                  className={`bg-${isLoading ? 'blue-800' : 'blue-500'} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
+                  className={`bg-${isLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
                   startIcon={<SearchIcon className="md:inline hidden" />}
                   onClick={() =>
                     fetchAndTransformData(
@@ -1711,9 +1732,15 @@ const IndexPage = () => {
                       </th>
                       <th
                         colSpan={compareCheck ? 4 : 1}
-                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border"
+                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
                       >
                         その他売上
+                      </th>
+                      <th
+                        colSpan={compareCheck ? 4 : 1}
+                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
+                      >
+                        委託販売
                       </th>
                     </tr>
                     {/*小分類*/}
@@ -1902,7 +1929,7 @@ const IndexPage = () => {
                           </th>
                         </>
                       )}
-                      <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
+                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
                         <div className="flex items-center justify-between">
                           対象期間
                           <div>
@@ -1928,7 +1955,38 @@ const IndexPage = () => {
                           <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
                             差異
                           </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border">
+                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
+                            比率
+                          </th>
+                        </>
+                      )}
+                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
+                        <div className="flex items-center justify-between">
+                          対象期間
+                          <div>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleSort("consignmentSalesA")}
+                            >
+                              {sortKey === "consignmentSalesA" &&
+                                sortDirection === "asc" ? (
+                                <ArrowUpwardIcon fontSize="inherit" />
+                              ) : (
+                                <ArrowDownwardIcon fontSize="inherit" />
+                              )}
+                            </IconButton>
+                          </div>
+                        </div>
+                      </th>
+                      {compareCheck && (
+                        <>
+                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
+                            比較期間
+                          </th>
+                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
+                            差異
+                          </th>
+                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
                             比率
                           </th>
                         </>
@@ -2030,7 +2088,7 @@ const IndexPage = () => {
                           </td>
                         </>
                       )}
-                      <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
+                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
                         {storesData.totalData.otherSalesA.toLocaleString()}
                       </td>
                       {compareCheck && (
@@ -2041,8 +2099,24 @@ const IndexPage = () => {
                           <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                             {storesData.totalData.otherSalesChange.toLocaleString()}
                           </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
+                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
                             {storesData.totalData.otherSalesRatio.toLocaleString()}
+                          </td>
+                        </>
+                      )}
+                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
+                        {storesData.totalData.consignmentSalesA.toLocaleString()}
+                      </td>
+                      {compareCheck && (
+                        <>
+                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
+                            {storesData.totalData.consignmentSalesB.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
+                            {storesData.totalData.consignmentSalesChange.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
+                            {storesData.totalData.consignmentSalesRatio.toLocaleString()}
                           </td>
                         </>
                       )}
@@ -2147,7 +2221,7 @@ const IndexPage = () => {
                             </td>
                           </>
                         )}
-                        <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
+                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
                           {store.otherSalesA.toLocaleString()}
                         </td>
                         {compareCheck && (
@@ -2158,8 +2232,24 @@ const IndexPage = () => {
                             <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
                               {store.otherSalesChange.toLocaleString()}
                             </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
+                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border  border border-r-2 border-r-gray-400 text-right">
                               {store.otherSalesRatio.toLocaleString()}
+                            </td>
+                          </>
+                        )}
+                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
+                          {store.consignmentSalesA.toLocaleString()}
+                        </td>
+                        {compareCheck && (
+                          <>
+                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
+                              {store.consignmentSalesB.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
+                              {store.consignmentSalesChange.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border  border border-r-2 border-r-gray-400 text-right">
+                              {store.consignmentSalesRatio.toLocaleString()}
                             </td>
                           </>
                         )}
@@ -2172,36 +2262,12 @@ const IndexPage = () => {
           </div>
         </div>
       </Layout>
-      <Dialog
+      <ErrorModal
         open={openErrorModal}
         onClose={handleCloseErrorModal}
-        aria-labelledby="modal-dialog-title"
-        aria-describedby="modal-dialog-description"
-      >
-        <DialogTitle
-          id="error-dialog-title"
-          className="flex items-center gap-2"
-        >
-          {modalType === "error" ? (
-            <ErrorOutlineIcon className="text-red-500" />
-          ) : (
-            <InfoIcon className="text-blue-500" />
-          )}
-          <span>{modalType === "error" ? "エラー" : "お知らせ"}</span>
-        </DialogTitle>
-        <DialogContent>
-          <p className="text-gray-700">{errorMessage}</p>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleCloseErrorModal}
-            variant="contained"
-            className="bg-blue-500 hover:bg-blue-800"
-          >
-            閉じる
-          </Button>
-        </DialogActions>
-      </Dialog>
+        modalType={modalType}
+        errorMessage={errorMessage}
+      />
     </>
   );
 };
