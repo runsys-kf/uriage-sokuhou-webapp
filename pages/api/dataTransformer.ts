@@ -8,6 +8,7 @@ export const storeProcessData = (response) => {
   const totalData = {
     storeName: response.合計.base_name,
     storeNumber: response.合計.base_no,
+    storeDate: "",
     netSalesA: response.合計.sales_total1,
     netSalesB: response.合計.sales_total2,
     netSalesChange: response.合計.sales_total_diff,
@@ -46,6 +47,7 @@ const storeTransformData = (data) => {
   return data.map(item => ({
     storeName: item.base_name,
     storeNumber: item.base_no,
+    storeDate: "",
     netSalesA: item.sales_total1,
     netSalesB: item.sales_total2,
     netSalesChange: item.sales_total_diff,
@@ -78,8 +80,9 @@ const storeTransformData = (data) => {
 export const dateProcessData = (response) => {
   // UI に合わせたキー名に変更
   const totalData = {
-    storeName: response.合計.date,
-    storeNumber: response.合計.base_no,
+    storeName: "",
+    storeNumber: "",
+    storeDate: response.合計.date,
     netSalesA: response.合計.sales_total1,
     netSalesB: response.合計.sales_total2,
     netSalesChange: response.合計.sales_total_diff,
@@ -116,8 +119,9 @@ export const dateProcessData = (response) => {
 // 店舗データの変換処理
 const dateTransformData = (data) => {
   return data.map(item => ({
-    storeName: item.date,
-    storeNumber: item.base_no,
+    storeName: "",
+    storeNumber: "",
+    storeDate: item.date,
     netSalesA: item.sales_total1,
     netSalesB: item.sales_total2,
     netSalesChange: item.sales_total_diff,
