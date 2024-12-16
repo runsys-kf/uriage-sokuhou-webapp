@@ -650,7 +650,12 @@ const IndexPage = () => {
 
       const params = createRequestData();                     //送信データ作成
       const data = await fetchData(endpoint, params, router); //バックエンドへ送信
-      setStoresData(storeProcessData(data));                  //取得データ変換、格納
+      //取得データ変換、格納
+      if(endpoint === "display_by_store"){
+        setStoresData(storeProcessData(data));
+      } else if(endpoint === "display_by_date"){
+        setStoresData(dateProcessData(data));
+      }
 
     } catch (error) {
       console.error("Error fetching data:", error);
