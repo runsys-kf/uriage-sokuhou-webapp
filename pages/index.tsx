@@ -187,6 +187,7 @@ const IndexPage = () => {
   interface TotalData {
     storeName: string;
     storeNumber: string;
+    storeDate: string;
     netSalesA: string;
     netSalesB: string;
     netSalesChange: string;
@@ -217,6 +218,7 @@ const IndexPage = () => {
   interface StoreData {
     storeName: string;
     storeNumber: string;
+    storeDate: string;
     netSalesA: string;
     netSalesB: string;
     netSalesChange: string;
@@ -253,6 +255,7 @@ const IndexPage = () => {
     totalData: {
       storeName: "合計",
       storeNumber: "",
+      storeDate: "",
       netSalesA: "",
       netSalesB: "",
       netSalesChange: "",
@@ -581,6 +584,7 @@ const IndexPage = () => {
     totalData: {
       storeName: "合計",
       storeNumber: "",
+      storeDate: "",
       netSalesA: "",
       netSalesB: "",
       netSalesChange: "",
@@ -629,9 +633,13 @@ const IndexPage = () => {
       if (isTestMode) {
         setIsLoading(true); // 集計中...に設定
         if (dailyCheck === "日別") {
-          //setStoresData(mockDateResponse());
+          setStoresData(mockDateResponse());
         } else {
           setStoresData(mockStoreResponse());
+        }
+        console.log("storesData.storeData[0]" + storesData.storeData[0]);
+        if (storesData.storeData.length > 0) {
+          console.log("テスト" + storesData.storeData[0].storeDate);
         }
         return;
       }
@@ -640,9 +648,9 @@ const IndexPage = () => {
       console.log("API_ENDPOINT: ", API_ENDPOINTS);
       console.log("endpoint: ", endpoint);
 
-      const params = createRequestData();                    //送信データ作成
-      const data = await fetchData(endpoint, params, router);//バックエンドへ送信
-      setStoresData(dateProcessData(data));                  //取得データ変換、格納
+      const params = createRequestData();                     //送信データ作成
+      const data = await fetchData(endpoint, params, router); //バックエンドへ送信
+      setStoresData(storeProcessData(data));                  //取得データ変換、格納
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -1691,16 +1699,27 @@ const IndexPage = () => {
                   <thead className="bg-gray-50 sticky top-0 z-20">
                     {/*大分類*/}
                     <tr>
-                      <th
+                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ?
+                        <>
+                        <th
+                        colSpan={1}
+                        className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
+                      >
+                        店舗情報
+                      </th>
+                        </> : <>
+                        <th
                         colSpan={1}
                         className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         店舗情報
                       </th>
-                      <th
-                        colSpan={1}
-                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                      ></th>
+                          <th
+                            colSpan={1}
+                            className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
+                          ></th>
+                        </>}
+
                       <th
                         colSpan={compareCheck ? 4 : 1}
                         className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
@@ -1746,31 +1765,39 @@ const IndexPage = () => {
                     </tr>
                     {/*小分類*/}
                     <tr>
-                      <th
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? <th
+                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
                       >
-                        店舗名
-                      </th>
-                      <th
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400`}
-                      >
-                        <div className="flex items-center justify-between">
-                          店番
-                          <div>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSort("storeNumber")}
-                            >
-                              {sortKey === "storeNumber" &&
-                                sortDirection === "asc" ? (
-                                <ArrowUpwardIcon fontSize="inherit" />
-                              ) : (
-                                <ArrowDownwardIcon fontSize="inherit" />
-                              )}
-                            </IconButton>
-                          </div>
-                        </div>
-                      </th>
+                        日付
+                      </th> :
+                        <>
+                          <th
+                            className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                          >
+                            店舗名
+                          </th>
+                          <th
+                            className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400`}
+                          >
+                            <div className="flex items-center justify-between">
+                              店番
+                              <div>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleSort("storeNumber")}
+                                >
+                                  {sortKey === "storeNumber" &&
+                                    sortDirection === "asc" ? (
+                                    <ArrowUpwardIcon fontSize="inherit" />
+                                  ) : (
+                                    <ArrowDownwardIcon fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </div>
+                            </div>
+                          </th>
+                        </>
+                      }
                       <th
                         className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
                       >
@@ -1995,16 +2022,26 @@ const IndexPage = () => {
                     </tr>
                     {/* 合計行 */}
                     <tr>
+                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? 
+                      <td
+                      className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
+                    >
+                      {storesData.totalData.storeName.toLocaleString()}
+                    </td>
+                      :
+                      <>
                       <td
                         className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
                       >
                         {storesData.totalData.storeName.toLocaleString()}
                       </td>
-                      <td
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
-                      >
-                        {storesData.totalData.storeNumber.toLocaleString()}
-                      </td>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
+                        >
+                          {storesData.totalData.storeNumber.toLocaleString()}
+                        </td>
+                        </>
+                      }
                       <td
                         className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
                       >
@@ -2127,6 +2164,14 @@ const IndexPage = () => {
                     {/* データ行 */}
                     {sortedStoresData.map((store, index) => (
                       <tr key={`${store.storeNumber}-${index}`}>
+                        {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ?
+                        <>
+                        <td
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
+                        >
+                          {store.storeDate}
+                        </td>
+                        </> : <>
                         <td
                           className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
                         >
@@ -2137,6 +2182,8 @@ const IndexPage = () => {
                         >
                           {store.storeNumber}
                         </td>
+                        </>}
+                        
                         <td
                           className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
                         >
