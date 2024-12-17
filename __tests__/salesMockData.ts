@@ -33,7 +33,7 @@ export const mockStoreResponse = () => {
   };
   const storeData = [
     {
-      storeName: "店舗Aaaaa",
+      storeName: "店舗A",
       storeNumber: "0001",
       storeDate: "",
       netSalesA: "401,000",

@@ -49,13 +49,13 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
 
     //新規店舗追加
     if (endpoint === "new_shop_addition") {
-      url = "";
+      url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/new_shop_addition";
     }
     //店舗情報編集
     if (endpoint === "store_info_edit") {
       url = "";
     }
-    //店舗情報編集
+    //削除
     if (endpoint === "store_deletiet") {
       url = "";
     }
