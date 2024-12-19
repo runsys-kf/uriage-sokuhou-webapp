@@ -44,7 +44,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
       //url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/download";
     }
     // 管理画面ログイン認証
-    if (endpoint === "admin/admin_login") {
+    if (endpoint === "admin_login") {
       url = "https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin/admin_login";
     }
 

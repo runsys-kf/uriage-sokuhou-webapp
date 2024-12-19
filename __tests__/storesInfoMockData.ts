@@ -25,7 +25,7 @@ export const stores_info_sequential = () => {
             BaseName: "店舗3",
             Class: "FC",
             Area: "郊外",
-            Owner: "オーナー3",
+            Owner: "オーナー3,オーナー1,オーナー1,オーナー1,オーナー1,オーナー1,オーナー1,オーナー1,オーナー1,オーナー1,オーナー1,オーナー1,オーナー1",
             Status: "閉店",
         },
         {

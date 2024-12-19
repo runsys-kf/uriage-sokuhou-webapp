@@ -583,7 +583,7 @@ const IndexPage = () => {
       },
       includeSales: salesInclusionValue, // 税抜
       includeClose: closedStoreValue, // 閉店
-      aaa: consignmentSales,//委託販売
+      include_consign_sales: consignmentSales,//委託販売
     };
   };
   // 初期化処理
@@ -654,7 +654,7 @@ const IndexPage = () => {
       console.log("API_ENDPOINT: ", API_ENDPOINTS);
       console.log("endpoint: ", endpoint);
 
-      if(endpoint = "download"){setIsDlLoading(true);}else{setIsLoading(true);};
+      if (endpoint = "download") { setIsDlLoading(true); } else { setIsLoading(true); };
 
       const params = createRequestData();                     //送信データ作成
       const data = await fetchData(endpoint, params, router); //バックエンドへ送信

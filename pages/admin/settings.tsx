@@ -33,12 +33,12 @@ const Settings = () => {
     const [isDelete, setIsDelete] = useState(false); // 削除フラグ
     const [errors, setErrors] = useState({
         storeNumber: "",
-        storeName: "",
-        abbreviation: "",
+        //storeName: "",
+        //abbreviation: "",
         category: "",
         area: "",
-        region: "",
-        prefecture: "",
+        //region: "",
+        //prefecture: "",
         owners: "",
         openClose: "",
     });
@@ -87,12 +87,12 @@ const Settings = () => {
     const validateFields = () => {
         const newErrors = {
             storeNumber: storeNumber ? "" : "店舗番号が未入力です。",
-            storeName: storeName ? "" : "店舗名が未入力です。",
-            abbreviation: abbreviation ? "" : "略名が未入力です。",
+            //storeName: storeName ? "" : "店舗名が未入力です。",
+            //abbreviation: abbreviation ? "" : "略名が未入力です。",
             category: category ? "" : "区分が未入力です。",
             area: area ? "" : "エリアが未入力です。",
-            region: region ? "" : "地区が未入力です。",
-            prefecture: prefecture ? "" : "都道府県が未入力です。",
+            //region: region ? "" : "地区が未入力です。",
+            //prefecture: prefecture ? "" : "都道府県が未入力です。",
             owners: owners.split(",").filter(owner => owner.trim() !== "").length > 0 ? "" : "オーナー名が未入力です。",
             openClose: openClose ? "" : "開店・閉店が未入力です。",
         };

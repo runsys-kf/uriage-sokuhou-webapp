@@ -44,17 +44,17 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <DialogTitle id="confirmation-dialog-title">{title}</DialogTitle>
       <DialogContent>
         <ul className="confirmation-list">
-          <li><span className="label">店舗番号:</span> {inputData.storeNumber}</li>
-          <li><span className="label">店舗名:</span> {inputData.storeName}</li>
-          <li><span className="label">略名:</span> {inputData.abbreviation}</li>
-          <li><span className="label">区分:</span> {inputData.category}</li>
-          <li><span className="label">エリア:</span> {inputData.area}</li>
-          <li><span className="label">地区:</span> {inputData.region}</li>
-          <li><span className="label">都道府県:</span> {inputData.prefecture}</li>
-          <li><span className="label">オーナー名:</span> {inputData.owners.join(", ")}</li>
-          <li><span className="label">開店・閉店:</span> {inputData.openClose}</li>
+          {inputData.storeNumber && <li><span className="label">店舗番号:</span> {inputData.storeNumber}</li>}
+          {inputData.storeName && <li><span className="label">店舗名:</span> {inputData.storeName}</li>}
+          {inputData.abbreviation && <li><span className="label">略名:</span> {inputData.abbreviation}</li>}
+          {inputData.category && <li><span className="label">区分:</span> {inputData.category}</li>}
+          {inputData.area && <li><span className="label">エリア:</span> {inputData.area}</li>}
+          {inputData.region && <li><span className="label">地区:</span> {inputData.region}</li>}
+          {inputData.prefecture && <li><span className="label">都道府県:</span> {inputData.prefecture}</li>}
+          {inputData.owners.length > 0 && <li><span className="label">オーナー名:</span> {inputData.owners.join(", ")}</li>}
+          {inputData.openClose && <li><span className="label">開店・閉店:</span> {inputData.openClose}</li>}
         </ul>
-        <br/>
+        <br />
         <p>{message}</p>
       </DialogContent>
       <DialogActions>

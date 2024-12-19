@@ -42,9 +42,8 @@ const LoginPage = () => {
     }
     try {
       let response;
-      //if (process.env.NODE_ENV === 'development') { // 開発環境の場合はモックデータを使用
-      if (false) {
-        //response = mockLoginResponses[username] || mockLoginResponses.not200;
+      if (process.env.NODE_ENV === 'development') {
+        router.push("/admin");
       } else {
         response = await axios.post('https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
           { username, password },
@@ -59,7 +58,7 @@ const LoginPage = () => {
         // console.log("response", response);
       }
       if (response.status === 200) {
-        localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
+        //localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
         const token = response.data.token;
         Cookies.set('access_token', token, { expires: 1, path: '/' });
         router.push('/'); // 成功時にリダイレクト

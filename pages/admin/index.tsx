@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { IconButton, Button } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import EditIcon from "@mui/icons-material/Edit";
 import { useMobile } from "../../contexts/MobileContext";
@@ -10,6 +11,51 @@ import { useRouter } from "next/router";
 import Sidebar from "./../../components/SidebarButton";
 import { fetchData } from "../api/apiService";
 import { stores_info_sequential } from "../../__tests__/storesInfoMockData";
+
+import { GetServerSideProps } from "next";
+// add 20241117 16:23
+import nookies from "nookies";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
+
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+
+//   const cookies = nookies.get(context);
+//   const token = cookies['access_token'];
+
+//   if (!token) {
+//     // トークンがない場合、ログインページにリダイレクト
+//     return {
+//       redirect: {
+//         destination: '/admin/admin_login',
+//         permanent: false,
+//       },
+//     };
+//   }
+
+//   try {
+//     // トークンを検証
+//     const decoded = jwt.verify(token, JWT_SECRET);
+
+//     // 認証成功
+//     return {
+//       props: {
+//         user: decoded,
+//       },
+//     };
+//   } catch (error) {
+//     console.error('Token verification failed:', error.message);
+//     // 認証失敗、ログインページにリダイレクト
+//     return {
+//       redirect: {
+//         destination: '/admin/admin_login',
+//         permanent: false,
+//       },
+//     };
+//   }
+// };
+const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 
 interface StoreInfo {
 	id: string;
