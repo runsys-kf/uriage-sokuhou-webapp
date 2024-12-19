@@ -624,6 +624,7 @@ const IndexPage = () => {
   //バックエンドAPIにデータ送信、受信
   // add 20240828
   const fetchAndTransformData = async (endpoint) => {
+
     if (selectedStores.length === 0) {
       setModalType("error");
       setErrorMessage("対象店舗が選択されていません");
@@ -651,10 +652,9 @@ const IndexPage = () => {
       }
 
       /**本番環境用 */
+      endpoint === "download" ? setIsLoading(true) : setIsLoading(true);
       console.log("API_ENDPOINT: ", API_ENDPOINTS);
-      console.log("endpoint: ", endpoint);
-
-      if (endpoint = "download") { setIsDlLoading(true); } else { setIsLoading(true); };
+      console.log("endpoint確認: ", endpoint);
 
       const params = createRequestData();                     //送信データ作成
       const data = await fetchData(endpoint, params, router); //バックエンドへ送信
