@@ -40,7 +40,8 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     }
     //ダウンロード
     if (endpoint === "download") {
-      url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/download";
+      url = "https://download-hzd8f3fbe0d3h9g0.z01.azurefd.net";
+      //url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/download";
     }
     // 管理画面ログイン認証
     if (endpoint === "admin/admin_login") {

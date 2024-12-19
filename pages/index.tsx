@@ -646,9 +646,9 @@ const IndexPage = () => {
       const params = createRequestData();                     //送信データ作成
       const data = await fetchData(endpoint, params, router); //バックエンドへ送信
       //取得データ変換、格納
-      if(endpoint === "display_by_store"){
+      if (endpoint === "display_by_store") {
         setStoresData(storeProcessData(data));
-      } else if(endpoint === "display_by_date"){
+      } else if (endpoint === "display_by_date") {
         setStoresData(dateProcessData(data));
       }
 
@@ -1672,7 +1672,6 @@ const IndexPage = () => {
                   onClick={() => {
                     fetchAndTransformData(API_ENDPOINTS.download);
                   }}
-                  disabled
                 >
                   ダウンロード
                 </Button>
@@ -1701,19 +1700,19 @@ const IndexPage = () => {
                     <tr>
                       {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ?
                         <>
-                        <th
-                        colSpan={1}
-                        className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                      >
-                        店舗情報
-                      </th>
+                          <th
+                            colSpan={1}
+                            className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
+                          >
+                            店舗情報
+                          </th>
                         </> : <>
-                        <th
-                        colSpan={1}
-                        className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        店舗情報
-                      </th>
+                          <th
+                            colSpan={1}
+                            className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            店舗情報
+                          </th>
                           <th
                             colSpan={1}
                             className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
@@ -2022,24 +2021,24 @@ const IndexPage = () => {
                     </tr>
                     {/* 合計行 */}
                     <tr>
-                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? 
-                      <td
-                      className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
-                    >
-                      {storesData.totalData.storeName.toLocaleString()}
-                    </td>
-                      :
-                      <>
-                      <td
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
-                      >
-                        {storesData.totalData.storeName.toLocaleString()}
-                      </td>
+                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ?
                         <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
+                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
                         >
-                          {storesData.totalData.storeNumber.toLocaleString()}
+                          {storesData.totalData.storeName.toLocaleString()}
                         </td>
+                        :
+                        <>
+                          <td
+                            className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                          >
+                            {storesData.totalData.storeName.toLocaleString()}
+                          </td>
+                          <td
+                            className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
+                          >
+                            {storesData.totalData.storeNumber.toLocaleString()}
+                          </td>
                         </>
                       }
                       <td
@@ -2165,25 +2164,25 @@ const IndexPage = () => {
                     {sortedStoresData.map((store, index) => (
                       <tr key={`${store.storeNumber}-${index}`}>
                         {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ?
-                        <>
-                        <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
-                        >
-                          {store.storeDate}
-                        </td>
-                        </> : <>
-                        <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
-                        >
-                          {store.storeName}
-                        </td>
-                        <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
-                        >
-                          {store.storeNumber}
-                        </td>
-                        </>}
-                        
+                          <>
+                            <td
+                              className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
+                            >
+                              {store.storeDate}
+                            </td>
+                          </> : <>
+                            <td
+                              className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
+                            >
+                              {store.storeName}
+                            </td>
+                            <td
+                              className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
+                            >
+                              {store.storeNumber}
+                            </td>
+                          </>}
+
                         <td
                           className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
                         >
