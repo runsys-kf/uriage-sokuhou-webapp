@@ -649,7 +649,7 @@ const IndexPage = () => {
       console.log("API_ENDPOINT: ", API_ENDPOINTS);
       console.log("endpoint: ", endpoint);
 
-      if(endpoint = "download"){setIsDlLoading(true);}else{setIsLoading(true);};
+      if (endpoint = "download") { setIsDlLoading(true); } else { setIsLoading(true); };
 
       const params = createRequestData();                     //送信データ作成
       const data = await fetchData(endpoint, params, router); //バックエンドへ送信

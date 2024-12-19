@@ -15,8 +15,8 @@ export const API_ENDPOINTS = {
   download: "download",//ダウンロード
   adimn_login: "admin_login",//管理画面ログイン
   new_shop_addition: "new_shop_addition",//新規店舗追加
-  store_info_edit: "store_info_edit",//新規情報編集
-  store_deletiet: "store_deletiet",//新規削除
+  store_edit: "store_edit",//店舗編集
+  store_deletiet: "store_deletiet",//店舗削除
 }
 
 //APIリクエスト関数
@@ -44,7 +44,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
       //url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/download";
     }
     // 管理画面ログイン認証
-    if (endpoint === "admin/admin_login") {
+    if (endpoint === "admin_login") {
       url = "https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin/admin_login";
     }
 
