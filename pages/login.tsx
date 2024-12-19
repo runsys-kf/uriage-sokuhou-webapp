@@ -58,7 +58,7 @@ const LoginPage = () => {
         // console.log("response", response);
       }
       if (response.status === 200) {
-        //localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
+        localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
         const token = response.data.token;
         Cookies.set('access_token', token, { expires: 1, path: '/' });
         router.push('/'); // 成功時にリダイレクト

@@ -14,10 +14,10 @@ import { stores_info_sequential } from "../../__tests__/storesInfoMockData";
 
 import { GetServerSideProps } from "next";
 // add 20241117 16:23
-import nookies from "nookies";
-import jwt from "jsonwebtoken";
+// import nookies from "nookies";
+// import jwt from "jsonwebtoken";
 
-const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
+// const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
 
 // export const getServerSideProps: GetServerSideProps = async (context) => {
 
@@ -103,23 +103,6 @@ const AdminPage = () => {
 
 		fetchDataFromBackend();
 	}, [router.query]);
-
-	//インポート
-	const handleImport = () => {
-		if (selectedFile) {
-			console.log(`ファイルをインポート中: ${selectedFile.name}`);
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				const content = e.target?.result;
-				const contents = e.target?.result;
-				console.log("ファイルの内容:", contents);
-				// ここでファイルの内容を処理します
-			};
-			reader.readAsText(selectedFile);
-		} else {
-			console.log("ファイルが選択されていません");
-		}
-	};
 
 	//編集画面へ
 	const navigateToEditPage = (store: StoreInfo) => {
