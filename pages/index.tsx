@@ -173,9 +173,11 @@ const IndexPage = () => {
   const [typeValue, setTypeValue] = useState("全て"); //"全て or 直営 or FC"
   const [closedStoreValue, setClosedStoreValue] = useState("true"); //閉店かどうか
   const [salesInclusionValue, setSalesInclusionValue] = useState("true"); //その他売り上げ込みかどうか
+  const [consignmentSales, setConsignmentSales] = useState(true);
 
-  //集計ボタン
+  //集計ボタン ダウンロードボタン　の状態
   const [isLoading, setIsLoading] = useState(false); // 集計中の状態を管理
+  const [isDlLoading, setIsDlLoading] = useState(false); // ダウンロード中の状態を管理
 
   //お知らせモーダル関連
   const [openErrorModal, setOpenErrorModal] = useState(false);
@@ -502,6 +504,10 @@ const IndexPage = () => {
   const handleSalesInclusionChange = (event) => {
     setSalesInclusionValue(event.target.value);
   };
+  //委託販売変更ハンドラ
+  const consignmentSalesInclusionChange = (event) => {
+    setConsignmentSales(event.target.value);
+  };
   //比較対象日付を抽出対象の1年前にする
   useEffect(() => {
     if (compareCheck) {
@@ -576,6 +582,7 @@ const IndexPage = () => {
       },
       includeSales: salesInclusionValue, // 税抜
       includeClose: closedStoreValue, // 閉店
+      include_consign_sales: consignmentSales,//委託販売
     };
   };
   // 初期化処理
@@ -626,7 +633,6 @@ const IndexPage = () => {
       setStoresData(initialStoresData); //初期化処理
       setSortKey("");
       setSortDirection("desc");
-      setIsLoading(true); // 集計中...に設定
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       if (isTestMode) {
@@ -642,6 +648,8 @@ const IndexPage = () => {
       /**本番環境用 */
       console.log("API_ENDPOINT: ", API_ENDPOINTS);
       console.log("endpoint: ", endpoint);
+
+      if(endpoint = "download"){setIsDlLoading(true);}else{setIsLoading(true);};
 
       const params = createRequestData();                     //送信データ作成
       const data = await fetchData(endpoint, params, router); //バックエンドへ送信
@@ -659,6 +667,7 @@ const IndexPage = () => {
       setOpenErrorModal(true);
     } finally {
       setIsLoading(false); // 集計実行に戻す
+      setIsDlLoading(false);
     }
   };
 
@@ -1366,7 +1375,7 @@ const IndexPage = () => {
                     </Button> */}
                   </div>
                   <div className="mb-2 md:mt-2">
-                    <div className="max-h-40 overflow-y-auto">
+                  <div className="max-h-60 overflow-y-auto">
                       {" "}
                       {/* 最大高さとスクロールを追加 */}
                       <div className="text-sm text-gray-700">
@@ -1651,6 +1660,56 @@ const IndexPage = () => {
                       }}
                     />
                   </RadioGroup>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---委託販売を---
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    value={consignmentSales}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={consignmentSalesInclusionChange}
+                  >
+                    <FormControlLabel
+                      value={true}
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含める"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value={false}
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含めない"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
                 </div>
               </div>
             </div>
@@ -1667,13 +1726,13 @@ const IndexPage = () => {
 
                 <Button
                   variant="contained"
-                  className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
+                  className={`bg-${isDlLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
                   startIcon={<DownloadIcon className="md:inline hidden" />}
                   onClick={() => {
                     fetchAndTransformData(API_ENDPOINTS.download);
                   }}
                 >
-                  ダウンロード
+                  {isDlLoading ? "ダウンロード中..." : "ダウンロード"}
                 </Button>
 
                 <Button
