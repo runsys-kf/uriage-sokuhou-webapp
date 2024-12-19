@@ -73,6 +73,15 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
       }
     });
     console.log("response : " + response);
+    console.log("response.data : " + response.data);
+
+    if (endpoint === "download") {
+      const blob = new Blob([response.data], { type: "text/csv" });
+      console.log("Download response CSV Content: ", blob);
+
+      const text = await blob.text();
+      console.log("CSV Content:", text);
+
     return response.data;
   } catch (error) {
     // 開発環境でのみ詳細なエラーログを表示
