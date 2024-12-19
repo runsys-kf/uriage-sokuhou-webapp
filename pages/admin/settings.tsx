@@ -21,12 +21,12 @@ const Settings = () => {
     const router = useRouter();
     const isMobile = useMobile();
     const [storeNumber, setStoreNumber] = useState(""); //店舗番号
-    const [storeName, setStoreName] = useState("未設定"); //店舗名
-    const [abbreviation, setAbbreviation] = useState("未設定");//略名
+    const [storeName, setStoreName] = useState(""); //店舗名
+    const [abbreviation, setAbbreviation] = useState("");//略名
     const [category, setCategory] = useState(""); //区分
     const [area, setArea] = useState(""); //エリア
-    const [region, setRegion] = useState("未設定"); //地方名
-    const [prefecture, setPrefecture] = useState("未設定"); //都道府県
+    const [region, setRegion] = useState(""); //地方名
+    const [prefecture, setPrefecture] = useState(""); //都道府県
     const [owners, setOwners] = useState(""); //取得したオーナー名
     const [openClose, setOpenClose] = useState(""); //開店・閉店
     const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
@@ -60,6 +60,7 @@ const Settings = () => {
         const categoryParam = params.get("category");
         const areaParam = params.get("area");
         const ownerParam = params.get("owner");
+        const statusParam = params.get("Status");
         if (storeNumberParam) {
             setStoreNumber(decodeURIComponent(storeNumberParam));
         }
@@ -71,6 +72,9 @@ const Settings = () => {
         }
         if (ownerParam) {
             setOwners(decodeURIComponent(ownerParam));
+        }
+        if (statusParam) {
+            setOpenClose(decodeURIComponent(statusParam));
         }
     }, [router.isReady, router.query]);
 
@@ -124,7 +128,7 @@ const Settings = () => {
                 Status: openClose,       //ステータス
             };
             
-            const endpoint = isDelete ? API_ENDPOINTS.store_delete : API_ENDPOINTS.store_edit;
+            const endpoint = isDelete ? API_ENDPOINTS.store_deletiet : API_ENDPOINTS.store_edit;
             await fetchData(endpoint, params, router);
             router.push("/admin");
         } catch (error) {

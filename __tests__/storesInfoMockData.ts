@@ -8,6 +8,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "駅前",
             Owner: "オーナー1,オーナー1,オーナー1,オーナー1,オーナー1,オーナー1",
+            Status: "閉店",
         },
         {
             id: "2",
@@ -16,6 +17,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "郊外",
             Owner: "オーナー2,オーナー1,オーナー1fgsdfgsdfgd",
+            Status: "開店",
         },
         {
             id: "3",
@@ -24,6 +26,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "郊外",
             Owner: "オーナー3",
+            Status: "閉店",
         },
         {
             id: "4",
@@ -32,6 +35,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー4",
+            Status: "開店",
         },
         {
             id: "5",
@@ -40,6 +44,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "駅前",
             Owner: "オーナー5",
+            Status: "閉店",
         },
         {
             id: "6",
@@ -48,6 +53,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "駅前",
             Owner: "オーナー6",
+            Status: "開店",
         },
         {
             id: "7",
@@ -56,6 +62,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー7",
+            Status: "開店",
         },
         {
             id: "8",
@@ -64,6 +71,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "郊外",
             Owner: "オーナー8",
+            Status: "開店",
         },
         {
             id: "9",
@@ -72,6 +80,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー9",
+            Status: "開店",
         },
         {
             id: "10",
@@ -80,6 +89,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "駅前",
             Owner: "オーナー10",
+            Status: "閉店",
         },
         {
             id: "11",
@@ -88,6 +98,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "駅前",
             Owner: "オーナー11",
+            Status: "開店",
         },
         {
             id: "12",
@@ -96,6 +107,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "郊外",
             Owner: "オーナー12",
+            Status: "開店",
         },
         {
             id: "13",
@@ -104,6 +116,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "駅前",
             Owner: "オーナー13",
+            Status: "開店",
         },
         {
             id: "14",
@@ -112,6 +125,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "駅前",
             Owner: "オーナー14",
+            Status: "開店",
         },
         {
             id: "15",
@@ -120,6 +134,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー15",
+            Status: "開店",
         },
         {
             id: "16",
@@ -128,6 +143,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー16",
+            Status: "開店",
         },
         {
             id: "17",
@@ -136,6 +152,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "駅前",
             Owner: "オーナー1",
+            Status: "開店",
         },
         {
             id: "18",
@@ -144,6 +161,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "郊外",
             Owner: "オーナー2",
+            Status: "開店",
         },
         {
             id: "19",
@@ -152,6 +170,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "郊外",
             Owner: "オーナー3",
+            Status: "開店",
         },
         {
             id: "20",
@@ -160,6 +179,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー4",
+            Status: "開店",
         },
         {
             id: "21",
@@ -168,6 +188,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "駅前",
             Owner: "オーナー5",
+            Status: "開店",
         },
         {
             id: "22",
@@ -176,6 +197,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "駅前",
             Owner: "オーナー6",
+            Status: "開店",
         },
         {
             id: "23",
@@ -184,6 +206,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー7",
+            Status: "開店",
         },
         {
             id: "24",
@@ -192,6 +215,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "郊外",
             Owner: "オーナー8",
+            Status: "開店",
         },
         {
             id: "25",
@@ -200,6 +224,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー9",
+            Status: "開店",
         },
         {
             id: "26",
@@ -208,6 +233,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "駅前",
             Owner: "オーナー10",
+            Status: "開店",
         },
         {
             id: "27",
@@ -216,6 +242,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "駅前",
             Owner: "オーナー11",
+            Status: "開店",
         },
         {
             id: "28",
@@ -224,6 +251,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "郊外",
             Owner: "オーナー12",
+            Status: "開店",
         },
         {
             id: "29",
@@ -232,6 +260,7 @@ export const stores_info_sequential = () => {
             Class: "FC",
             Area: "駅前",
             Owner: "オーナー13",
+            Status: "開店",
         },
         {
             id: "30",
@@ -240,6 +269,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "駅前",
             Owner: "オーナー14",
+            Status: "開店",
         },
         {
             id: "31",
@@ -248,6 +278,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー15",
+            Status: "開店",
         },
         {
             id: "32",
@@ -256,6 +287,7 @@ export const stores_info_sequential = () => {
             Class: "直営",
             Area: "郊外",
             Owner: "オーナー16",
+            Status: "開店",
         },
     ];
 };

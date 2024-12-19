@@ -18,6 +18,7 @@ interface StoreInfo {
 	Class: string;
 	Area: string;
 	Owner: string;
+	Status: string;
 }
 
 const AdminPage = () => {
@@ -35,6 +36,7 @@ const AdminPage = () => {
 		{ key: "Class", label: "区分" },
 		{ key: "Area", label: "エリア" },
 		{ key: "Owner", label: "オーナー" },
+		{ key: "Status", label: "開店・閉店" },
 	];
 
 	// テーブルデータ取得
@@ -84,6 +86,7 @@ const AdminPage = () => {
 				category: store.Class,
 				area: store.Area,
 				owner: store.Owner,
+				Status: store.Status,
 			},
 		});
 	};
