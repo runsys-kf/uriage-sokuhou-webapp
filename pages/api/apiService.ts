@@ -81,6 +81,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
 
       const text = await blob.text();
       console.log("CSV Content:", text);
+    }
 
     return response.data;
   } catch (error) {
