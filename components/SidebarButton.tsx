@@ -39,7 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile }) => {
       <h1 className="text-xl font-semibold p-4 bg-gray-500 text-white">
         管理システム
       </h1>
-      <List>
+      <List >
         <ListItem onClick={handleDashboardClick}>
           <ListItemIcon>
             <DashboardIcon />

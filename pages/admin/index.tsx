@@ -1,6 +1,7 @@
 import Layout from "@/components/Layout";
-import React, { useState } from "react";
-import { IconButton, Drawer, Button, List } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { IconButton, Button } from "@mui/material";
+import LogoutIcon from "@mui/icons-material/Logout";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import EditIcon from "@mui/icons-material/Edit";
@@ -8,36 +9,52 @@ import { useMobile } from "../../contexts/MobileContext";
 import { useRouter } from "next/router";
 import Sidebar from "./../../components/SidebarButton";
 import { fetchData } from "../api/apiService";
+import { stores_info_sequential } from "../../__tests__/storesInfoMockData";
 
 interface StoreInfo {
 	id: string;
-	storeNumber: string;
-	storeName: string;
-	category: string;
-	area: string;
-	owner: string;
+	BaseNo: string;
+	BaseName: string;
+	Class: string;
+	Area: string;
+	Owner: string;
 }
 
 const AdminPage = () => {
 	const router = useRouter();
-
 	const isMobile = useMobile();
-	// const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-	// const toggleSidebar = () => {
-	//   setIsSidebarOpen(!isSidebarOpen);
-	// };
-
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [currentPage, setCurrentPage] = useState(1); //現在のメージ
-	const itemsPerPage = 15; //データ表示件数
+	const itemsPerPage = 20; //データ表示件数
+	const [storesInfo, setStoresInfo] = useState<StoreInfo[]>([]);
 
-	//ファイル選択
-	const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (file) {
-			setSelectedFile(file);
+	const columns = [
+		{ key: "id", label: "ID" },
+		{ key: "BaseNo", label: "店舗番号" },
+		{ key: "BaseName", label: "店舗名" },
+		{ key: "Class", label: "区分" },
+		{ key: "Area", label: "エリア" },
+		{ key: "Owner", label: "オーナー" },
+	];
+
+	// テーブルデータ取得
+	useEffect(() => {
+		const isTestMode = process.env.NODE_ENV === "development";
+		if (isTestMode) {
+			setStoresInfo(stores_info_sequential());
+			return;
 		}
-	};
+		const fetchDataFromBackend = async () => {
+			try {
+				const data = await fetchData("display_by_store", {}, router);
+				setStoresInfo(data);
+			} catch (error) {
+				console.error("データの取得に失敗しました:", error);
+			}
+		};
+
+		fetchDataFromBackend();
+	}, [router.query]);
 
 	//インポート
 	const handleImport = () => {
@@ -62,157 +79,22 @@ const AdminPage = () => {
 			pathname: "/admin/settings",
 			query: {
 				id: store.id,
-				storeNumber: store.storeNumber,
-				storeName: store.storeName,
-				category: store.category,
-				area: store.area,
-				owner: store.owner,
+				storeNumber: store.BaseNo,
+				storeName: store.BaseName,
+				category: store.Class,
+				area: store.Area,
+				owner: store.Owner,
 			},
 		});
 	};
 
-	//店舗データ
-	const stores_info_sequential: StoreInfo[] = [
-		{
-			id: "1",
-			storeNumber: "001",
-			storeName: "店舗1",
-			category: "FC",
-			area: "駅前",
-			owner: "オーナー1",
-		},
-		{
-			id: "2",
-			storeNumber: "002",
-			storeName: "店舗2",
-			category: "FC",
-			area: "郊外",
-			owner: "オーナー2",
-		},
-		{
-			id: "3",
-			storeNumber: "003",
-			storeName: "店舗3",
-			category: "FC",
-			area: "郊外",
-			owner: "オーナー3",
-		},
-		{
-			id: "4",
-			storeNumber: "004",
-			storeName: "店舗4",
-			category: "直営",
-			area: "郊外",
-			owner: "オーナー4",
-		},
-		{
-			id: "5",
-			storeNumber: "005",
-			storeName: "店舗5",
-			category: "FC",
-			area: "駅前",
-			owner: "オーナー5",
-		},
-		{
-			id: "6",
-			storeNumber: "006",
-			storeName: "店舗6",
-			category: "直営",
-			area: "駅前",
-			owner: "オーナー6",
-		},
-		{
-			id: "7",
-			storeNumber: "007",
-			storeName: "店舗7",
-			category: "直営",
-			area: "郊外",
-			owner: "オーナー7",
-		},
-		{
-			id: "8",
-			storeNumber: "008",
-			storeName: "店舗8",
-			category: "FC",
-			area: "郊外",
-			owner: "オーナー8",
-		},
-		{
-			id: "9",
-			storeNumber: "009",
-			storeName: "店舗9",
-			category: "直営",
-			area: "郊外",
-			owner: "オーナー9",
-		},
-		{
-			id: "10",
-			storeNumber: "010",
-			storeName: "店舗10",
-			category: "直営",
-			area: "駅前",
-			owner: "オーナー10",
-		},
-		{
-			id: "11",
-			storeNumber: "011",
-			storeName: "店舗11",
-			category: "FC",
-			area: "駅前",
-			owner: "オーナー11",
-		},
-		{
-			id: "12",
-			storeNumber: "012",
-			storeName: "店舗12",
-			category: "FC",
-			area: "郊外",
-			owner: "オーナー12",
-		},
-		{
-			id: "13",
-			storeNumber: "013",
-			storeName: "店舗13",
-			category: "FC",
-			area: "駅前",
-			owner: "オーナー13",
-		},
-		{
-			id: "14",
-			storeNumber: "014",
-			storeName: "店舗14",
-			category: "直営",
-			area: "駅前",
-			owner: "オーナー14",
-		},
-		{
-			id: "15",
-			storeNumber: "015",
-			storeName: "店舗15",
-			category: "直営",
-			area: "郊外",
-			owner: "オーナー15",
-		},
-		{
-			id: "16",
-			storeNumber: "016",
-			storeName: "店舗16",
-			category: "直営",
-			area: "郊外",
-			owner: "オーナー16",
-		},
-	];
-
-	const indexOfLastItem = currentPage * itemsPerPage; //ページ最後のデータ番号
-	const indexOfFirstItem = indexOfLastItem - itemsPerPage; //ページ最初のデータ番号
-	const currentItems = stores_info_sequential.slice(
-		indexOfFirstItem,
-		indexOfLastItem
-	); //店舗データ抜出
+	const indexOfLastItem = currentPage * itemsPerPage; //ページ最後のデータ番号　現在のページ番号と最大表示数をかける
+	const indexOfFirstItem = indexOfLastItem - itemsPerPage; //ページ最初のデータ番号　ページ最後のデータから最大ページ表示数を引く
+	const currentItems = storesInfo.slice(indexOfFirstItem, indexOfLastItem);//slice()で最初と最後の番号を使い抜き出す
 
 	//次のページ　現在ページ＋1
 	const handleNextPage = () => {
-		if (currentPage < Math.ceil(stores_info_sequential.length / itemsPerPage)) {
+		if (currentPage < Math.ceil(storesInfo.length / itemsPerPage)) {
 			setCurrentPage(currentPage + 1);
 		}
 	};
@@ -224,31 +106,51 @@ const AdminPage = () => {
 		}
 	};
 
+	// ログアウト処理を修正
+	const handleLogout = async () => {
+		try {
+			//await fetchData(API_ENDPOINTS.logout, null, router);
+			router.replace("/admin/admin_login"); // pushではなくreplaceを使用
+		} catch (error) {
+			console.error("Logout failed:", error);
+			router.replace("/admin/admin_login");
+		}
+	};
+
 	return (
 		<>
 			<Layout title="管理者システム | 売上速報">
 				<div className="bg-gray-50 min-h-screen">
 					<div className="flex">
-						<Sidebar
-							isMobile={isMobile}
-						/>
+						<Sidebar isMobile={isMobile} />
 
 						{/* メインコンテンツ */}
 						<div className="md:flex-1 w-full pb-20">
 							{/* コンテンツ */}
 							<div className="p-2 md:p-4 w-full md:mt-0 mt-14">
-								<h2 className="text-xl font-bold mb-4">
-									管理者システム - 権限一覧
-								</h2>
+								<div className="flex justify-between items-center mb-4">
+									<h2 className="text-xl font-bold mb-4">
+										管理者システム - 権限一覧
+									</h2>
+									<Button
+										onClick={handleLogout}
+										startIcon={<LogoutIcon />}
+										variant="outlined"
+										size="small"
+										className="text-gray-600 border-gray-400 hover:bg-gray-100"
+									>
+										ログアウト
+									</Button>
+								</div>
 								<div className="flex flex-wrap md:flex-row md-2 md:mb-4 gap-2 justify-end">
-                                    <Button
-                                        variant="outlined"
-                                        className="px-2 md:px-4 py-2 font-bold text-blue-500 border-2 border-blue-500 hover:border-2 hover:bg-blue-500 hover:border-blue-500 hover:text-white"
-                                        onClick={() => router.push("/admin/add_settings")}
-                                    >
-                                        新規店舗を追加
-                                    </Button>
-                                </div>
+									<Button
+										variant="outlined"
+										className="px-2 md:px-4 py-2 font-bold text-blue-500 border-2 border-blue-500 hover:border-2 hover:bg-blue-500 hover:border-blue-500 hover:text-white"
+										onClick={() => router.push("/admin/add_settings")}
+									>
+										新規店舗を追加
+									</Button>
+								</div>
 								<div className="flex gap-4 items-center md:mr-4">
 								</div>
 								<div className="flex justify-between flex-col md:flex-row md-2 gap-2">
@@ -277,26 +179,16 @@ const AdminPage = () => {
 								</div>
 								<div className="overflow-x-auto bg-white shadow-md rounded-lg">
 									<table className="min-w-full divide-y divide-x divide-gray-200 border border-gray-300 rounded shadow-sm">
-										<thead className="bg-gray-50">
+										<thead className="bg-gray-300">
 											<tr>
-												<th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-													ID
-												</th>
-												<th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-													店舗番号
-												</th>
-												<th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-													店舗名
-												</th>
-												<th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-													区分
-												</th>
-												<th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-													エリア
-												</th>
-												<th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-													オーナー
-												</th>
+												{columns.map((column) => (
+													<th
+														key={column.key}
+														className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200"
+													>
+														{column.label}
+													</th>
+												))}
 												<th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
 													管理
 												</th>
@@ -305,24 +197,14 @@ const AdminPage = () => {
 										<tbody className="bg-white divide-y divide-x divide-gray-200">
 											{currentItems.map((store: StoreInfo) => (
 												<tr key={store.id}>
-													<td className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-														{store.id}
-													</td>
-													<td className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-														{store.storeNumber}
-													</td>
-													<td className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-														{store.storeName}
-													</td>
-													<td className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-														{store.category}
-													</td>
-													<td className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-														{store.area}
-													</td>
-													<td className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200">
-														{store.owner}
-													</td>
+													{columns.map((column) => (
+														<td
+															key={column.key}
+															className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200"
+														>
+															{store[column.key as keyof StoreInfo]}
+														</td>
+													))}
 													<td className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-200 text-center">
 														<IconButton
 															color="primary"

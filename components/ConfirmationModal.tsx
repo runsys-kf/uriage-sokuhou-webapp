@@ -14,14 +14,16 @@ interface ConfirmationModalProps {
   inputData: {
     storeNumber: string;
     storeName: string;
-    abbreviation: string;
+    abbreviation?: string;
     category: string;
     area: string;
-    region: string;
-    prefecture: string;
     owners: string[];
+    region?: string;
+    prefecture?: string;
     openClose: string;
   };
+  title: string,
+  message: string,
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -29,6 +31,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onClose,
   onConfirm,
   inputData,
+  title = "タイトル",
+  message = "メッセージ",
 }) => {
   return (
     <Dialog
@@ -37,7 +41,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       aria-labelledby="confirmation-dialog-title"
       aria-describedby="confirmation-dialog-description"
     >
-      <DialogTitle id="confirmation-dialog-title">確認</DialogTitle>
+      <DialogTitle id="confirmation-dialog-title">{title}</DialogTitle>
       <DialogContent>
         <ul className="confirmation-list">
           <li><span className="label">店舗番号:</span> {inputData.storeNumber}</li>
@@ -51,7 +55,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <li><span className="label">開店・閉店:</span> {inputData.openClose}</li>
         </ul>
         <br/>
-        <p>この内容でよろしいですか？</p>
+        <p>{message}</p>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} variant="outlined">

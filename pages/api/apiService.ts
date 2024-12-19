@@ -15,8 +15,8 @@ export const API_ENDPOINTS = {
   download: "download",//ダウンロード
   adimn_login: "admin_login",//管理画面ログイン
   new_shop_addition: "new_shop_addition",//新規店舗追加
-  store_info_edit: "store_info_edit",//新規情報編集
-  store_deletiet: "store_deletiet",//新規削除
+  store_edit: "store_edit",//店舗編集
+  store_deletiet: "store_deletiet",//店舗削除
 }
 
 //APIリクエスト関数
@@ -40,7 +40,8 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     }
     //ダウンロード
     if (endpoint === "download") {
-      url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/download";
+      url = "https://download-hzd8f3fbe0d3h9g0.z01.azurefd.net";
+      //url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/download";
     }
     // 管理画面ログイン認証
     if (endpoint === "admin/admin_login") {
@@ -49,10 +50,10 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
 
     //新規店舗追加
     if (endpoint === "new_shop_addition") {
-      url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/new_shop_addition";
+      url = "";
     }
-    //店舗情報編集
-    if (endpoint === "store_info_edit") {
+    //店舗編集
+    if (endpoint === "store_edit") {
       url = "";
     }
     //削除
@@ -88,7 +89,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          router.push('/login');
+          //router.push('/login');
           throw new Error('401 : 認証エラーが発生しました');
         case 404:
           throw new Error('404 : データが見つかりません');

@@ -28,10 +28,10 @@ const Settings = () => {
     const [area, setArea] = useState(""); //エリア
     const [region, setRegion] = useState(""); //地方名
     const [prefecture, setPrefecture] = useState(""); //都道府県
-    const [owners, setOwners] = useState<string[]>([]); //取得したオーナー名
-    const [ownersInput, setOwnersInput] = useState(""); // オーナー名の入力値
+    const [owners, setOwners] = useState(""); //取得したオーナー名
     const [openClose, setOpenClose] = useState(""); //開店・閉店
     const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+    const [isDelete, setIsDelete] = useState(false); // 削除フラグ
     const [errors, setErrors] = useState({
         storeNumber: "",
         storeName: "",
@@ -51,9 +51,6 @@ const Settings = () => {
     const uniqueRegions = Array.from(new Set(prefectures.map(p => p.region)));//地区
     const prefectureList = prefectures.map(p => p.prefecture);//都道府県
 
-    const handleOwnersChange = (event: SelectChangeEvent<string[]>) => {
-        setOwners(event.target.value as string[]);
-    };
     useEffect(() => {
         if (region) {
             const filtered = prefectures
@@ -74,12 +71,7 @@ const Settings = () => {
 
     const handleOwnerInput = (event: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = event.target.value;
-        setOwnersInput(inputValue);
-        const ownerArray = inputValue
-            .split(",")
-            .map((owner) => owner.trim())
-            .filter((owner) => owner !== "");
-        setOwners(ownerArray);
+        setOwners(inputValue);
     };
 
     const validateFields = () => {
@@ -91,7 +83,7 @@ const Settings = () => {
             area: area ? "" : "エリアが未入力です。",
             region: region ? "" : "地区が未入力です。",
             prefecture: prefecture ? "" : "都道府県が未入力です。",
-            owners: owners.length > 0 ? "" : "オーナー名が未入力です。",
+            owners: owners.split(",").filter(owner => owner.trim() !== "").length > 0 ? "" : "オーナー名が未入力です。",
             openClose: openClose ? "" : "開店・閉店が未入力です。",
         };
         setErrors(newErrors);
@@ -121,7 +113,7 @@ const Settings = () => {
                 Prefecture: prefecture,  //都道府県
                 District: region,        //地区
                 BaseName2: abbreviation, //略名
-                Owner: owners,           //オーナー
+                Owner: owners.split(",").map(owner => owner.trim()).filter(owner => owner !== ""), //オーナー
                 Status: openClose,       //ステータス
             };
             await fetchData(API_ENDPOINTS.new_shop_addition, params, router);
@@ -139,6 +131,19 @@ const Settings = () => {
     //キャンセルボタン
     const handleCancelClick = () => {
         router.push("/admin");
+    };
+
+    // inputDataオブジェクトを動的に生成
+    const inputData = {
+        storeNumber,
+        storeName,
+        category,
+        area,
+        prefecture,
+        region,
+        abbreviation,
+        owners: owners.split(",").map(owner => owner.trim()).filter(owner => owner !== ""),
+        openClose,
     };
 
     return (
@@ -282,63 +287,63 @@ const Settings = () => {
                                                 </FormControl>
                                             </div>
                                             <div className="flex flex-wrap items-center gap-4">
-    <label
-        htmlFor="region"
-        className="block text-gray-700 text-sm font-bold w-[70px]"
-    >
-        地区
-    </label>
-    <FormControl
-        variant="outlined"
-        style={{ width: "300px" }}
-    >
-        <InputLabel id="region">地区</InputLabel>
-        <Select
-            labelId="region"
-            id="region"
-            value={region}
-            onChange={(e) => setRegion(e.target.value as string)}
-            label="region"
-            error={!!errors.region}
-        >
-            {uniqueRegions.map((region) => (
-                <MenuItem key={region} value={region}>{region}</MenuItem>
-            ))}
-        </Select>
-        {errors.region && (
-            <p className="text-red-500 text-xs mt-1">{errors.region}</p>
-        )}
-    </FormControl>
-</div>
-<div className="flex flex-wrap items-center gap-4">
-    <label
-        htmlFor="prefecture"
-        className="block text-gray-700 text-sm font-bold w-[70px]"
-    >
-        都道府県
-    </label>
-    <FormControl
-        variant="outlined"
-        style={{ width: "300px" }}
-    >
-        <InputLabel id="prefecture">都道府県</InputLabel>
-        <Select
-            labelId="prefecture"
-            id="prefecture"
-            value={prefecture}
-            onChange={(e) => setPrefecture(e.target.value as string)}
-            label="prefecture"
-            error={!!errors.prefecture}
-        >
-            {filteredPrefectures.map((prefecture) => (
-                <MenuItem key={prefecture} value={prefecture}>{prefecture}</MenuItem>
-            ))}
-        </Select>
-        {errors.prefecture && (
-            <p className="text-red-500 text-xs mt-1">{errors.prefecture}</p>
-        )}
-    </FormControl>
-</div>
+                                                <label
+                                                    htmlFor="region"
+                                                    className="block text-gray-700 text-sm font-bold w-[70px]"
+                                                >
+                                                    地区
+                                                </label>
+                                                <FormControl
+                                                    variant="outlined"
+                                                    style={{ width: "300px" }}
+                                                >
+                                                    <InputLabel id="region">地区</InputLabel>
+                                                    <Select
+                                                        labelId="region"
+                                                        id="region"
+                                                        value={region}
+                                                        onChange={(e) => setRegion(e.target.value as string)}
+                                                        label="region"
+                                                        error={!!errors.region}
+                                                    >
+                                                        {uniqueRegions.map((region) => (
+                                                            <MenuItem key={region} value={region}>{region}</MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                    {errors.region && (
+                                                        <p className="text-red-500 text-xs mt-1">{errors.region}</p>
+                                                    )}
+                                                </FormControl>
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                <label
+                                                    htmlFor="prefecture"
+                                                    className="block text-gray-700 text-sm font-bold w-[70px]"
+                                                >
+                                                    都道府県
+                                                </label>
+                                                <FormControl
+                                                    variant="outlined"
+                                                    style={{ width: "300px" }}
+                                                >
+                                                    <InputLabel id="prefecture">都道府県</InputLabel>
+                                                    <Select
+                                                        labelId="prefecture"
+                                                        id="prefecture"
+                                                        value={prefecture}
+                                                        onChange={(e) => setPrefecture(e.target.value as string)}
+                                                        label="prefecture"
+                                                        error={!!errors.prefecture}
+                                                    >
+                                                        {filteredPrefectures.map((prefecture) => (
+                                                            <MenuItem key={prefecture} value={prefecture}>{prefecture}</MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                    {errors.prefecture && (
+                                                        <p className="text-red-500 text-xs mt-1">{errors.prefecture}</p>
+                                                    )}
+                                                </FormControl>
+                                            </div>
                                             <div className="flex flex-wrap items-center gap-4">
                                                 <label
                                                     htmlFor="ownerName"
@@ -355,7 +360,7 @@ const Settings = () => {
                                                         variant="outlined"
                                                         className="w-50"
                                                         label="オーナー名"
-                                                        value={ownersInput}
+                                                        value={owners}
                                                         onChange={handleOwnerInput}
                                                         error={!!errors.owners}
                                                         helperText={errors.owners}
@@ -425,17 +430,9 @@ const Settings = () => {
                 open={openConfirmationModal}
                 onClose={() => setOpenConfirmationModal(false)}
                 onConfirm={handleConfirm}
-                inputData={{
-                    storeNumber,
-                    storeName,
-                    abbreviation,
-                    category,
-                    area,
-                    region,
-                    prefecture,
-                    owners,
-                    openClose,
-                }}
+                inputData={inputData}
+                title="追加"
+                message="こちらの内容で登録しますか？"
             />
         </>
     );
