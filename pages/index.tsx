@@ -652,7 +652,7 @@ const IndexPage = () => {
       }
 
       /**本番環境用 */
-      endpoint === "download" ? setIsLoading(true) : setIsLoading(true);
+      endpoint === "download" ? setIsDlLoading(true) : setIsLoading(true);
       console.log("API_ENDPOINT: ", API_ENDPOINTS);
       console.log("endpoint確認: ", endpoint);
 

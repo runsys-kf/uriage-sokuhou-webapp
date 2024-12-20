@@ -9,8 +9,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useMobile } from "../../contexts/MobileContext";
 import { useRouter } from "next/router";
 import Sidebar from "./../../components/SidebarButton";
-import { fetchData } from "../api/apiService";
+import { fetchData, fetchStoreList, handler, fetchStoreListOLD } from "../api/apiService";
 import { stores_info_sequential } from "../../__tests__/storesInfoMockData";
+import {API_ENDPOINTS } from "../api/apiService";
 
 import { GetServerSideProps } from "next";
 // add 20241117 16:23
@@ -58,7 +59,6 @@ import { GetServerSideProps } from "next";
 const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 
 interface StoreInfo {
-	id: string;
 	BaseNo: string;
 	BaseName: string;
 	Class: string;
@@ -76,7 +76,6 @@ const AdminPage = () => {
 	const [storesInfo, setStoresInfo] = useState<StoreInfo[]>([]);
 
 	const columns = [
-		{ key: "id", label: "ID" },
 		{ key: "BaseNo", label: "店舗番号" },
 		{ key: "BaseName", label: "店舗名" },
 		{ key: "Class", label: "区分" },
@@ -87,29 +86,37 @@ const AdminPage = () => {
 
 	// テーブルデータ取得
 	useEffect(() => {
-		const isTestMode = process.env.NODE_ENV === "development";
-		if (isTestMode) {
-			setStoresInfo(stores_info_sequential());
-			return;
-		}
-		const fetchDataFromBackend = async () => {
-			try {
-				const data = await fetchData("display_by_store", {}, router);
-				setStoresInfo(data);
-			} catch (error) {
-				console.error("データの取得に失敗しました:", error);
-			}
-		};
-
-		fetchDataFromBackend();
-	}, [router.query]);
+        const isTestMode = process.env.NODE_ENV === "development";
+        if (isTestMode) {
+            // setStoresInfo(stores_info_sequential());
+            // return;
+            const fetchDataFromBackend = async () => {
+                try {
+                    const data = await fetchData(API_ENDPOINTS.getStoreList, "", router);
+                    setStoresInfo(data);
+                } catch (error) {
+                    console.error("データの取得に失敗しました:", error);
+                }
+            };
+            fetchDataFromBackend();
+        } else {
+            const fetchDataFromBackend = async () => {
+                try {
+                    const data = await fetchData(API_ENDPOINTS.getStoreList, "", router);
+                    setStoresInfo(data);
+                } catch (error) {
+                    console.error("データの取得に失敗しました:", error);
+                }
+            };
+            fetchDataFromBackend();
+        }
+    }, [router.query]);
 
 	//編集画面へ
 	const navigateToEditPage = (store: StoreInfo) => {
 		router.push({
 			pathname: "/admin/settings",
 			query: {
-				id: store.id,
 				storeNumber: store.BaseNo,
 				storeName: store.BaseName,
 				category: store.Class,
@@ -228,7 +235,7 @@ const AdminPage = () => {
 										</thead>
 										<tbody className="bg-white divide-y divide-x divide-gray-200">
 											{currentItems.map((store: StoreInfo) => (
-												<tr key={store.id}>
+												<tr key={store.BaseNo}>
 													{columns.map((column) => (
 														<td
 															key={column.key}

@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
   new_shop_addition: "new_shop_addition",//新規店舗追加
   store_edit: "store_edit",//店舗編集
   store_deletiet: "store_deletiet",//店舗削除
+  getStoreList: "getStoreList",
 }
 
 //APIリクエスト関数
@@ -35,6 +36,10 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     //ダウンロード
     if (endpoint === "download") {
       url = "https://download-hzd8f3fbe0d3h9g0.z01.azurefd.net/api/download";
+    }
+    //店舗情報取得
+    if (endpoint === "getStoreList") {
+      url = "http://localhost:3000/api/getStoreList";
     }
 
     // URLが空の場合はエラーをスロー
