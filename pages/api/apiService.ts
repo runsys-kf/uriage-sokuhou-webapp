@@ -13,9 +13,9 @@ export const API_ENDPOINTS = {
   download: "download",//ダウンロード
   adimn_login: "admin_login",//管理画面ログイン
   new_shop_addition: "new_shop_addition",//新規店舗追加
-  store_edit: "store_edit",//店舗編集
+  editStore: "editStore",//店舗編集
   store_deletiet: "store_deletiet",//店舗削除
-  getStoreList: "getStoreList",
+  getStoreList: "getStoreList", //全店舗情報取得
 }
 
 //APIリクエスト関数
@@ -41,12 +41,28 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     if (endpoint === "getStoreList") {
       url = "http://localhost:3000/api/getStoreList";
     }
-
+    //店舗編集
+    if (endpoint === "editStore") {
+      console.log("店舗編集URL取得");
+      url = "http://localhost:3000/api/editStore";
+    }
+    //店舗削除
+    if (endpoint === "store_deletiet") {
+      url = "";
+    }
+    //新規店舗追加
+    if (endpoint === "new_shop_addition") {
+      url = "";
+    }
+    // 送信データをログに出力
+    console.log("url : " + url);
+    console.log("Sending data to endpoint:", endpoint);
+    console.log("Data:", JSON.stringify(data, null, 2));
     // URLが空の場合はエラーをスロー
     if (!url) {
       throw new Error('有効なエンドポイントが指定されていません');
     }
-
+    console.log("あ");
     const response = await axios.post(url, data, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -55,7 +71,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     });
     console.log("response : " + response);
     console.log("response.data : " + response.data);
-    
+
     //if (endpoint === "download") {
     //  const blob = new Blob([response.data], { type: "text/csv" });
     //  console.log("Download response CSV Content: ", blob);
