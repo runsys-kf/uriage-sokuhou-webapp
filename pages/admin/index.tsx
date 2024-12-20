@@ -86,23 +86,23 @@ const AdminPage = () => {
 	];
 
 	// テーブルデータ取得
-	useEffect(() => {
-		const isTestMode = process.env.NODE_ENV === "development";
-		if (isTestMode) {
-			setStoresInfo(stores_info_sequential());
-			return;
-		}
-		const fetchDataFromBackend = async () => {
-			try {
-				const data = await fetchData("display_by_store", {}, router);
-				setStoresInfo(data);
-			} catch (error) {
-				console.error("データの取得に失敗しました:", error);
-			}
-		};
+	// useEffect(() => {
+	// 	const isTestMode = process.env.NODE_ENV === "development";
+	// 	if (isTestMode) {
+	// 		setStoresInfo(stores_info_sequential());
+	// 		return;
+	// 	}
+	// 	const fetchDataFromBackend = async () => {
+	// 		try {
+	// 			const data = await fetchData("display_by_store", {}, router);
+	// 			setStoresInfo(data);
+	// 		} catch (error) {
+	// 			console.error("データの取得に失敗しました:", error);
+	// 		}
+	// 	};
 
-		fetchDataFromBackend();
-	}, [router.query]);
+	// 	fetchDataFromBackend();
+	// }, [router.query]);
 
 	//インポート
 	const handleImport = () => {
