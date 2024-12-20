@@ -173,7 +173,7 @@ const IndexPage = () => {
   const [typeValue, setTypeValue] = useState("全て"); //"全て or 直営 or FC"
   const [closedStoreValue, setClosedStoreValue] = useState("true"); //閉店かどうか
   const [salesInclusionValue, setSalesInclusionValue] = useState("true"); //その他売り上げ込みかどうか
-  const [consignmentSales, setConsignmentSales] = useState(true);
+  const [consignmentSales, setConsignmentSales] = useState("true");
 
   //集計ボタン ダウンロードボタン　の状態
   const [isLoading, setIsLoading] = useState(false); // 集計中の状態を管理
