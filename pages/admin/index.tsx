@@ -93,6 +93,7 @@ const AdminPage = () => {
             const fetchDataFromBackend = async () => {
                 try {
                     const data = await fetchData(API_ENDPOINTS.getStoreList, "", router);
+					console.log(data);
                     setStoresInfo(data);
                 } catch (error) {
                     console.error("データの取得に失敗しました:", error);
