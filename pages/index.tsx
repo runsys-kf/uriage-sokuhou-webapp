@@ -46,6 +46,7 @@ import { storeProcessData, dateProcessData } from "./api/dataTransformer";
 import { initialStores } from "../data/shopData";
 import ErrorModal from "../components/ErrorModal";
 //import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
+import { saveAs } from 'file-saver'; // ファイル保存用のライブラリをインポート
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ja";
 // add 20240828
@@ -637,10 +638,17 @@ const IndexPage = () => {
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       if (isTestMode) {
         setIsLoading(true); // 集計中...に設定
-        if (dailyCheck === "日別") {
+        if (endpoint === "display_by_date") {
           //setStoresData(mockDateResponse());
-        } else {
+        } else if (endpoint === "display_by_store") {
           //setStoresData(mockStoreResponse());
+        } else if (endpoint === "download") {
+          const data = "CSV,csv,csv";
+          return data;
+        }
+        console.log("storesData.storeData[0]" + storesData.storeData[0]);
+        if (storesData.storeData.length > 0) {
+          console.log("テスト" + storesData.storeData[0].storeDate);
         }
         return;
       }
@@ -652,6 +660,12 @@ const IndexPage = () => {
 
       const params = createRequestData();                     //送信データ作成
       const data = await fetchData(endpoint, params, router); //バックエンドへ送信
+
+      // ダウンロードの場合はデータを返す
+      if (endpoint === "download") {
+        return data;
+      }
+
       //取得データ変換、格納
       if (endpoint === "display_by_store") {
         setStoresData(storeProcessData(data));
@@ -668,6 +682,29 @@ const IndexPage = () => {
       setIsLoading(false); // 集計実行に戻す
       setIsDlLoading(false);
     }
+  };
+
+  // Base64エンコードされたデータをデコードしてCSVファイルを生成し、ダウンロードする関数
+  const downloadCSV = (encodedData: string, filename: string) => {
+
+    // Base64デコード
+    const binaryString = atob(encodedData);
+
+    // バイナリデータをUint8Arrayに変換
+    const binaryLen = binaryString.length;
+    const bytes = new Uint8Array(binaryLen);
+    for (let i = 0; i < binaryLen; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    // TextDecoderを使用して文字エンコーディングを処理
+    const decodedData = new TextDecoder('utf-8').decode(bytes);
+
+    // Blobを作成
+    const blob = new Blob([decodedData], { type: 'text/csv;charset=utf-8;' });
+
+    // ファイルを保存
+    saveAs(blob, filename);
   };
 
   // エラーモーダルを閉じる関数
@@ -1769,8 +1806,16 @@ const IndexPage = () => {
                   variant="contained"
                   className={`bg-${isDlLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
                   startIcon={<DownloadIcon className="md:inline hidden" />}
-                  onClick={() => {
-                    fetchAndTransformData(API_ENDPOINTS.download);
+                  onClick={async () => {
+                    try {
+                      const data = await fetchAndTransformData(API_ENDPOINTS.download);
+                      downloadCSV(data, 'data.csv'); // デコードしてCSVファイルをダウンロード
+                    } catch (error) {
+                      console.error("Error downloading data:", error);
+                      setModalType("error");
+                      setErrorMessage(error.message || "データのダウンロードに失敗しました");
+                      setOpenErrorModal(true);
+                    }
                   }}
                 >
                   {isDlLoading ? "ダウンロード中..." : "ダウンロード"}

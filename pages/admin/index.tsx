@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import Sidebar from "./../../components/SidebarButton";
 import { fetchData } from "../api/apiService";
 //import { stores_info_sequential } from "../../__tests__/storesInfoMockData";
+import { API_ENDPOINTS } from "../api/apiService";
 
 import { GetServerSideProps } from "next";
 // add 20241117 16:23
@@ -76,7 +77,6 @@ const AdminPage = () => {
 	const [storesInfo, setStoresInfo] = useState<StoreInfo[]>([]);
 
 	const columns = [
-		{ key: "id", label: "ID" },
 		{ key: "BaseNo", label: "店舗番号" },
 		{ key: "BaseName", label: "店舗名" },
 		{ key: "Class", label: "区分" },
@@ -86,47 +86,39 @@ const AdminPage = () => {
 	];
 
 	// テーブルデータ取得
-	// useEffect(() => {
-	// 	const isTestMode = process.env.NODE_ENV === "development";
-	// 	if (isTestMode) {
-	// 		setStoresInfo(stores_info_sequential());
-	// 		return;
-	// 	}
-	// 	const fetchDataFromBackend = async () => {
-	// 		try {
-	// 			const data = await fetchData("display_by_store", {}, router);
-	// 			setStoresInfo(data);
-	// 		} catch (error) {
-	// 			console.error("データの取得に失敗しました:", error);
-	// 		}
-	// 	};
-
-	// 	fetchDataFromBackend();
-	// }, [router.query]);
-
-	//インポート
-	const handleImport = () => {
-		if (selectedFile) {
-			console.log(`ファイルをインポート中: ${selectedFile.name}`);
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				const content = e.target?.result;
-				const contents = e.target?.result;
-				console.log("ファイルの内容:", contents);
-				// ここでファイルの内容を処理します
+	useEffect(() => {
+		const isTestMode = process.env.NODE_ENV === "development";
+		if (isTestMode) {
+			// setStoresInfo(stores_info_sequential());
+			// return;
+			const fetchDataFromBackend = async () => {
+				try {
+					const data = await fetchData(API_ENDPOINTS.getStoreList, "", router);
+					console.log(data);
+					setStoresInfo(data);
+				} catch (error) {
+					console.error("データの取得に失敗しました:", error);
+				}
 			};
-			reader.readAsText(selectedFile);
+			fetchDataFromBackend();
 		} else {
-			console.log("ファイルが選択されていません");
+			const fetchDataFromBackend = async () => {
+				try {
+					const data = await fetchData(API_ENDPOINTS.getStoreList, "", router);
+					setStoresInfo(data);
+				} catch (error) {
+					console.error("データの取得に失敗しました:", error);
+				}
+			};
+			fetchDataFromBackend();
 		}
-	};
+	}, [router.query]);
 
 	//編集画面へ
 	const navigateToEditPage = (store: StoreInfo) => {
 		router.push({
 			pathname: "/admin/settings",
 			query: {
-				id: store.id,
 				storeNumber: store.BaseNo,
 				storeName: store.BaseName,
 				category: store.Class,
@@ -245,7 +237,7 @@ const AdminPage = () => {
 										</thead>
 										<tbody className="bg-white divide-y divide-x divide-gray-200">
 											{currentItems.map((store: StoreInfo) => (
-												<tr key={store.id}>
+												<tr key={store.BaseNo}>
 													{columns.map((column) => (
 														<td
 															key={column.key}
