@@ -66,6 +66,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
 
     return response.data;
   } catch (error) {
+    console.log(error);
     // 開発環境でのみ詳細なエラーログを表示
     if (process.env.NODE_ENV === 'development') {
       console.error('Error fetching data:', error);
