@@ -65,7 +65,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     if (!url) {
       throw new Error('有効なエンドポイントが指定されていません');
     }
-
+    console.log("data :", data);
     const response = await axios.post(url, data, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -75,13 +75,13 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     console.log("response : " + response);
     console.log("response.data : " + response.data);
 
-    if (endpoint === "download") {
-      const blob = new Blob([response.data], { type: "text/csv" });
-      console.log("Download response CSV Content: ", blob);
+    //if (endpoint === "download") {
+    //  const blob = new Blob([response.data], { type: "text/csv" });
+    //  console.log("Download response CSV Content: ", blob);
 
-      const text = await blob.text();
-      console.log("CSV Content:", text);
-    }
+    //  const text = await blob.text();
+    //  console.log("CSV Content:", text);
+    //}
 
     return response.data;
   } catch (error) {
