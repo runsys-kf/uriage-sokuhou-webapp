@@ -4,8 +4,6 @@ import { NextRouter } from 'next/router';
 /**
  * BackAPIリクエストを接続管理
  * */
-// APIURL
-const BackApiURL = "https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api";
 
 //ENDPOINTS
 export const API_ENDPOINTS = {
@@ -26,10 +24,6 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
 
     let url = "";
 
-    // ログイン認証
-    if (endpoint === "login") {
-      url = "https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login";
-    }
     // 店舗別データ表示
     if (endpoint === "display_by_store") {
       url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store";
@@ -40,25 +34,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     }
     //ダウンロード
     if (endpoint === "download") {
-      url = "https://download-hzd8f3fbe0d3h9g0.z01.azurefd.net";
-      //url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/download";
-    }
-    // 管理画面ログイン認証
-    if (endpoint === "admin_login") {
-      url = "https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin/admin_login";
-    }
-
-    //新規店舗追加
-    if (endpoint === "new_shop_addition") {
-      url = "";
-    }
-    //店舗編集
-    if (endpoint === "store_edit") {
-      url = "";
-    }
-    //削除
-    if (endpoint === "store_deletiet") {
-      url = "";
+      url = "https://download-hzd8f3fbe0d3h9g0.z01.azurefd.net/api/download";
     }
 
     // URLが空の場合はエラーをスロー
