@@ -173,9 +173,11 @@ const IndexPage = () => {
   const [typeValue, setTypeValue] = useState("全て"); //"全て or 直営 or FC"
   const [closedStoreValue, setClosedStoreValue] = useState("true"); //閉店かどうか
   const [salesInclusionValue, setSalesInclusionValue] = useState("true"); //その他売り上げ込みかどうか
+  const [consignmentSales, setConsignmentSales] = useState(true);
 
-  //集計ボタン
+  //集計ボタン ダウンロードボタン　の状態
   const [isLoading, setIsLoading] = useState(false); // 集計中の状態を管理
+  const [isDlLoading, setIsDlLoading] = useState(false); // ダウンロード中の状態を管理
 
   //お知らせモーダル関連
   const [openErrorModal, setOpenErrorModal] = useState(false);
@@ -502,6 +504,10 @@ const IndexPage = () => {
   const handleSalesInclusionChange = (event) => {
     setSalesInclusionValue(event.target.value);
   };
+  //委託販売変更ハンドラ
+  const consignmentSalesInclusionChange = (event) => {
+    setConsignmentSales(event.target.value);
+  };
   //比較対象日付を抽出対象の1年前にする
   useEffect(() => {
     if (compareCheck) {
@@ -576,6 +582,7 @@ const IndexPage = () => {
       },
       includeSales: salesInclusionValue, // 税抜
       includeClose: closedStoreValue, // 閉店
+      include_consign_sales: consignmentSales,//委託販売
     };
   };
   // 初期化処理
@@ -626,7 +633,6 @@ const IndexPage = () => {
       setStoresData(initialStoresData); //初期化処理
       setSortKey("");
       setSortDirection("desc");
-      setIsLoading(true); // 集計中...に設定
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       if (isTestMode) {
@@ -640,8 +646,9 @@ const IndexPage = () => {
       }
 
       /**本番環境用 */
+      endpoint === "download" ? setIsLoading(true) : setIsLoading(true);
       console.log("API_ENDPOINT: ", API_ENDPOINTS);
-      console.log("endpoint: ", endpoint);
+      console.log("endpoint確認: ", endpoint);
 
       const params = createRequestData();                     //送信データ作成
       const data = await fetchData(endpoint, params, router); //バックエンドへ送信
@@ -659,6 +666,7 @@ const IndexPage = () => {
       setOpenErrorModal(true);
     } finally {
       setIsLoading(false); // 集計実行に戻す
+      setIsDlLoading(false);
     }
   };
 
@@ -681,9 +689,51 @@ const IndexPage = () => {
 
   // 固定幅のスタイルを定義
   const fixedColumnStyles = {
-    firstColumn: "sticky left-0 z-10 bg-white min-w-[120px] max-w-[120px]", // 店舗名列
-    secondColumn: "sticky left-[120px] z-10 bg-white min-w-[80px] max-w-[80px]", // 店舗番号列
+    firstColumn: "sticky left-0 z-10 min-w-[80px] max-w-[80px]", // 店舗名列
+    secondColumn: "sticky left-[80px] z-10 bg-white min-w-[80px] max-w-[80px]", // 店舗番号列
   };
+  //データー行
+  const renderTableCell = (content: string | number, className = "", colSpan: number = 1) => (
+    <td className={`px-1 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${className}`} colSpan={colSpan}>
+      {content}
+    </td>
+  );
+
+  //ヘッダーのスタイル
+  const headerClassName = (additionalClasses = "") =>
+    `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-200 border border-gray-50 ${additionalClasses}`;
+
+  //通常ヘッダー
+  const renderTableHeader = (content: string, additionalClasses = "", colSpan: number = 1) => (
+    <th className={headerClassName(additionalClasses)} colSpan={colSpan}>
+      {content}
+    </th>
+  );
+  //ソートアイコン付きヘッダー
+  const renderTableHeaderWithSort = (
+    content: string,
+    sortKey: string,
+    currentSortKey: string,
+    sortDirection: "asc" | "desc",
+    handleSort: (key: string) => void,
+    additionalClasses = "",
+    colSpan: number = 1
+  ) => (
+    <th className={headerClassName(additionalClasses)} colSpan={colSpan}>
+      <div className="flex items-center justify-between">
+        {content}
+        <div>
+          <IconButton size="small" onClick={() => handleSort(sortKey)}>
+            {currentSortKey === sortKey && sortDirection === "asc" ? (
+              <ArrowUpwardIcon fontSize="inherit" />
+            ) : (
+              <ArrowDownwardIcon fontSize="inherit" />
+            )}
+          </IconButton>
+        </div>
+      </div>
+    </th>
+  );
 
   return (
     <>
@@ -1366,7 +1416,7 @@ const IndexPage = () => {
                     </Button> */}
                   </div>
                   <div className="mb-2 md:mt-2">
-                    <div className="max-h-40 overflow-y-auto">
+                    <div className="max-h-60 overflow-y-auto">
                       {" "}
                       {/* 最大高さとスクロールを追加 */}
                       <div className="text-sm text-gray-700">
@@ -1651,6 +1701,56 @@ const IndexPage = () => {
                       }}
                     />
                   </RadioGroup>
+                  <FormLabel
+                    style={{ fontSize: "0.875rem" }}
+                    component="legend"
+                  >
+                    ---委託販売を---
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    value={consignmentSales}
+                    name="radio-location-group"
+                    className="flex flex-row gap-3"
+                    onChange={consignmentSalesInclusionChange}
+                  >
+                    <FormControlLabel
+                      value={true}
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含める"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
+                      value={false}
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="含めない"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                  </RadioGroup>
                 </div>
               </div>
             </div>
@@ -1667,13 +1767,13 @@ const IndexPage = () => {
 
                 <Button
                   variant="contained"
-                  className="bg-blue-500 hover:bg-blue-800 text-white px-2 md:px-4 py-2"
+                  className={`bg-${isDlLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
                   startIcon={<DownloadIcon className="md:inline hidden" />}
                   onClick={() => {
                     fetchAndTransformData(API_ENDPOINTS.download);
                   }}
                 >
-                  ダウンロード
+                  {isDlLoading ? "ダウンロード中..." : "ダウンロード"}
                 </Button>
 
                 <Button
@@ -1692,621 +1792,216 @@ const IndexPage = () => {
                 </Button>
               </div>
             </div>
-            <div className="w-full">
-              <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[600px]">
-                <table className="min-w-full divide-y divide-x divide-gray-200">
-                  <thead className="bg-gray-50 sticky top-0 z-20">
-                    {/*大分類*/}
-                    <tr>
-                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ?
+            <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[480px]">
+              <table className={`min-w-full divide-y divide-x divide-gray-300 ${compareCheck ? "table-auto" : "table-fixed"}`} style={{ tableLayout: compareCheck ? "auto" : "fixed", width: compareCheck ? "auto" : "max-content" }}>
+                <thead className="bg-gray-50 sticky top-0 z-30">
+                  <tr>
+                    {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
+                      renderTableHeader("店舗情報", `sticky left-0 z-20 border-r-2 border-r-gray-400`, 1)
+                    ) : (
+                      <>
+                        {renderTableHeader("店舗情報", "sticky left-0 z-20", 1)}
+                        {renderTableHeader("", "border-r-2 border-r-gray-400", 1)}
+                      </>
+                    )}
+                    {renderTableHeader("税抜売上", "border-r-2 border-r-gray-400", compareCheck ? 4 : 1)}
+                    {renderTableHeader("利用者", "border-r-2 border-r-gray-400", compareCheck ? 4 : 1)}
+                    {renderTableHeader("客単価", "border-r-2 border-r-gray-400", compareCheck ? 4 : 1)}
+                    {renderTableHeader("新規", "border-r-2 border-r-gray-400", compareCheck ? 4 : 1)}
+                    {renderTableHeader("新規率", "border-r-2 border-r-gray-400", compareCheck ? 2 : 1)}
+                    {renderTableHeader("その他売上", "border-r-2 border-r-gray-400", compareCheck ? 4 : 1)}
+                    {renderTableHeader("委託販売", "border-r-2 border-r-gray-400", compareCheck ? 4 : 1)}
+                  </tr>
+                  <tr>
+                    {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
+                      renderTableHeader("日付", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`)
+                    ) : (
+                      <>
+                        {renderTableHeader("店舗名", `sticky left-0 z-20 ${fixedColumnStyles.firstColumn}`)}
+                        {renderTableHeaderWithSort("店番", "storeNumber", sortKey, sortDirection, handleSort, `border-r-2 border-r-gray-400`)}
+                      </>
+                    )}
+                    {renderTableHeaderWithSort("対象期間", "netSalesA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader("比較期間")}
+                        {renderTableHeader("差異")}
+                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeaderWithSort("対象期間", "usersA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader("比較期間")}
+                        {renderTableHeader("差異")}
+                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeaderWithSort("対象期間", "avgPriceA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader("比較期間")}
+                        {renderTableHeader("差異")}
+                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeaderWithSort("対象期間", "newUsersA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader("比較期間")}
+                        {renderTableHeader("差異")}
+                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeaderWithSort("対象期間", "newUsersRateA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
+                    {compareCheck && renderTableHeader("比較期間", "border-r-2 border-r-gray-400")}
+                    {renderTableHeaderWithSort("対象期間", "otherSalesA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader("比較期間")}
+                        {renderTableHeader("差異")}
+                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeaderWithSort("対象期間", "consignmentSalesA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader("比較期間")}
+                        {renderTableHeader("差異")}
+                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                  </tr>
+                  <tr>
+                    {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
+                      renderTableHeader("合計", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`)
+                    ) : (
+                      <>
+                        {renderTableHeader(storesData.totalData.storeName.toLocaleString(), `sticky left-0 z-20  ${fixedColumnStyles.firstColumn}`)}
+                        {renderTableHeader(storesData.totalData.storeNumber.toLocaleString(), `border-r-2 border-r-gray-400`)}
+                      </>
+                    )}
+                    {renderTableHeader(storesData.totalData.netSalesA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader(storesData.totalData.netSalesB.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.netSalesChange.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.netSalesRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeader(storesData.totalData.usersA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader(storesData.totalData.usersB.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.usersChange.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.usersRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeader(storesData.totalData.avgPriceA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader(storesData.totalData.avgPriceB.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.avgPriceChange.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.avgPriceRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeader(storesData.totalData.newUsersA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader(storesData.totalData.newUsersB.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.newUsersChange.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.newUsersRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeader(storesData.totalData.newUsersRateA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                    {compareCheck && renderTableHeader(storesData.totalData.newUsersRateB.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
+                    {renderTableHeader(storesData.totalData.otherSalesA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader(storesData.totalData.otherSalesB.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.otherSalesChange.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.otherSalesRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                    {renderTableHeader(storesData.totalData.consignmentSalesA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                    {compareCheck && (
+                      <>
+                        {renderTableHeader(storesData.totalData.consignmentSalesB.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.consignmentSalesChange.toLocaleString(), "text-right")}
+                        {renderTableHeader(storesData.totalData.consignmentSalesRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
+                      </>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedStoresData.map((store, index) => (
+                    <tr key={`${store.storeNumber}-${index}`}>
+                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
+                        renderTableCell(store.storeDate, `sticky left-0 z-20 bg-gray-50 border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`)
+                      ) : (
                         <>
-                          <th
-                            colSpan={1}
-                            className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                          >
-                            店舗情報
-                          </th>
-                        </> : <>
-                          <th
-                            colSpan={1}
-                            className="sticky left-0 z-20 bg-gray-50 px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            店舗情報
-                          </th>
-                          <th
-                            colSpan={1}
-                            className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                          ></th>
-                        </>}
-
-                      <th
-                        colSpan={compareCheck ? 4 : 1}
-                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                      >
-                        税抜売上
-                      </th>
-                      <th
-                        colSpan={compareCheck ? 4 : 1}
-                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                      >
-                        利用者
-                      </th>
-                      <th
-                        colSpan={compareCheck ? 4 : 1}
-                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                      >
-                        客単価
-                      </th>
-                      <th
-                        colSpan={compareCheck ? 4 : 1}
-                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                      >
-                        新規
-                      </th>
-                      <th
-                        colSpan={compareCheck ? 2 : 1}
-                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                      >
-                        新規率
-                      </th>
-                      <th
-                        colSpan={compareCheck ? 4 : 1}
-                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                      >
-                        その他売上
-                      </th>
-                      <th
-                        colSpan={compareCheck ? 4 : 1}
-                        className="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-r-2 border-r-gray-400"
-                      >
-                        委託販売
-                      </th>
-                    </tr>
-                    {/*小分類*/}
-                    <tr>
-                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? <th
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
-                      >
-                        日付
-                      </th> :
-                        <>
-                          <th
-                            className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${fixedColumnStyles.firstColumn}`}
-                          >
-                            店舗名
-                          </th>
-                          <th
-                            className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400`}
-                          >
-                            <div className="flex items-center justify-between">
-                              店番
-                              <div>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleSort("storeNumber")}
-                                >
-                                  {sortKey === "storeNumber" &&
-                                    sortDirection === "asc" ? (
-                                    <ArrowUpwardIcon fontSize="inherit" />
-                                  ) : (
-                                    <ArrowDownwardIcon fontSize="inherit" />
-                                  )}
-                                </IconButton>
-                              </div>
-                            </div>
-                          </th>
-                        </>
-                      }
-                      <th
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          対象期間
-                          <div>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSort("netSalesA")}
-                            >
-                              {sortKey === "netSalesA" &&
-                                sortDirection === "asc" ? (
-                                <ArrowUpwardIcon fontSize="inherit" />
-                              ) : (
-                                <ArrowDownwardIcon fontSize="inherit" />
-                              )}
-                            </IconButton>
-                          </div>
-                        </div>
-                      </th>
-                      {compareCheck && (
-                        <>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            比較期間
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            差異
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
-                            比率
-                          </th>
-                        </>
-                      )}
-                      <th
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          対象期間
-                          <div>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSort("usersA")}
-                            >
-                              {sortKey === "usersA" &&
-                                sortDirection === "asc" ? (
-                                <ArrowUpwardIcon fontSize="inherit" />
-                              ) : (
-                                <ArrowDownwardIcon fontSize="inherit" />
-                              )}
-                            </IconButton>
-                          </div>
-                        </div>
-                      </th>
-                      {compareCheck && (
-                        <>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            比較期間
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            差異
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border-r-2 border-r-gray-400">
-                            比率
-                          </th>
+                          {renderTableCell(store.storeName, `sticky left-0 z-20 bg-gray-50 ${fixedColumnStyles.firstColumn}`)}
+                          {renderTableCell(store.storeNumber, `border-r-2 border-r-gray-400`)}
                         </>
                       )}
-                      <th
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          対象期間
-                          <div>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSort("avgPriceA")}
-                            >
-                              {sortKey === "avgPriceA" &&
-                                sortDirection === "asc" ? (
-                                <ArrowUpwardIcon fontSize="inherit" />
-                              ) : (
-                                <ArrowDownwardIcon fontSize="inherit" />
-                              )}
-                            </IconButton>
-                          </div>
-                        </div>
-                      </th>
+                      {renderTableCell(store.netSalesA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            比較期間
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            差異
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
-                            比率
-                          </th>
+                          {renderTableCell(store.netSalesB.toLocaleString(), "bg-gray-50 text-right")}
+                          {renderTableCell(store.netSalesChange.toLocaleString(), "bg-gray-50 text-right")}
+                          {renderTableCell(store.netSalesRatio.toLocaleString(), "bg-gray-50 text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
-                      <th
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          対象期間
-                          <div>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSort("newUsersA")}
-                            >
-                              {sortKey === "newUsersA" &&
-                                sortDirection === "asc" ? (
-                                <ArrowUpwardIcon fontSize="inherit" />
-                              ) : (
-                                <ArrowDownwardIcon fontSize="inherit" />
-                              )}
-                            </IconButton>
-                          </div>
-                        </div>
-                      </th>
+                      {renderTableCell(store.usersA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            比較期間
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            差異
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
-                            比率
-                          </th>
+                          {renderTableCell(store.usersB.toLocaleString(), "text-right")}
+                          {renderTableCell(store.usersChange.toLocaleString(), "text-right")}
+                          {renderTableCell(store.usersRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
-                      <th
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          対象期間
-                          <div>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSort("newUsersRateA")}
-                            >
-                              {sortKey === "newUsersRateA" &&
-                                sortDirection === "asc" ? (
-                                <ArrowUpwardIcon fontSize="inherit" />
-                              ) : (
-                                <ArrowDownwardIcon fontSize="inherit" />
-                              )}
-                            </IconButton>
-                          </div>
-                        </div>
-                      </th>
+                      {renderTableCell(store.avgPriceA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
-                            比較期間
-                          </th>
+                          {renderTableCell(store.avgPriceB.toLocaleString(), "bg-gray-50 text-right")}
+                          {renderTableCell(store.avgPriceChange.toLocaleString(), "bg-gray-50 text-right")}
+                          {renderTableCell(store.avgPriceRatio.toLocaleString(), "bg-gray-50 text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
-                        <div className="flex items-center justify-between">
-                          対象期間
-                          <div>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSort("otherSalesA")}
-                            >
-                              {sortKey === "otherSalesA" &&
-                                sortDirection === "asc" ? (
-                                <ArrowUpwardIcon fontSize="inherit" />
-                              ) : (
-                                <ArrowDownwardIcon fontSize="inherit" />
-                              )}
-                            </IconButton>
-                          </div>
-                        </div>
-                      </th>
+                      {renderTableCell(store.newUsersA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            比較期間
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            差異
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
-                            比率
-                          </th>
+                          {renderTableCell(store.newUsersB.toLocaleString(), "text-right")}
+                          {renderTableCell(store.newUsersChange.toLocaleString(), "text-right")}
+                          {renderTableCell(store.newUsersRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
-                      <th className={`px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
-                        <div className="flex items-center justify-between">
-                          対象期間
-                          <div>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSort("consignmentSalesA")}
-                            >
-                              {sortKey === "consignmentSalesA" &&
-                                sortDirection === "asc" ? (
-                                <ArrowUpwardIcon fontSize="inherit" />
-                              ) : (
-                                <ArrowDownwardIcon fontSize="inherit" />
-                              )}
-                            </IconButton>
-                          </div>
-                        </div>
-                      </th>
+                      {renderTableCell(store.newUsersRateA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                      {compareCheck && renderTableCell(store.newUsersRateB.toLocaleString(), "bg-gray-50 text-right border-r-2 border-r-gray-400")}
+                      {renderTableCell(store.otherSalesA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            比較期間
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border">
-                            差異
-                          </th>
-                          <th className="px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border border border-r-2 border-r-gray-400">
-                            比率
-                          </th>
+                          {renderTableCell(store.otherSalesB.toLocaleString(), "text-right")}
+                          {renderTableCell(store.otherSalesChange.toLocaleString(), "text-right")}
+                          {renderTableCell(store.otherSalesRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
+                        </>
+                      )}
+                      {renderTableCell(store.consignmentSalesA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                      {compareCheck && (
+                        <>
+                          {renderTableCell(store.consignmentSalesB.toLocaleString(), "text-right")}
+                          {renderTableCell(store.consignmentSalesChange.toLocaleString(), "text-right")}
+                          {renderTableCell(store.consignmentSalesRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
                     </tr>
-                    {/* 合計行 */}
-                    <tr>
-                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ?
-                        <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
-                        >
-                          {storesData.totalData.storeName.toLocaleString()}
-                        </td>
-                        :
-                        <>
-                          <td
-                            className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
-                          >
-                            {storesData.totalData.storeName.toLocaleString()}
-                          </td>
-                          <td
-                            className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
-                          >
-                            {storesData.totalData.storeNumber.toLocaleString()}
-                          </td>
-                        </>
-                      }
-                      <td
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        {storesData.totalData.netSalesA.toLocaleString()}
-                      </td>
-                      {compareCheck && (
-                        <>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
-                            {storesData.totalData.netSalesB.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
-                            {storesData.totalData.netSalesChange.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 border border-r-2 border-r-gray-400 text-right">
-                            {storesData.totalData.netSalesRatio.toLocaleString()}
-                          </td>
-                        </>
-                      )}
-                      <td
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        {storesData.totalData.usersA.toLocaleString()}
-                      </td>
-                      {compareCheck && (
-                        <>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ">
-                            {storesData.totalData.usersB.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                            {storesData.totalData.usersChange.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
-                            {storesData.totalData.usersRatio.toLocaleString()}
-                          </td>
-                        </>
-                      )}
-                      <td
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        {storesData.totalData.avgPriceA.toLocaleString()}
-                      </td>
-                      {compareCheck && (
-                        <>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
-                            {storesData.totalData.avgPriceB.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
-                            {storesData.totalData.avgPriceChange.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 border border-r-2 border-r-gray-400 text-right">
-                            {storesData.totalData.avgPriceRatio.toLocaleString()}
-                          </td>
-                        </>
-                      )}
-                      <td
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        {storesData.totalData.newUsersA.toLocaleString()}
-                      </td>
-                      {compareCheck && (
-                        <>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                            {storesData.totalData.newUsersB.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                            {storesData.totalData.newUsersChange.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
-                            {storesData.totalData.newUsersRatio.toLocaleString()}
-                          </td>
-                        </>
-                      )}
-                      <td
-                        className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                      >
-                        {storesData.totalData.newUsersRateA.toLocaleString()}
-                      </td>
-                      {compareCheck && (
-                        <>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
-                            {storesData.totalData.newUsersRateB.toLocaleString()}
-                          </td>
-                        </>
-                      )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
-                        {storesData.totalData.otherSalesA.toLocaleString()}
-                      </td>
-                      {compareCheck && (
-                        <>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                            {storesData.totalData.otherSalesB.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                            {storesData.totalData.otherSalesChange.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
-                            {storesData.totalData.otherSalesRatio.toLocaleString()}
-                          </td>
-                        </>
-                      )}
-                      <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
-                        {storesData.totalData.consignmentSalesA.toLocaleString()}
-                      </td>
-                      {compareCheck && (
-                        <>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                            {storesData.totalData.consignmentSalesB.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                            {storesData.totalData.consignmentSalesChange.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
-                            {storesData.totalData.consignmentSalesRatio.toLocaleString()}
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* データ行 */}
-                    {sortedStoresData.map((store, index) => (
-                      <tr key={`${store.storeNumber}-${index}`}>
-                        {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ?
-                          <>
-                            <td
-                              className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`}
-                            >
-                              {store.storeDate}
-                            </td>
-                          </> : <>
-                            <td
-                              className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${fixedColumnStyles.firstColumn}`}
-                            >
-                              {store.storeName}
-                            </td>
-                            <td
-                              className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border-r-2 border-r-gray-400`}
-                            >
-                              {store.storeNumber}
-                            </td>
-                          </>}
-
-                        <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                        >
-                          {store.netSalesA.toLocaleString()}
-                        </td>
-                        {compareCheck && (
-                          <>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
-                              {store.netSalesB.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
-                              {store.netSalesChange.toLocaleString()}
-                            </td>
-
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
-                              {store.netSalesRatio.toLocaleString()}
-                            </td>
-                          </>
-                        )}
-                        <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                        >
-                          {store.usersA.toLocaleString()}
-                        </td>
-                        {compareCheck && (
-                          <>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                              {store.usersB.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                              {store.usersChange.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border border border-r-2 border-r-gray-400 text-right">
-                              {store.usersRatio.toLocaleString()}
-                            </td>
-                          </>
-                        )}
-                        <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                        >
-                          {store.avgPriceA.toLocaleString()}
-                        </td>
-                        {compareCheck && (
-                          <>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
-                              {store.avgPriceB.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right">
-                              {store.avgPriceChange.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 border border-r-2 border-r-gray-400 text-right">
-                              {store.avgPriceRatio.toLocaleString()}
-                            </td>
-                          </>
-                        )}
-                        <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                        >
-                          {store.newUsersA.toLocaleString()}
-                        </td>
-                        {compareCheck && (
-                          <>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                              {store.newUsersB.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                              {store.newUsersChange.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border  border border-r-2 border-r-gray-400 text-right">
-                              {store.newUsersRatio.toLocaleString()}
-                            </td>
-                          </>
-                        )}
-                        <td
-                          className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}
-                        >
-                          {store.newUsersRateA.toLocaleString()}
-                        </td>
-                        {compareCheck && (
-                          <>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50  border border-r-2 border-r-gray-400 text-right">
-                              {store.newUsersRateB.toLocaleString()}
-                            </td>
-                          </>
-                        )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
-                          {store.otherSalesA.toLocaleString()}
-                        </td>
-                        {compareCheck && (
-                          <>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                              {store.otherSalesB.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                              {store.otherSalesChange.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border  border border-r-2 border-r-gray-400 text-right">
-                              {store.otherSalesRatio.toLocaleString()}
-                            </td>
-                          </>
-                        )}
-                        <td className={`px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`}>
-                          {store.consignmentSalesA.toLocaleString()}
-                        </td>
-                        {compareCheck && (
-                          <>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                              {store.consignmentSalesB.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border text-right">
-                              {store.consignmentSalesChange.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border  border border-r-2 border-r-gray-400 text-right">
-                              {store.consignmentSalesRatio.toLocaleString()}
-                            </td>
-                          </>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
+
           </div>
+
         </div>
       </Layout>
       <ErrorModal

@@ -10,12 +10,10 @@ import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-
-import LoginSideImage from "../../public/images/login-side-image.webp";
-import { Password } from "@mui/icons-material";
-import { API_ENDPOINTS, fetchData } from "pages/api/apiService";
 import { useRouter } from "next/router";
 import axios from 'axios';  // これを追加
+//import { mockLoginResponses } from "../__tests__/loginMockData";
+import LoginSideImage from "../../public/images/login-side-image.webp";
 
 import Cookies from 'js-cookie';
 
@@ -36,22 +34,35 @@ const AdminLoginPage = () => {
   const handleUsernameChange = (event) => setUsername(event.target.value);
   const handlePasswordChange = (event) => setPassword(event.target.value);
 
-  const handleAdminLogin = async () => {
+  // ログインボタン押下時の処理
+  const handleLogin = async () => {
+    if (!username || !password) {
+      setErrorMessage('ユーザー名またはパスワードを入力してください。');
+      return;
+    }
     try {
-      const response = await axios.post(
-        'https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admlogin',
-        { username, password },
-        { 
-                headers: {
-        	          'Content-Type': 'application/json'
+      let response;
+      if (process.env.NODE_ENV === 'development') {
+        router.push("/admin");
+        return;
+      } else {
+        response = await axios.post('https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin/admin_login',
+          { username, password },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
           }
-        }
-      );
+        );
 
+        // 店舗情報チェック
+        // console.log("response", response);
+      }
       if (response.status === 200) {
+        localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
         const token = response.data.token;
-        Cookies.set('access_token', token, { expires: 1, path:'/admin/'});
-        router.push('/admin/'); // 成功時にリダイレクト
+        Cookies.set('access_token', token, { expires: 1, path: '/' });
+        router.push('/admin'); // 成功時にリダイレクト
       } else {
         setErrorMessage('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
       }
@@ -71,7 +82,7 @@ const AdminLoginPage = () => {
       }
     }
   };
- 
+
   return (
     <Layout title="管理者専用ログイン | 売上速報">
       <div className="flex flex-row-reverse min-h-screen items-stretch">
@@ -87,18 +98,20 @@ const AdminLoginPage = () => {
             <h1 className="text-xl md:text-2xl mb-4 md:mb-6 font-bold">
               管理者専用ログインページ
             </h1>
+            {errorMessage && (
+              <p className="text-red-600 mb-4">{errorMessage}</p> // エラーメッセージを表示
+            )}
             <form action="">
               <div className="flex flex-col gap-2 md:gap-4 items-center">
                 <TextField
                   id="outlined-search"
-                  label="スタッフ番号"
+                  label="ID"
                   type="search"
                   sx={{ width: "288px" }}
                   value={username}
                   onChange={handleUsernameChange}
                 />
 
-                {/* <FormControl variant="outlined"> */}
                 <FormControl sx={{ width: "288px" }} variant="outlined">
                   <InputLabel htmlFor="outlined-adornment-password">
                     パスワード
@@ -126,7 +139,7 @@ const AdminLoginPage = () => {
                 <Button
                   className="bg-accent hover:bg-accent-dark text-white transition-colors duration-200 w-full p-2 md:p-4"
                   variant="contained"
-                  onClick={handleAdminLogin}
+                  onClick={handleLogin}
                 >
                   ログイン
                 </Button>
