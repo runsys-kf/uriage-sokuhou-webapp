@@ -78,7 +78,7 @@ const Settings = () => {
     }
   }, [router.isReady, router.query]);
 
-  // オーナー名　カンマで区切って配列に変換し、trimで両端の空白、filterで未入力を削除
+  // オーナー名
   const handleOwnerInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
     setOwners(inputValue);
@@ -111,24 +111,26 @@ const Settings = () => {
     setOpenConfirmationModal(false);
     try {
       const isTestMode = process.env.NODE_ENV === "development";
-      if (isTestMode) {
-        router.push("/admin");
-        return;
-      }
+      // if (isTestMode) {
+      //     router.push("/admin");
+      //     return;
+      // }
 
       const params = {
         BaseNo: storeNumber,     //店舗番号
-        BaseName: storeName,     //店舗名
+        //BaseName: storeName,     //店舗名
         Class: category,         //区分
         Area: area,              //エリア
-        Prefecture: prefecture,  //都道府県
-        District: region,        //地区
-        BaseName2: abbreviation, //略名
-        Owner: owners.split(",").map(owner => owner.trim()).filter(owner => owner !== ""), //オーナー
+        //Prefecture: prefecture,  //都道府県
+        //District: region,        //地区
+        //BaseName2: abbreviation, //略名
+        Owner: owners.split(",").map(owner => owner.trim()).filter(owner => owner !== "").join(","), //オーナー　　カンマで区切って配列に変換し、trimで両端の空白、filterで未入力を削除
         Status: openClose,       //ステータス
       };
+      // 送信データをログに出力
+      console.log("params:", JSON.stringify(params, null, 2));
 
-      const endpoint = isDelete ? API_ENDPOINTS.store_deletiet : API_ENDPOINTS.store_edit;
+      const endpoint = isDelete ? API_ENDPOINTS.storeDeletiet : API_ENDPOINTS.editStore;
       await fetchData(endpoint, params, router);
       router.push("/admin");
     } catch (error) {

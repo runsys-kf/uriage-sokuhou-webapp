@@ -14,52 +14,51 @@ import { fetchData } from "../api/apiService";
 import { API_ENDPOINTS } from "../api/apiService";
 
 import { GetServerSideProps } from "next";
-// add 20241117 16:23
-import nookies from "nookies";
-import jwt from "jsonwebtoken";
 
-const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
+// import nookies from "nookies";
+// import jwt from "jsonwebtoken";
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+// const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
 
-	const cookies = nookies.get(context);
-	const token = cookies['access_token'];
+// export const getServerSideProps: GetServerSideProps = async (context) => {
 
-	if (!token) {
-		// トークンがない場合、ログインページにリダイレクト
-		return {
-			redirect: {
-				destination: '/admin/admin_login',
-				permanent: false,
-			},
-		};
-	}
+// 	const cookies = nookies.get(context);
+// 	const token = cookies['access_token'];
 
-	try {
-		// トークンを検証
-		const decoded = jwt.verify(token, JWT_SECRET);
+// 	if (!token) {
+// 		// トークンがない場合、ログインページにリダイレクト
+// 		return {
+// 			redirect: {
+// 				destination: '/admin/admin_login',
+// 				permanent: false,
+// 			},
+// 		};
+// 	}
 
-		// 認証成功
-		return {
-			props: {
-				user: decoded,
-			},
-		};
-	} catch (error) {
-		console.error('Token verification failed:', error.message);
-		// 認証失敗、ログインページにリダイレクト
-		return {
-			redirect: {
-				destination: '/admin/admin_login',
-				permanent: false,
-			},
-		};
-	}
-};
+// 	try {
+// 		// トークンを検証
+// 		const decoded = jwt.verify(token, JWT_SECRET);
+
+// 		// 認証成功
+// 		return {
+// 			props: {
+// 				user: decoded,
+// 			},
+// 		};
+// 	} catch (error) {
+// 		console.error('Token verification failed:', error.message);
+// 		// 認証失敗、ログインページにリダイレクト
+// 		return {
+// 			redirect: {
+// 				destination: '/admin/admin_login',
+// 				permanent: false,
+// 			},
+// 		};
+// 	}
+// };
 const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 
 interface StoreInfo {
-	id: string;
 	BaseNo: string;
 	BaseName: string;
 	Class: string;
