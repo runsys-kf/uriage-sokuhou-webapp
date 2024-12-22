@@ -9,7 +9,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useMobile } from "../../contexts/MobileContext";
 import { useRouter } from "next/router";
 import Sidebar from "./../../components/SidebarButton";
-import { fetchData, fetchStoreList, handler, fetchStoreListOLD } from "../api/apiService";
+import { fetchData } from "../api/apiService";
 import { stores_info_sequential } from "../../__tests__/storesInfoMockData";
 import {API_ENDPOINTS } from "../api/apiService";
 

@@ -100,10 +100,10 @@ const Settings = () => {
         setOpenConfirmationModal(false);
         try {
             const isTestMode = process.env.NODE_ENV === "development";
-            if (isTestMode) {
-                router.push("/admin");
-                return;
-            }
+            // if (isTestMode) {
+            //     router.push("/admin");
+            //     return;
+            // }
 
             const params = {
                 BaseNo: storeNumber,     //店舗番号
@@ -113,10 +113,13 @@ const Settings = () => {
                 Prefecture: prefecture,  //都道府県
                 District: region,        //地区
                 BaseName2: abbreviation, //略名
-                Owner: owners.split(",").map(owner => owner.trim()).filter(owner => owner !== ""), //オーナー
+                Owner: owners.split(",").map(owner => owner.trim()).filter(owner => owner !== "").join(","), //オーナー
                 Status: openClose,       //ステータス
             };
-            await fetchData(API_ENDPOINTS.new_shop_addition, params, router);
+            // 送信データをログに出力
+            console.log("params:", JSON.stringify(params, null, 2));
+
+            await fetchData(API_ENDPOINTS.newShopAddition, params, router);
             router.push("/admin");
         } catch (error) {
             setErrors((prevErrors) => ({

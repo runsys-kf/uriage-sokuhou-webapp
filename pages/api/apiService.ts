@@ -12,11 +12,18 @@ export const API_ENDPOINTS = {
   display_by_date: "display_by_date",//日別
   download: "download",//ダウンロード
   adimn_login: "admin_login",//管理画面ログイン
-  new_shop_addition: "new_shop_addition",//新規店舗追加
+  newShopAddition: "newShopAddition",//新規店舗追加
   editStore: "editStore",//店舗編集
-  store_deletiet: "store_deletiet",//店舗削除
+  storeDeletiet: "storeDeletiet",//店舗削除
   getStoreList: "getStoreList", //全店舗情報取得
 }
+
+//本番時、開発環境時APIルート変更
+const ProdOrDev = () => {
+  const isTestMode = process.env.NODE_ENV === "development";
+  return isTestMode ? "http://localhost:3000" : "https://salesrepo.runsystem.co.jp";
+};
+
 
 //APIリクエスト関数
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
@@ -39,20 +46,19 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     }
     //店舗情報取得
     if (endpoint === "getStoreList") {
-      url = "http://localhost:3000/api/getStoreList";
+      url = `${ProdOrDev()}/api/getStoreList`;
     }
     //店舗編集
     if (endpoint === "editStore") {
-      console.log("店舗編集URL取得");
-      url = "http://localhost:3000/api/editStore";
+      url = `${ProdOrDev()}/api/editStore`;
     }
     //店舗削除
-    if (endpoint === "store_deletiet") {
-      url = "";
+    if (endpoint === "storeDeletiet") {
+      url = `${ProdOrDev()}/api/storeDeletiet`;
     }
     //新規店舗追加
-    if (endpoint === "new_shop_addition") {
-      url = "";
+    if (endpoint === "newShopAddition") {
+      url = `${ProdOrDev()}/api/newShopAddition`;
     }
     // 送信データをログに出力
     console.log("url : " + url);
@@ -62,7 +68,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     if (!url) {
       throw new Error('有効なエンドポイントが指定されていません');
     }
-    console.log("あ");
+    console.log("url:" + url);
     const response = await axios.post(url, data, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -106,6 +112,10 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
           throw new Error('データの取得に失敗しました');
       }
     }
+    // if (error.response) {
+    //   const errorMessage = error.response.data?.error || 'データの取得に失敗しました';
+    //   throw new Error(errorMessage);
+    // }
 
     throw new Error('予期せぬエラーが発生しました');
   }

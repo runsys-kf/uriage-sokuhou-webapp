@@ -130,8 +130,8 @@ const Settings = () => {
             // 送信データをログに出力
             console.log("params:", JSON.stringify(params, null, 2));
 
-            //endpoint === isDelete ? API_ENDPOINTS.store_deletiet : API_ENDPOINTS.store_edit;
-            await fetchData(API_ENDPOINTS.editStore, params, router);
+            const endpoint = isDelete ? API_ENDPOINTS.storeDeletiet : API_ENDPOINTS.editStore;
+            await fetchData(endpoint, params, router);
             router.push("/admin");
         } catch (error) {
             setErrors((prevErrors) => ({

@@ -1,16 +1,16 @@
 import { BlobServiceClient } from '@azure/storage-blob';
 
 export default async function handler(req, res) {
-    //POSTでない場合はエラー
+    // POSTでない場合はエラー
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    //リクエストボディからデータ取得
-    const { BaseNo, Class, Area, Owner, Status } = req.body;
+    // リクエストボディからデータ取得
+    const { BaseNo, BaseName, Class, Area, Prefecture, District, BaseName2, Owner, Status } = req.body;
 
-    //必要データが取得できたか確認
-    if (!BaseNo || !Class || !Area || !Owner || !Status) {
+    // 必要データが取得できたか確認
+    if (!BaseNo || !BaseName || !Class || !Area || !Prefecture || !District || !BaseName2 || !Owner || !Status) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -56,17 +56,27 @@ export default async function handler(req, res) {
         const storeList = await response.json();
 
         // データを更新
-        const storeIndex = storeList.findIndex(store => store.BaseNo === BaseNo);
-        if (storeIndex === -1) {
-            return res.status(404).json({ error: 'ストアが見つかりません' });
+        const isBaseNoExists = storeList.some(store => store.BaseNo === BaseNo);
+        const isBaseNameExists = storeList.some(store => store.BaseName === BaseName);
+        const isBaseName2Exists = storeList.some(store => store.BaseName2 === BaseName2);
+
+        if (isBaseNoExists) {
+            return res.status(400).json({ error: 'BaseNoはすでに使われています' });
         }
-        storeList[storeIndex].Class = Class;
-        storeList[storeIndex].Area = Area;
-        storeList[storeIndex].Owner = Owner;
-        storeList[storeIndex].Status = Status;
+        if (isBaseNameExists) {
+            return res.status(400).json({ error: 'BaseNameはすでに使われています' });
+        }
+        if (isBaseName2Exists) {
+            return res.status(400).json({ error: 'BaseName2はすでに使われています' });
+        }
+
+        // 新しい店舗情報を追加
+        storeList.push({ BaseNo, BaseName, Class, Area, Prefecture, District, BaseName2, Owner, Status });
+        console.log("storeList：" + storeList);
 
         // JSONをアップロード
         const updatedData = JSON.stringify(storeList, null, 2);
+        console.log("updatedData：" + updatedData);
         const uploadResponse = await fetch(blobUrl, {
             method: 'PUT',
             headers: {
@@ -87,7 +97,7 @@ export default async function handler(req, res) {
 
         // リースを解放
         await leaseClient.releaseLease();
-        res.status(200).json({ message: 'Store updated successfully' });
+        res.status(200).json({ message: 'Store added successfully' });
     } catch (error) {
         console.error('Error:', error.message);
         res.status(500).json({ error: 'Failed to update store', details: error.message });
