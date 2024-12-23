@@ -104,24 +104,49 @@ const IndexPage = () => {
 
   //初期表示時店舗を選択する
   useEffect(() => {
-    const authority = JSON.parse(localStorage.getItem("Authority"));
-    if (authority) {
-      if (authority.length === 1 && authority.includes("9999")) {
-        // '9999'のみの場合は全店舗を選択
-        setSelectedStores(initialStores);
-        setAuthorizedStores(initialStores);
-        setFilteredStores(initialStores);
-      } else {
-        // '9999'が含まれていても他の店舗IDがある場合はその店舗のみを選択
-        const authorizedStoreList = initialStores.filter((store) =>
-          authority.includes(store.id)
-        );
-        setSelectedStores(authorizedStoreList); //選択状態店舗
-        setAuthorizedStores(authorizedStoreList); //表示される店舗
-        setFilteredStores(authorizedStoreList); //絞り込み店舗
+    const fetchStoreList = async () => {
+      try {
+        const data = await fetchData(API_ENDPOINTS.getStoreList, {}, router);
+        const stores = data.map((store) => ({
+          id: store.BaseNo,
+          name: store.BaseName,
+          //prefecture: store.Prefecture,
+        }));
+        stores.forEach(store => {
+          console.log(`id: ${store.id}, name: ${store.name}`);
+        });
+        const isTestMode = process.env.NODE_ENV === "development"; //テスト環境
+        if (isTestMode) {
+          setSelectedStores(stores);
+          setAuthorizedStores(stores);
+          setFilteredStores(stores); return;
+        }
+        const authority = JSON.parse(localStorage.getItem("Authority"));
+        if (authority) {
+          // '9999'のみの場合は全店舗を選択
+          if (authority.length === 1 && authority.includes("9999")) {
+            setSelectedStores(stores);
+            setAuthorizedStores(stores);
+            setFilteredStores(stores);
+          } else {
+            // '9999'が含まれていても他の店舗IDがある場合はその店舗のみを選択
+            const authorizedStoreList = stores.filter((store) =>
+              authority.includes(store.id)
+            );
+            setSelectedStores(authorizedStoreList);//選択状態店舗
+            setAuthorizedStores(authorizedStoreList);//表示される店舗
+            setFilteredStores(authorizedStoreList);//絞り込み店舗
+          }
+        }
+      } catch (error) {
+        setModalType("error");
+        setErrorMessage("店舗情報の取得に失敗しました");
+        setOpenErrorModal(true);
       }
-    }
-  }, []);
+    };
+
+    fetchStoreList();
+  }, [router]);
 
   // 認証チェック
   useEffect(() => {
@@ -159,8 +184,8 @@ const IndexPage = () => {
   const [openPrefectureModal, setOpenPrefectureModal] = useState(false);
 
   const [selectedStores, setSelectedStores] = useState([]); //選択した店舗
-  const [authorizedStores, setAuthorizedStores] = useState(initialStores); //表示できる店舗
-  const [filteredStores, setFilteredStores] = useState(initialStores); //絞り込み店舗
+  const [authorizedStores, setAuthorizedStores] = useState([]); //表示できる店舗
+  const [filteredStores, setFilteredStores] = useState([]); //絞り込み店舗
   const [selectedPrefecture, setSelectedPrefecture] = useState<string[]>([]); //選択した都道府県名
   const [searchText, setSearchText] = useState(""); //店舗名でフィルタリング時の入力値
 
@@ -419,7 +444,7 @@ const IndexPage = () => {
     const selectedStoreIds =
       typeof value === "string" ? value.split(",") : value;
 
-    const newSelectedStores = initialStores.filter((store) =>
+    const newSelectedStores = authorizedStores.filter((store) =>
       selectedStoreIds.includes(store.id)
     );
 
@@ -461,7 +486,7 @@ const IndexPage = () => {
     return prefectures;
   };
   // 都道府県とエリア
-  const areas = generateAreasFromStores(initialStores);
+  const areas = generateAreasFromStores(authorizedStores);
   // 都道府県のリストを取得
   const prefectures = extractPrefecturesFromAreas(areas);
 

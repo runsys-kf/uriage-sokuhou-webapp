@@ -51,6 +51,7 @@ export default async function handler(req, res) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('BLOB コンテンツのダウンロードに失敗しました:', errorText);
+            await leaseClient.releaseLease();
             return res.status(500).json({ error: 'BLOB コンテンツのダウンロードに失敗しました', details: errorText });
         }
         const storeList = await response.json();
@@ -58,6 +59,7 @@ export default async function handler(req, res) {
         // データを更新
         const storeIndex = storeList.findIndex(store => store.BaseNo === BaseNo);
         if (storeIndex === -1) {
+            await leaseClient.releaseLease();
             return res.status(404).json({ error: 'ストアが見つかりません' });
         }
         storeList[storeIndex].Class = Class;
@@ -80,6 +82,7 @@ export default async function handler(req, res) {
         if (!uploadResponse.ok) {
             const errorText = await uploadResponse.text();
             console.error('Failed to upload updated data:', errorText);
+            await leaseClient.releaseLease();
             return res.status(500).json({ error: 'Failed to upload updated data', details: errorText });
         }
 
@@ -90,6 +93,9 @@ export default async function handler(req, res) {
         res.status(200).json({ message: 'Store updated successfully' });
     } catch (error) {
         console.error('Error:', error.message);
+        if (leaseId) {
+            await leaseClient.releaseLease();
+        }
         res.status(500).json({ error: 'Failed to update store', details: error.message });
     }
 }
