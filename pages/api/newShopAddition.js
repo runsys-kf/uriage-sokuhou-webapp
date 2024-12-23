@@ -51,6 +51,7 @@ export default async function handler(req, res) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('BLOB コンテンツのダウンロードに失敗しました:', errorText);
+            await leaseClient.releaseLease();
             return res.status(500).json({ error: 'BLOB コンテンツのダウンロードに失敗しました', details: errorText });
         }
         const storeList = await response.json();
@@ -61,13 +62,16 @@ export default async function handler(req, res) {
         const isBaseName2Exists = storeList.some(store => store.BaseName2 === BaseName2);
 
         if (isBaseNoExists) {
-            return res.status(400).json({ error: 'BaseNoはすでに使われています' });
+            await leaseClient.releaseLease();
+            return res.status(400).json({ error: `店舗番号【 ${BaseNo} 】はすでに使われています` });
         }
         if (isBaseNameExists) {
-            return res.status(400).json({ error: 'BaseNameはすでに使われています' });
+            await leaseClient.releaseLease();
+            return res.status(400).json({ error: `店舗名【 ${BaseName} 】はすでに使われています` });
         }
         if (isBaseName2Exists) {
-            return res.status(400).json({ error: 'BaseName2はすでに使われています' });
+            await leaseClient.releaseLease();
+            return res.status(400).json({ error: `略名【 ${BaseName2} 】はすでに使われています` });
         }
 
         // 新しい店舗情報を追加
@@ -90,6 +94,7 @@ export default async function handler(req, res) {
         if (!uploadResponse.ok) {
             const errorText = await uploadResponse.text();
             console.error('Failed to upload updated data:', errorText);
+            await leaseClient.releaseLease();
             return res.status(500).json({ error: 'Failed to upload updated data', details: errorText });
         }
 
@@ -100,6 +105,9 @@ export default async function handler(req, res) {
         res.status(200).json({ message: 'Store added successfully' });
     } catch (error) {
         console.error('Error:', error.message);
-        res.status(500).json({ error: 'Failed to update store', details: error.message });
+        if (leaseId) {
+            await leaseClient.releaseLease();
+        }
+        res.status(500).json({ error: '予期せぬエラーが発生しました', details: error.message });
     }
 }

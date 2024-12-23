@@ -100,6 +100,14 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
 
     // その他のエラー
     if (error.response) {
+
+      //azureStorage連携時のエラー処理
+      if (endpoint === "getStoreList" || endpoint === "editStore" || endpoint === "storeDeletiet" || endpoint === "newShopAddition") {
+        //const errorMessage = error.response.data?.error || 'データの取得に失敗しました';
+        const errorMessage = error.response.data?.error;
+        throw new Error(errorMessage);
+      }
+
       switch (error.response.status) {
         case 401:
           //router.push('/login');
@@ -112,6 +120,8 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
           throw new Error('データの取得に失敗しました');
       }
     }
+
+    //その他のエラー
     // if (error.response) {
     //   const errorMessage = error.response.data?.error || 'データの取得に失敗しました';
     //   throw new Error(errorMessage);
