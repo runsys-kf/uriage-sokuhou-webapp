@@ -33,8 +33,8 @@ export const mockStoreResponse = () => {
   };
   const storeData = [
     {
-      storeName: "店舗A",
-      storeNumber: "0001",
+      storeName: "000",
+      storeNumber: "0000",
       storeDate: "",
       netSalesA: "401,000",
       netSalesB: "475000",
@@ -1529,9 +1529,9 @@ export const mockDateResponse = () => {
   };
   const storeData = [
     {
-      storeName: "店舗x",
-      storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeName: "000",
+      storeNumber: "000",
+      storeDate: "0000年00月00日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1562,7 +1562,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1593,7 +1593,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1624,7 +1624,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1655,7 +1655,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗E",
       storeNumber: "0005",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "7,004,567",
       netSalesB: "12040",
       netSalesChange: "-20100",
@@ -1686,7 +1686,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗E",
       storeNumber: "0005",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "7,004,567",
       netSalesB: "12040",
       netSalesChange: "-20100",
@@ -1717,7 +1717,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1748,7 +1748,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1779,7 +1779,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1810,7 +1810,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1841,7 +1841,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗E",
       storeNumber: "0005",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "7,004,567",
       netSalesB: "12040",
       netSalesChange: "-20100",
@@ -1872,7 +1872,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗E",
       storeNumber: "0005",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "7,004,567",
       netSalesB: "12040",
       netSalesChange: "-20100",
@@ -1903,7 +1903,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1934,7 +1934,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1965,7 +1965,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "5555年55月55日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -1996,7 +1996,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗x",
       storeNumber: "45",
-      storeDate: "2024/12/01",
+      storeDate: "2024年12月01日",
       netSalesA: "700,000",
       netSalesB: "680000",
       netSalesChange: "-20100",
@@ -2027,7 +2027,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗E",
       storeNumber: "0005",
-      storeDate: "2024/12/01",
+      storeDate: "2024年12月88日",
       netSalesA: "7,004,567",
       netSalesB: "12040",
       netSalesChange: "-20100",
@@ -2058,7 +2058,7 @@ export const mockDateResponse = () => {
     {
       storeName: "店舗E",
       storeNumber: "0005",
-      storeDate: "2024/12/01",
+      storeDate: "2024年12月01日",
       netSalesA: "7,004,567",
       netSalesB: "12040",
       netSalesChange: "-20100",

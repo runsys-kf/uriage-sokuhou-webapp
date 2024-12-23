@@ -776,23 +776,33 @@ const IndexPage = () => {
     firstColumn: "sticky left-0 z-10 min-w-[80px] max-w-[80px]", // 店舗名列
     secondColumn: "sticky left-[80px] z-10 bg-white min-w-[80px] max-w-[80px]", // 店舗番号列
   };
-  //データー行
+  // データー行
+  // const renderTableCell = (content: string | number, className = "", colSpan: number = 1) => (
+  //   <td className={`px-1 py-1 text-sm font-medium-mono text-gray-900 border ${className}`} colSpan={colSpan} style={{ whiteSpace: 'nowrap', width: 'auto' }}>
+  //     {content}
+  //   </td>
+  // );
+  // const renderTableCell = (content: string | number, className = "", colSpan: number = 1) => (
+  //   <td className={`px-1 py-1 text-sm font-medium-mono text-gray-900 border ${className}`} colSpan={colSpan} style={{ whiteSpace: 'nowrap', width: 'auto', maxWidth: '1px' }}>
+  //     {content}
+  //   </td>
+  // );
   const renderTableCell = (content: string | number, className = "", colSpan: number = 1) => (
-    <td className={`px-1 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${className}`} colSpan={colSpan}>
+    <td className={`px-1 py-1 text-sm font-medium-mono text-gray-900 border ${className}`} colSpan={colSpan} style={{ whiteSpace: 'nowrap', width: 'auto', maxWidth: 'none' }}>
       {content}
     </td>
   );
 
-  //ヘッダーのスタイル
-  const headerClassName = (additionalClasses = "") =>
-    `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-200 border border-gray-50 ${additionalClasses}`;
+  // ヘッダーのスタイル
+const headerClassName = (additionalClasses = "") =>
+  `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-200 border border-gray-50 ${additionalClasses}`;
 
-  //通常ヘッダー
-  const renderTableHeader = (content: string, additionalClasses = "", colSpan: number = 1) => (
-    <th className={headerClassName(additionalClasses)} colSpan={colSpan}>
-      {content}
-    </th>
-  );
+  // 通常ヘッダー
+const renderTableHeader = (content: string, additionalClasses = "", colSpan: number = 1) => (
+  <th className={headerClassName(additionalClasses)} colSpan={colSpan} style={{ whiteSpace: 'nowrap' }}>
+    {content}
+  </th>
+);
   //ソートアイコン付きヘッダー
   const renderTableHeaderWithSort = (
     content: string,
@@ -1033,7 +1043,7 @@ const IndexPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="w-full md:w-4/12 lg:w-3/12">
+              <div className="w-full md:w-3/12 lg:w-2/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full">
                   <h2 className="text-base font-bold mb-2 md:mb-1">対象店舗</h2>
                   <div className="mb-3 md:mt-3">
@@ -1484,7 +1494,7 @@ const IndexPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="md:w-4/12 lg:w-3/12">
+              <div className="md:w-5/12 lg:w-4/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full min-w-32">
                   <div className="flex justify-between items-center mb-1 md:mt-1">
                     <h2 className="text-base font-bold mb-2 md:mb-1">
@@ -1886,7 +1896,7 @@ const IndexPage = () => {
             </div>
 
             <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[480px]">
-              <table className={`min-w-full divide-y divide-x divide-gray-300 ${compareCheck ? "table-auto" : "table-fixed"}`} style={{ tableLayout: compareCheck ? "auto" : "fixed", width: compareCheck ? "auto" : "max-content" }}>
+            <table className={`min-w-full divide-y divide-x divide-gray-300 table-auto`} style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-50 sticky top-0 z-30">
                   <tr>
                     {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
