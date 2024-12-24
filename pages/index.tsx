@@ -104,24 +104,49 @@ const IndexPage = () => {
 
   //初期表示時店舗を選択する
   useEffect(() => {
-    const authority = JSON.parse(localStorage.getItem("Authority"));
-    if (authority) {
-      if (authority.length === 1 && authority.includes("9999")) {
-        // '9999'のみの場合は全店舗を選択
-        setSelectedStores(initialStores);
-        setAuthorizedStores(initialStores);
-        setFilteredStores(initialStores);
-      } else {
-        // '9999'が含まれていても他の店舗IDがある場合はその店舗のみを選択
-        const authorizedStoreList = initialStores.filter((store) =>
-          authority.includes(store.id)
-        );
-        setSelectedStores(authorizedStoreList); //選択状態店舗
-        setAuthorizedStores(authorizedStoreList); //表示される店舗
-        setFilteredStores(authorizedStoreList); //絞り込み店舗
+    const fetchStoreList = async () => {
+      try {
+        const data = await fetchData(API_ENDPOINTS.getStoreList, {}, router);
+        const stores = data.map((store) => ({
+          id: store.BaseNo,
+          name: store.BaseName,
+          //prefecture: store.Prefecture,
+        }));
+        stores.forEach(store => {
+          console.log(`id: ${store.id}, name: ${store.name}`);
+        });
+        const isTestMode = process.env.NODE_ENV === "development"; //テスト環境
+        if (isTestMode) {
+          setSelectedStores(stores);
+          setAuthorizedStores(stores);
+          setFilteredStores(stores); return;
+        }
+        const authority = JSON.parse(localStorage.getItem("Authority"));
+        if (authority) {
+          // '9999'のみの場合は全店舗を選択
+          if (authority.length === 1 && authority.includes("9999")) {
+            setSelectedStores(stores);
+            setAuthorizedStores(stores);
+            setFilteredStores(stores);
+          } else {
+            // '9999'が含まれていても他の店舗IDがある場合はその店舗のみを選択
+            const authorizedStoreList = stores.filter((store) =>
+              authority.includes(store.id)
+            );
+            setSelectedStores(authorizedStoreList);//選択状態店舗
+            setAuthorizedStores(authorizedStoreList);//表示される店舗
+            setFilteredStores(authorizedStoreList);//絞り込み店舗
+          }
+        }
+      } catch (error) {
+        setModalType("error");
+        setErrorMessage("店舗情報の取得に失敗しました");
+        setOpenErrorModal(true);
       }
-    }
-  }, []);
+    };
+
+    fetchStoreList();
+  }, [router]);
 
   // 認証チェック
   useEffect(() => {
@@ -159,8 +184,8 @@ const IndexPage = () => {
   const [openPrefectureModal, setOpenPrefectureModal] = useState(false);
 
   const [selectedStores, setSelectedStores] = useState([]); //選択した店舗
-  const [authorizedStores, setAuthorizedStores] = useState(initialStores); //表示できる店舗
-  const [filteredStores, setFilteredStores] = useState(initialStores); //絞り込み店舗
+  const [authorizedStores, setAuthorizedStores] = useState([]); //表示できる店舗
+  const [filteredStores, setFilteredStores] = useState([]); //絞り込み店舗
   const [selectedPrefecture, setSelectedPrefecture] = useState<string[]>([]); //選択した都道府県名
   const [searchText, setSearchText] = useState(""); //店舗名でフィルタリング時の入力値
 
@@ -419,7 +444,7 @@ const IndexPage = () => {
     const selectedStoreIds =
       typeof value === "string" ? value.split(",") : value;
 
-    const newSelectedStores = initialStores.filter((store) =>
+    const newSelectedStores = authorizedStores.filter((store) =>
       selectedStoreIds.includes(store.id)
     );
 
@@ -461,7 +486,7 @@ const IndexPage = () => {
     return prefectures;
   };
   // 都道府県とエリア
-  const areas = generateAreasFromStores(initialStores);
+  const areas = generateAreasFromStores(authorizedStores);
   // 都道府県のリストを取得
   const prefectures = extractPrefecturesFromAreas(areas);
 
@@ -731,7 +756,7 @@ const IndexPage = () => {
   };
   //データー行
   const renderTableCell = (content: string | number, className = "", colSpan: number = 1) => (
-    <td className={`px-1 py-1 whitespace-nowrap text-sm font-medium-mono text-gray-900 border ${className}`} colSpan={colSpan}>
+    <td className={`px-1 py-1 text-sm font-medium-mono text-gray-900 border ${className}`} colSpan={colSpan} style={{ whiteSpace: 'nowrap', width: 'auto', maxWidth: 'none' }}>
       {content}
     </td>
   );
@@ -742,7 +767,7 @@ const IndexPage = () => {
 
   //通常ヘッダー
   const renderTableHeader = (content: string, additionalClasses = "", colSpan: number = 1) => (
-    <th className={headerClassName(additionalClasses)} colSpan={colSpan}>
+    <th className={headerClassName(additionalClasses)} colSpan={colSpan} style={{ whiteSpace: 'nowrap' }}>
       {content}
     </th>
   );
@@ -986,7 +1011,7 @@ const IndexPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="w-full md:w-4/12 lg:w-3/12">
+              <div className="w-full md:w-3/12 lg:w-2/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full">
                   <h2 className="text-base font-bold mb-2 md:mb-1">対象店舗</h2>
                   <div className="mb-3 md:mt-3">
@@ -1437,7 +1462,7 @@ const IndexPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="md:w-4/12 lg:w-3/12">
+              <div className="md:w-5/12 lg:w-4/12">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full min-w-32">
                   <div className="flex justify-between items-center mb-1 md:mt-1">
                     <h2 className="text-base font-bold mb-2 md:mb-1">
@@ -1838,7 +1863,7 @@ const IndexPage = () => {
               </div>
             </div>
             <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[480px]">
-              <table className={`min-w-full divide-y divide-x divide-gray-300 ${compareCheck ? "table-auto" : "table-fixed"}`} style={{ tableLayout: compareCheck ? "auto" : "fixed", width: compareCheck ? "auto" : "max-content" }}>
+            <table className={`min-w-full divide-y divide-x divide-gray-300 table-auto`} style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-50 sticky top-0 z-30">
                   <tr>
                     {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (

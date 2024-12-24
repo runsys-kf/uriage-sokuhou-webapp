@@ -15,47 +15,47 @@ import { API_ENDPOINTS } from "../api/apiService";
 
 import { GetServerSideProps } from "next";
 
-// import nookies from "nookies";
-// import jwt from "jsonwebtoken";
+import nookies from "nookies";
+import jwt from "jsonwebtoken";
 
-// const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
+const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
 
-// export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
 
-// 	const cookies = nookies.get(context);
-// 	const token = cookies['access_token'];
+	const cookies = nookies.get(context);
+	const token = cookies['access_token'];
 
-// 	if (!token) {
-// 		// トークンがない場合、ログインページにリダイレクト
-// 		return {
-// 			redirect: {
-// 				destination: '/admin/admin_login',
-// 				permanent: false,
-// 			},
-// 		};
-// 	}
+	if (!token) {
+		// トークンがない場合、ログインページにリダイレクト
+		return {
+			redirect: {
+				destination: '/admin/admin_login',
+				permanent: false,
+			},
+		};
+	}
 
-// 	try {
-// 		// トークンを検証
-// 		const decoded = jwt.verify(token, JWT_SECRET);
+	try {
+		// トークンを検証
+		const decoded = jwt.verify(token, JWT_SECRET);
 
-// 		// 認証成功
-// 		return {
-// 			props: {
-// 				user: decoded,
-// 			},
-// 		};
-// 	} catch (error) {
-// 		console.error('Token verification failed:', error.message);
-// 		// 認証失敗、ログインページにリダイレクト
-// 		return {
-// 			redirect: {
-// 				destination: '/admin/admin_login',
-// 				permanent: false,
-// 			},
-// 		};
-// 	}
-// };
+		// 認証成功
+		return {
+			props: {
+				user: decoded,
+			},
+		};
+	} catch (error) {
+		console.error('Token verification failed:', error.message);
+		// 認証失敗、ログインページにリダイレクト
+		return {
+			redirect: {
+				destination: '/admin/admin_login',
+				permanent: false,
+			},
+		};
+	}
+};
 const dayjsAdapter = new AdapterDayjs({ locale: "ja" });
 
 interface StoreInfo {
