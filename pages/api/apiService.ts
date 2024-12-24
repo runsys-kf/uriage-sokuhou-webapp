@@ -107,8 +107,6 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
           throw new Error('401 : 認証エラーが発生しました');
         case 404:
           throw new Error('404 : データが見つかりません');
-	case 408:
-	  throw new Error('408 : 条件に一致する店舗がありません。');
         case 500:
           throw new Error('500 : サーバーエラーが発生しました');
         default:
