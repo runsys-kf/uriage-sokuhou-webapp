@@ -11,7 +11,7 @@ export const API_ENDPOINTS = {
   display_by_store: "display_by_store",//店舗別
   display_by_date: "display_by_date",//日別
   download: "download",//ダウンロード
-  adimn_login: "admin_login",//管理画面ログイン
+  adimn_login: "admlogin",//管理画面ログイン
   newShopAddition: "newShopAddition",//新規店舗追加
   editStore: "editStore",//店舗編集
   storeDeletiet: "storeDeletiet",//店舗削除
@@ -107,6 +107,8 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
           throw new Error('401 : 認証エラーが発生しました');
         case 404:
           throw new Error('404 : データが見つかりません');
+	case 408:
+	  throw new Error('408 : 条件に一致する店舗がありません。');
         case 500:
           throw new Error('500 : サーバーエラーが発生しました');
         default:
