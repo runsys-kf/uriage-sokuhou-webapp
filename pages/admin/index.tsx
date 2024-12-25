@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import axios from "axios"; // これを追加
 import React, { useState, useEffect } from "react";
 import { IconButton, Button } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -68,6 +69,26 @@ interface StoreInfo {
 }
 
 const AdminPage = () => {
+	//	認証チェック
+	useEffect(() => {
+	  const checkAuth = async () => {
+	    try {
+	      console.log("index.tsx res:");
+	      const response = await axios.get(process.env.NEXT_PUBLIC_HOST_URL, {
+	        withCredentials: true
+	      });
+	      console.log("index.tsx res: ", response);
+	      // 認証成功
+	      console.log("User is authenticated:", response.data.user);
+	    } catch (error) {
+	      // 認証失敗時はログインページへリダイレクト
+	      console.error("Authentication check failed:", error);
+	      router.replace('/admin/admin_login'); // pushではなくreplaceを使用
+	    }
+	  };
+
+	  checkAuth();
+	}, [router]);
 	const router = useRouter();
 	const isMobile = useMobile();
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);

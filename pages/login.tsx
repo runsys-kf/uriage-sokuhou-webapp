@@ -46,7 +46,8 @@ const LoginPage = () => {
       if (false) {
         //response = mockLoginResponses[username] || mockLoginResponses.not200;
       } else {
-        response = await axios.post('https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
+        console.log("ログイン ： " + process.env.NEXT_PUBLIC_LOGIN_API_URL);
+        response = await axios.post(`${process.env.NEXT_PUBLIC_LOGIN_API_URL}/api/login`,
           { username, password },
           {
             headers: {
@@ -64,7 +65,7 @@ const LoginPage = () => {
         const token = response.data.token;
         Cookies.set('access_token', token, { expires: 1, path: '/' });
         router.push('/'); // 成功時にリダイレクト
-      } 
+      }
     } catch (error) {
       console.error("ログインに失敗しました:", error);
       // ステータスコードに応じたエラー処理

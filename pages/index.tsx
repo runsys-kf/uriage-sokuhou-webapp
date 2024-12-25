@@ -153,7 +153,7 @@ const IndexPage = () => {
     const checkAuth = async () => {
       try {
         console.log("index.tsx res:");
-        const response = await axios.get("https://salesrepo.runsystem.co.jp/", {
+        const response = await axios.get(process.env.NEXT_PUBLIC_HOST_URL, {
           withCredentials: true
         });
         console.log("index.tsx res: ", response);

@@ -21,30 +21,32 @@ export const API_ENDPOINTS = {
 //本番時、開発環境時APIルート変更
 const ProdOrDev = () => {
   const isTestMode = process.env.NODE_ENV === "development";
-  return isTestMode ? "http://localhost:3000" : "https://salesrepo.runsystem.co.jp";
+  return isTestMode ? "http://localhost:3000" : process.env.NEXT_PUBLIC_HOST_URL;
 };
 
 
 //APIリクエスト関数
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
   const token = localStorage.getItem('access_token');
-  console.log("データ表示　：　" + process.env.NEXT_PUBLIC_DISPLAY_API_URL);
-  console.log("ダウンロード　：　" + process.env.NEXT_PUBLIC_DOWNLOAD_API_URL);
-  console.log("ホスト　：　" + process.env.NEXT_PUBLIC_HOST_URL);
   try {
+
+    console.log("データ表示 ： " + process.env.NEXT_PUBLIC_DISPLAY_API_URL);
+    console.log("ダウンロード ： " + process.env.NEXT_PUBLIC_DOWNLOAD_API_URL);
+    console.log("ホスト ： " + process.env.NEXT_PUBLIC_HOST_URL);
+
     let url = "";
 
     // 店舗別データ表示
     if (endpoint === "display_by_store") {
-      url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_store";
+      url = `${process.env.NEXT_PUBLIC_DISPLAY_API_URL}/api/display_by_store`;
     }
     // 日別データ表示
     if (endpoint === "display_by_date") {
-      url = "https://displaybystore-h8aagzbhegc6d7ch.z01.azurefd.net/api/display_by_date";
+      url = `${process.env.NEXT_PUBLIC_DISPLAY_API_URL}/api/display_by_date`;
     }
     //ダウンロード
     if (endpoint === "download") {
-      url = "https://download-hzd8f3fbe0d3h9g0.z01.azurefd.net/api/download";
+      url = `${process.env.NEXT_PUBLIC_DOWNLOAD_API_URL}/api/download`;
     }
     //店舗情報取得
     if (endpoint === "getStoreList") {
