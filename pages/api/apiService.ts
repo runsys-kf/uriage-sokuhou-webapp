@@ -28,13 +28,10 @@ const ProdOrDev = () => {
 //APIリクエスト関数
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
   const token = localStorage.getItem('access_token');
-  console.log("データ表示　：　" + process.env.DISPLAY_BACKEND_API_URL);
-  console.log("ダウンロード　：　" + process.env.DOWNLOAD_BACKEND_API_URL);
+  console.log("データ表示　：　" + process.env.NEXT_PUBLIC_DISPLAY_API_URL);
+  console.log("ダウンロード　：　" + process.env.NEXT_PUBLIC_DOWNLOAD_API_URL);
   console.log("ホスト　：　" + process.env.NEXT_PUBLIC_HOST_URL);
   try {
-    console.log("データ表示　：　" + process.env.DISPLAY_BACKEND_API_URL);
-    console.log("ダウンロード　：　" + process.env.DOWNLOAD_BACKEND_API_URL);
-    console.log("ホスト　：　" + process.env.NEXT_PUBLIC_HOST_URL);
     let url = "";
 
     // 店舗別データ表示
