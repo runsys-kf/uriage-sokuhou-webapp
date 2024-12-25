@@ -725,8 +725,12 @@ const IndexPage = () => {
     // TextDecoderを使用して文字エンコーディングを処理
     const decodedData = new TextDecoder('utf-8').decode(bytes);
 
+    // BOMを追加
+    const bom = '\uFEFF';
+    const csvData = bom + decodedData;
+
     // Blobを作成
-    const blob = new Blob([decodedData], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
 
     // ファイルを保存
     saveAs(blob, filename);
@@ -1863,7 +1867,7 @@ const IndexPage = () => {
               </div>
             </div>
             <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[480px]">
-            <table className={`min-w-full divide-y divide-x divide-gray-300 table-auto`} style={{ tableLayout: "auto" }}>
+              <table className={`min-w-full divide-y divide-x divide-gray-300 table-auto`} style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-50 sticky top-0 z-30">
                   <tr>
                     {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
