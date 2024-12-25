@@ -28,6 +28,9 @@ const ProdOrDev = () => {
 //APIリクエスト関数
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
   const token = localStorage.getItem('access_token');
+  console.log("データ表示　：　" + process.env.DISPLAY_BACKEND_API_URL);
+  console.log("ダウンロード　：　" + process.env.DOWNLOAD_BACKEND_API_URL);
+  console.log("ホスト　：　" + process.env.NEXT_PUBLIC_HOST_URL);
   try {
     console.log("データ表示　：　" + process.env.DISPLAY_BACKEND_API_URL);
     console.log("ダウンロード　：　" + process.env.DOWNLOAD_BACKEND_API_URL);
@@ -117,8 +120,8 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
           throw new Error('401 : 認証エラーが発生しました');
         case 404:
           throw new Error('404 : データが見つかりません');
-	case 408:
-	  throw new Error('408 : 条件に一致する店舗がありません。');
+        case 408:
+          throw new Error('408 : 条件に一致する店舗がありません。');
         case 500:
           throw new Error('500 : サーバーエラーが発生しました');
         default:
