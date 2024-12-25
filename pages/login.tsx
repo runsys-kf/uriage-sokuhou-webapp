@@ -45,7 +45,8 @@ const LoginPage = () => {
       if (process.env.NODE_ENV === 'development') {
         router.push("/admin");
       } else {
-        response = await axios.post('https://loginapi-atgue5hbdugadzf2.z01.azurefd.net/api/login',
+        console.log("ログイン ： " + process.env.NEXT_PUBLIC_LOGIN_API_URL);
+        response = await axios.post(`${process.env.NEXT_PUBLIC_LOGIN_API_URL}/api/login`,
           { username, password },
           {
             headers: {

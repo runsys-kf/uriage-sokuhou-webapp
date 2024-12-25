@@ -150,26 +150,6 @@ const IndexPage = () => {
     fetchStoreList();
   }, [router]);
 
-  // useEffect(() => {
-  //   const authority = JSON.parse(localStorage.getItem("Authority"));
-  //   if (authority) {
-  //     if (authority.length === 1 && authority.includes("9999")) {
-  //       // '9999'のみの場合は全店舗を選択
-  //       setSelectedStores(initialStores);
-  //       setAuthorizedStores(initialStores);
-  //       setFilteredStores(initialStores);
-  //     } else {
-  //       // '9999'が含まれていても他の店舗IDがある場合はその店舗のみを選択
-  //       const authorizedStoreList = initialStores.filter((store) =>
-  //         authority.includes(store.id)
-  //       );
-  //       setSelectedStores(authorizedStoreList); //選択状態店舗
-  //       setAuthorizedStores(authorizedStoreList); //表示される店舗
-  //       setFilteredStores(authorizedStoreList); //絞り込み店舗
-  //     }
-  //   }
-  // }, []);
-
   // 認証チェック
   // useEffect(() => {
   //   const checkAuth = async () => {

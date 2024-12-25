@@ -11,7 +11,7 @@ import { useRouter } from "next/router";
 import Sidebar from "./../../components/SidebarButton";
 import { fetchData } from "../api/apiService";
 import { stores_info_sequential } from "../../__tests__/storesInfoMockData";
-import {API_ENDPOINTS } from "../api/apiService";
+import { API_ENDPOINTS } from "../api/apiService";
 
 import { GetServerSideProps } from "next";
 // add 20241117 16:23
@@ -68,6 +68,26 @@ interface StoreInfo {
 }
 
 const AdminPage = () => {
+	// 認証チェック
+	// useEffect(() => {
+	//   const checkAuth = async () => {
+	//     try {
+	//       console.log("index.tsx res:");
+	//       const response = await axios.get("http://localhost:3000", {
+	//         withCredentials: true
+	//       });
+	//       console.log("index.tsx res: ", response);
+	//       // 認証成功
+	//       console.log("User is authenticated:", response.data.user);
+	//     } catch (error) {
+	//       // 認証失敗時はログインページへリダイレクト
+	//       console.error("Authentication check failed:", error);
+	//       router.replace('/admin/admin_login'); // pushではなくreplaceを使用
+	//     }
+	//   };
+
+	//   checkAuth();
+	// }, [router]);
 	const router = useRouter();
 	const isMobile = useMobile();
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -86,32 +106,32 @@ const AdminPage = () => {
 
 	// テーブルデータ取得
 	useEffect(() => {
-        const isTestMode = process.env.NODE_ENV === "development";
-        if (isTestMode) {
-            // setStoresInfo(stores_info_sequential());
-            // return;
-            const fetchDataFromBackend = async () => {
-                try {
-                    const data = await fetchData(API_ENDPOINTS.getStoreList, "", router);
+		const isTestMode = process.env.NODE_ENV === "development";
+		if (isTestMode) {
+			// setStoresInfo(stores_info_sequential());
+			// return;
+			const fetchDataFromBackend = async () => {
+				try {
+					const data = await fetchData(API_ENDPOINTS.getStoreList, "", router);
 					console.log(data);
-                    setStoresInfo(data);
-                } catch (error) {
-                    console.error("データの取得に失敗しました:", error);
-                }
-            };
-            fetchDataFromBackend();
-        } else {
-            const fetchDataFromBackend = async () => {
-                try {
-                    const data = await fetchData(API_ENDPOINTS.getStoreList, "", router);
-                    setStoresInfo(data);
-                } catch (error) {
-                    console.error("データの取得に失敗しました:", error);
-                }
-            };
-            fetchDataFromBackend();
-        }
-    }, [router.query]);
+					setStoresInfo(data);
+				} catch (error) {
+					console.error("データの取得に失敗しました:", error);
+				}
+			};
+			fetchDataFromBackend();
+		} else {
+			const fetchDataFromBackend = async () => {
+				try {
+					const data = await fetchData(API_ENDPOINTS.getStoreList, "", router);
+					setStoresInfo(data);
+				} catch (error) {
+					console.error("データの取得に失敗しました:", error);
+				}
+			};
+			fetchDataFromBackend();
+		}
+	}, [router.query]);
 
 	//編集画面へ
 	const navigateToEditPage = (store: StoreInfo) => {

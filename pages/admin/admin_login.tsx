@@ -46,7 +46,8 @@ const AdminLoginPage = () => {
 				router.push("/admin");
 				return;
 			} else {
-				response = await axios.post('https://adminlogin-hxcxe2dxcchehvh3.z01.azurefd.net/api/admin/admin_login',
+				console.log("アドミンログイン ： " + process.env.NEXT_PUBLIC_ADMIN_LOGIN_API_URL);
+				response = await axios.post(`${process.env.NEXT_PUBLIC_ADMIN_LOGIN_API_URL}/api/admlogin`,
 					{ username, password },
 					{
 						headers: {
