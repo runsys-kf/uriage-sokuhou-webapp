@@ -46,6 +46,7 @@ import { storeProcessData, dateProcessData } from "./api/dataTransformer";
 import { initialStores } from "../data/shopData";
 import ErrorModal from "../components/ErrorModal";
 import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
+import { csvDlResData } from "__tests__/csvDlResData";
 import { convertToCSV, downloadCSV } from "./api/downloadCSV";
 import dayjs, { Dayjs } from "dayjs";
 import { saveAs } from 'file-saver'; // ファイル保存用のライブラリをインポート
@@ -690,8 +691,8 @@ const IndexPage = () => {
         } else if (endpoint === "display_by_store") {
           setStoresData(mockStoreResponse());
         } else if (endpoint === "download") {
-          const data = "CSV,csv,csv";
-          return data;
+          console.log("ダウンロード");
+          return csvDlResData;
         }
         console.log("storesData.storeData[0]" + storesData.storeData[0]);
         if (storesData.storeData.length > 0) {
@@ -733,7 +734,6 @@ const IndexPage = () => {
 
   // Base64エンコードされたデータをデコードしてCSVファイルを生成し、ダウンロードする関数
   const downloadCSV = (encodedData: string, filename: string) => {
-
     // Base64デコード
     const binaryString = atob(encodedData);
 
@@ -747,8 +747,12 @@ const IndexPage = () => {
     // TextDecoderを使用して文字エンコーディングを処理
     const decodedData = new TextDecoder('utf-8').decode(bytes);
 
+    // BOMを追加
+    const bom = '\uFEFF';
+    const csvData = bom + decodedData;
+
     // Blobを作成
-    const blob = new Blob([decodedData], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
 
     // ファイルを保存
     saveAs(blob, filename);
@@ -794,15 +798,15 @@ const IndexPage = () => {
   );
 
   // ヘッダーのスタイル
-const headerClassName = (additionalClasses = "") =>
-  `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-200 border border-gray-50 ${additionalClasses}`;
+  const headerClassName = (additionalClasses = "") =>
+    `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-200 border border-gray-50 ${additionalClasses}`;
 
   // 通常ヘッダー
-const renderTableHeader = (content: string, additionalClasses = "", colSpan: number = 1) => (
-  <th className={headerClassName(additionalClasses)} colSpan={colSpan} style={{ whiteSpace: 'nowrap' }}>
-    {content}
-  </th>
-);
+  const renderTableHeader = (content: string, additionalClasses = "", colSpan: number = 1) => (
+    <th className={headerClassName(additionalClasses)} colSpan={colSpan} style={{ whiteSpace: 'nowrap' }}>
+      {content}
+    </th>
+  );
   //ソートアイコン付きヘッダー
   const renderTableHeaderWithSort = (
     content: string,
@@ -1896,7 +1900,7 @@ const renderTableHeader = (content: string, additionalClasses = "", colSpan: num
             </div>
 
             <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[480px]">
-            <table className={`min-w-full divide-y divide-x divide-gray-300 table-auto`} style={{ tableLayout: "auto" }}>
+              <table className={`min-w-full divide-y divide-x divide-gray-300 table-auto`} style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-50 sticky top-0 z-30">
                   <tr>
                     {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
