@@ -69,27 +69,28 @@ interface StoreInfo {
 }
 
 const AdminPage = () => {
+	const router = useRouter();
 	//	認証チェック
 	useEffect(() => {
-	  const checkAuth = async () => {
-	    try {
-	      console.log("index.tsx res:");
-	      const response = await axios.get(process.env.NEXT_PUBLIC_HOST_URL, {
-	        withCredentials: true
-	      });
-	      console.log("index.tsx res: ", response);
-	      // 認証成功
-	      console.log("User is authenticated:", response.data.user);
-	    } catch (error) {
-	      // 認証失敗時はログインページへリダイレクト
-	      console.error("Authentication check failed:", error);
-	      router.replace('/admin/admin_login'); // pushではなくreplaceを使用
-	    }
-	  };
+		const checkAuth = async () => {
+			try {
+				console.log("index.tsx res:");
+				const response = await axios.get(process.env.NEXT_PUBLIC_HOST_URL, {
+					withCredentials: true
+				});
+				console.log("index.tsx res: ", response);
+				// 認証成功
+				console.log("User is authenticated:", response.data.user);
+			} catch (error) {
+				// 認証失敗時はログインページへリダイレクト
+				console.error("Authentication check failed:", error);
+				router.replace('/admin/admin_login'); // pushではなくreplaceを使用
+			}
+		};
 
-	  checkAuth();
+		checkAuth();
 	}, [router]);
-	const router = useRouter();
+
 	const isMobile = useMobile();
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [currentPage, setCurrentPage] = useState(1); //現在のメージ
