@@ -656,9 +656,11 @@ const IndexPage = () => {
       return;
     }
     try {
-      setStoresData(initialStoresData); //初期化処理
-      setSortKey("");
-      setSortDirection("desc");
+      if (!(endpoint === "download")) {
+        setStoresData(initialStoresData); //初期化処理
+        setSortKey("");
+        setSortDirection("desc");
+      }
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       if (isTestMode) {
