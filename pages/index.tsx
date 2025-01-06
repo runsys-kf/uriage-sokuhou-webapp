@@ -110,7 +110,7 @@ const IndexPage = () => {
         const stores = data.map((store) => ({
           id: store.BaseNo,
           name: store.BaseName,
-          //prefecture: store.Prefecture,
+          prefecture: store.Prefecture,
         }));
         stores.forEach(store => {
           console.log(`id: ${store.id}, name: ${store.name}`);
