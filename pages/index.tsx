@@ -112,7 +112,7 @@ const IndexPage = () => {
         const stores = data.map((store) => ({
           id: store.BaseNo,
           name: store.BaseName,
-          //prefecture: store.Prefecture,
+          prefecture: store.Prefecture,
         }));
         stores.forEach(store => {
           console.log(`id: ${store.id}, name: ${store.name}`);
@@ -659,9 +659,11 @@ const IndexPage = () => {
       return;
     }
     try {
-      setStoresData(initialStoresData); //初期化処理
-      setSortKey("");
-      setSortDirection("desc");
+      if (!(endpoint === "download")) {
+        setStoresData(initialStoresData); // 初期化処理
+        setSortKey("");
+        setSortDirection("desc");
+      }
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       if (isTestMode) {
