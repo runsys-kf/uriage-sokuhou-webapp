@@ -2,6 +2,7 @@
 export const mockStoreResponse = () => {
   const totalData = {
     storeName: "合計",
+    area: "",
     storeNumber: "none",
     storeDate: "",
     netSalesA: "1,000,000",
@@ -33,7 +34,8 @@ export const mockStoreResponse = () => {
   };
   const storeData = [
     {
-      storeName: "000",
+      storeName: "aaaaaaa",
+      area: "駅前",
       storeNumber: "0000",
       storeDate: "",
       netSalesA: "401,000",
@@ -65,6 +67,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗B",
+      area: "郊外",
       storeNumber: "0002",
       storeDate: "",
       netSalesA: "200,000",
@@ -96,6 +99,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗A",
+      area: "郊外",
       storeNumber: "0001",
       storeDate: "",
       netSalesA: "401,000",
@@ -127,6 +131,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗B",
+      area: "郊外",
       storeNumber: "0002",
       storeDate: "",
       netSalesA: "200,000",
@@ -158,6 +163,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗c",
+      area: "駅前",
       storeNumber: "0003",
       storeDate: "",
       netSalesA: "",
@@ -189,6 +195,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗D",
+      area: "郊外",
       storeNumber: "0004",
       storeDate: "",
       netSalesA: "700,120",
@@ -220,6 +227,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗E",
+      area: "郊外",
       storeNumber: "0005",
       storeDate: "",
       netSalesA: "7,004,564",
@@ -251,6 +259,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗A",
+      area: "郊外",
       storeNumber: "0001",
       storeDate: "",
       netSalesA: "500,006",
@@ -282,6 +291,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗B",
+      area: "郊外",
       storeNumber: "0002",
       storeDate: "",
       netSalesA: "",
@@ -313,6 +323,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗c",
+      area: "",
       storeNumber: "0003",
       storeDate: "",
       netSalesA: "700,009",
@@ -344,6 +355,7 @@ export const mockStoreResponse = () => {
     },
     {
       storeName: "店舗D",
+      area: "駅前",
       storeNumber: "0004",
       storeDate: "",
       netSalesA: "700,120",
