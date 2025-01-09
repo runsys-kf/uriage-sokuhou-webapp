@@ -668,6 +668,7 @@ const IndexPage = () => {
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       if (isTestMode) {
+        console.log("テスト集計開始");
         setIsLoading(true); // 集計中...に設定
         if (endpoint === "display_by_date") {
           //setStoresData(mockDateResponse());
