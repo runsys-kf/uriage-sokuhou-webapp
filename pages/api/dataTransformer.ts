@@ -7,6 +7,7 @@ export const storeProcessData = (response) => {
   // UI に合わせたキー名に変更
   const totalData = {
     storeName: response.合計.base_name,
+    area: "",
     storeNumber: response.合計.base_no,
     storeDate: "",
     netSalesA: response.合計.sales_total1,
@@ -46,6 +47,7 @@ export const storeProcessData = (response) => {
 const storeTransformData = (data) => {
   return data.map(item => ({
     storeName: item.base_name,
+    area: item.area,
     storeNumber: item.base_no,
     storeDate: "",
     netSalesA: item.sales_total1,
@@ -81,6 +83,7 @@ export const dateProcessData = (response) => {
   // UI に合わせたキー名に変更
   const totalData = {
     storeName: "",
+    area: "",
     storeNumber: "",
     storeDate: response.合計.date,
     netSalesA: response.合計.sales_total1,
@@ -120,6 +123,7 @@ export const dateProcessData = (response) => {
 const dateTransformData = (data) => {
   return data.map(item => ({
     storeName: "",
+    area: "",
     storeNumber: "",
     storeDate: item.date,
     netSalesA: item.sales_total1,

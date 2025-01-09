@@ -213,6 +213,7 @@ const IndexPage = () => {
   //型指定
   interface TotalData {
     storeName: string;
+    area: string;
     storeNumber: string;
     storeDate: string;
     netSalesA: string;
@@ -244,6 +245,7 @@ const IndexPage = () => {
   }
   interface StoreData {
     storeName: string;
+    area: string;
     storeNumber: string;
     storeDate: string;
     netSalesA: string;
@@ -281,6 +283,7 @@ const IndexPage = () => {
   const [storesData, setStoresData] = useState<StoresData>({
     totalData: {
       storeName: "合計",
+      area: "",
       storeNumber: "",
       storeDate: "",
       netSalesA: "",
@@ -616,6 +619,7 @@ const IndexPage = () => {
     totalData: {
       storeName: "合計",
       storeNumber: "",
+      area: "",
       storeDate: "",
       netSalesA: "",
       netSalesB: "",
@@ -757,27 +761,30 @@ const IndexPage = () => {
 
   // 固定幅のスタイルを定義
   const fixedColumnStyles = {
-    firstColumn: "sticky left-0 z-10 min-w-[80px] max-w-[80px]", // 店舗名列
-    secondColumn: "sticky left-[80px] z-10 bg-white min-w-[80px] max-w-[80px]", // 店舗番号列
+    firstColumn: "sticky left-0 z-10 min-w-[60px] max-w-[60px] text-center", // 店舗名列
+    secondColumn: "min-w-[60px] max-w-[60px] text-center", // 店舗番号列
+    noColumn: "sticky left-0 z-10 min-w-[40px] max-w-[40px] text-center", // No列
+    areaColumn: "min-w-[60px] max-w-[60px] text-center", // エリア列
   };
-  //データー行
+
+  // データー行
   const renderTableCell = (content: string | number, className = "", colSpan: number = 1) => (
     <td className={`px-1 py-1 text-sm font-medium-mono text-gray-900 border ${className}`} colSpan={colSpan} style={{ whiteSpace: 'nowrap', width: 'auto', maxWidth: 'none' }}>
       {content}
     </td>
   );
 
-  //ヘッダーのスタイル
+  // ヘッダーのスタイル
   const headerClassName = (additionalClasses = "") =>
     `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-200 border border-gray-50 ${additionalClasses}`;
 
-  //通常ヘッダー
+  // 通常ヘッダー
   const renderTableHeader = (content: string, additionalClasses = "", colSpan: number = 1) => (
     <th className={headerClassName(additionalClasses)} colSpan={colSpan} style={{ whiteSpace: 'nowrap' }}>
       {content}
     </th>
   );
-  //ソートアイコン付きヘッダー
+  // ソートアイコン付きヘッダー
   const renderTableHeaderWithSort = (
     content: string,
     sortKey: string,
@@ -1546,6 +1553,24 @@ const IndexPage = () => {
                       }}
                     />
                     <FormControlLabel
+                      value="直営ランセカンド"
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 16,
+                            },
+                            ".MuiFormControlLabel-label": { fontSize: 14 },
+                            p: "4px",
+                          }}
+                        />
+                      }
+                      label="直営＋ランセカンド"
+                      sx={{
+                        "& .MuiFormControlLabel-label": { fontSize: 14 },
+                      }}
+                    />
+                    <FormControlLabel
                       value="直営"
                       control={
                         <Radio
@@ -1558,7 +1583,7 @@ const IndexPage = () => {
                           }}
                         />
                       }
-                      label="直営"
+                      label="直営のみ"
                       sx={{
                         "& .MuiFormControlLabel-label": { fontSize: 14 },
                       }}
@@ -1576,7 +1601,7 @@ const IndexPage = () => {
                           }}
                         />
                       }
-                      label="FC"
+                      label="FCのみ"
                       sx={{
                         "& .MuiFormControlLabel-label": { fontSize: 14 },
                       }}
@@ -1594,7 +1619,7 @@ const IndexPage = () => {
                           }}
                         />
                       }
-                      label="ランセカンド"
+                      label="ランセカンドのみ"
                       sx={{
                         "& .MuiFormControlLabel-label": { fontSize: 14 },
                       }}
@@ -1876,8 +1901,9 @@ const IndexPage = () => {
                       renderTableHeader("店舗情報", `sticky left-0 z-20 border-r-2 border-r-gray-400`, 1)
                     ) : (
                       <>
-                        {renderTableHeader("店舗情報", "sticky left-0 z-20", 1)}
-                        {renderTableHeader("", "border-r-2 border-r-gray-400", 1)}
+                        {renderTableHeader("", "", 1)}
+                        {renderTableHeader("", `sticky left-0 z-20 ${fixedColumnStyles.firstColumn}`, 1)}
+                        {renderTableHeader("店舗情報", "border-r-2 border-r-gray-400", 2)}
                       </>
                     )}
                     {renderTableHeader("税抜売上", "border-r-2 border-r-gray-400", compareCheck ? 4 : 1)}
@@ -1893,8 +1919,10 @@ const IndexPage = () => {
                       renderTableHeader("日付", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`)
                     ) : (
                       <>
+                        {renderTableHeader("No.", `${fixedColumnStyles.noColumn}`)}
                         {renderTableHeader("店舗名", `sticky left-0 z-20 ${fixedColumnStyles.firstColumn}`)}
-                        {renderTableHeaderWithSort("店番", "storeNumber", sortKey, sortDirection, handleSort, `border-r-2 border-r-gray-400`)}
+                        {renderTableHeader("エリア", `${fixedColumnStyles.areaColumn}`)}
+                        {renderTableHeaderWithSort("店番", "storeNumber", sortKey, sortDirection, handleSort, `border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`)}
                       </>
                     )}
                     {renderTableHeaderWithSort("対象期間", "netSalesA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
@@ -1953,7 +1981,9 @@ const IndexPage = () => {
                       renderTableHeader("合計", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`)
                     ) : (
                       <>
+                        {renderTableHeader("", `${fixedColumnStyles.noColumn}`)}
                         {renderTableHeader(storesData.totalData.storeName.toLocaleString(), `sticky left-0 z-20  ${fixedColumnStyles.firstColumn}`)}
+                        {renderTableHeader("", `${fixedColumnStyles.firstColumn}`)}
                         {renderTableHeader(storesData.totalData.storeNumber.toLocaleString(), `border-r-2 border-r-gray-400`)}
                       </>
                     )}
@@ -2016,7 +2046,9 @@ const IndexPage = () => {
                         renderTableCell(store.storeDate, `sticky left-0 z-20 bg-gray-50 border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`)
                       ) : (
                         <>
+                          {renderTableCell(index + 1, `sticky left-0 z-20 bg-gray-50 ${fixedColumnStyles.noColumn}`)}
                           {renderTableCell(store.storeName, `sticky left-0 z-20 bg-gray-50 ${fixedColumnStyles.firstColumn}`)}
+                          {renderTableCell(store.area, ``)}
                           {renderTableCell(store.storeNumber, `border-r-2 border-r-gray-400`)}
                         </>
                       )}
