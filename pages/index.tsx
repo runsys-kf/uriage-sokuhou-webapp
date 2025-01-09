@@ -215,6 +215,7 @@ const IndexPage = () => {
   //型指定
   interface TotalData {
     storeName: string;
+    area: string;
     storeNumber: string;
     storeDate: string;
     netSalesA: string;
@@ -246,6 +247,7 @@ const IndexPage = () => {
   }
   interface StoreData {
     storeName: string;
+    area: string;
     storeNumber: string;
     storeDate: string;
     netSalesA: string;
@@ -283,6 +285,7 @@ const IndexPage = () => {
   const [storesData, setStoresData] = useState<StoresData>({
     totalData: {
       storeName: "合計",
+      area: "",
       storeNumber: "",
       storeDate: "",
       netSalesA: "",
@@ -1892,7 +1895,6 @@ const IndexPage = () => {
                 </Button>
               </div>
             </div>
-
             <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[480px]">
               <table className={`min-w-full divide-y divide-x divide-gray-300 table-auto`} style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-50 sticky top-0 z-30">
