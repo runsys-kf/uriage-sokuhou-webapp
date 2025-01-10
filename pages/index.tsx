@@ -760,24 +760,41 @@ const IndexPage = () => {
     }
   };
 
-  // 固定幅のスタイルを定義
-  const fixedColumnStyles = {
-    firstColumn: "sticky left-0 z-10 min-w-[60px] max-w-[60px] text-center", // 店舗名列
-    secondColumn: "min-w-[60px] max-w-[60px] text-center", // 店舗番号列
-    noColumn: "sticky left-0 z-10 min-w-[40px] max-w-[40px] text-center", // No列
-    areaColumn: "min-w-[60px] max-w-[60px] text-center", // エリア列
+  // ヘッダーの固定幅のスタイルを定義
+  const headerFixedColumnStyles = {
+    firstColumn: "sticky left-0 z-10 text-center bg-gray-300 min-w-[100px]", // 店舗名列
+    //secondColumn: "text-center bg-gray-300 min-w-[100px]", // 店舗番号列
+    noColumn: "text-center bg-gray-300 min-w-[50px]", // No列
+    areaColumn: "text-center bg-gray-300 min-w-[100px]", // エリア列
+    storeNumberColumn: "text-center bg-gray-300 min-w-[100px]", // 店番列
+    dateColumn: "text-center bg-gray-300 min-w-[120px]", // 日付列
+  };
+
+  // データ行の固定幅のスタイルを定義
+  const dataFixedColumnStyles = {
+    firstColumn: "sticky left-0 z-20 text-center min-w-[100px] bg-white", // 店舗名列
+    //noColumn: "text-center min-w-[50px] bg-white hover:bg-gray-200", // No列
+    //areaColumn: "text-center min-w-[100px] bg-white hover:bg-gray-200", // エリア列
+    //storeNumberColumn: "text-center min-w-[100px] bg-white hover:bg-gray-200", // 店番列
+    othersColumn: "text-center", // 中央ぞろえ
+    dateColumn: "sticky left-0 z-10 text-center min-w-[120px] bg-white", // 日付列
   };
 
   // データー行
-  const renderTableCell = (content: string | number, className = "", colSpan: number = 1) => (
-    <td className={`px-1 py-1 text-sm font-medium-mono text-gray-900 border ${className}`} colSpan={colSpan} style={{ whiteSpace: 'nowrap', width: 'auto', maxWidth: 'none' }}>
-      {content}
-    </td>
-  );
+  const renderTableCell = (content: string | number, className = "", colSpan: number = 1) => {
+    const isNegative = typeof content === 'string' && content.includes('-');
+    const cellStyle = isNegative ? 'text-red-500' : 'text-gray-900';
+
+    return (
+      <td className={`px-1 py-1 text-sm font-medium-mono ${cellStyle} border ${className}`} colSpan={colSpan} style={{ whiteSpace: 'nowrap' }}>
+        {content}
+      </td>
+    );
+  };
 
   // ヘッダーのスタイル
   const headerClassName = (additionalClasses = "") =>
-    `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-200 border border-gray-50 ${additionalClasses}`;
+    `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-300 border border-gray-300 ${additionalClasses}`;
 
   // 通常ヘッダー
   const renderTableHeader = (content: string, additionalClasses = "", colSpan: number = 1) => (
@@ -785,6 +802,7 @@ const IndexPage = () => {
       {content}
     </th>
   );
+
   // ソートアイコン付きヘッダー
   const renderTableHeaderWithSort = (
     content: string,
@@ -795,7 +813,7 @@ const IndexPage = () => {
     additionalClasses = "",
     colSpan: number = 1
   ) => (
-    <th className={headerClassName(additionalClasses)} colSpan={colSpan}>
+    <th className={headerClassName(additionalClasses)} colSpan={colSpan} style={{ whiteSpace: 'nowrap' }}>
       <div className="flex items-center justify-between">
         {content}
         <div>
@@ -1895,7 +1913,7 @@ const IndexPage = () => {
               </div>
             </div>
             <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[480px]">
-              <table className={`min-w-full divide-y divide-x divide-gray-300 table-auto`} style={{ tableLayout: "auto" }}>
+              <table className="min-w-full divide-y divide-x divide-gray-300 table-auto" style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-50 sticky top-0 z-30">
                   <tr>
                     {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
@@ -1903,7 +1921,7 @@ const IndexPage = () => {
                     ) : (
                       <>
                         {renderTableHeader("", "", 1)}
-                        {renderTableHeader("", `sticky left-0 z-20 ${fixedColumnStyles.firstColumn}`, 1)}
+                        {renderTableHeader("", `sticky left-0 z-20 ${headerFixedColumnStyles.firstColumn}`, 1)}
                         {renderTableHeader("店舗情報", "border-r-2 border-r-gray-400", 2)}
                       </>
                     )}
@@ -1917,74 +1935,74 @@ const IndexPage = () => {
                   </tr>
                   <tr>
                     {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
-                      renderTableHeader("日付", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`)
+                      renderTableHeader("日付", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${headerFixedColumnStyles.dateColumn}`)
                     ) : (
                       <>
-                        {renderTableHeader("No.", `${fixedColumnStyles.noColumn}`)}
-                        {renderTableHeader("店舗名", `sticky left-0 z-20 ${fixedColumnStyles.firstColumn}`)}
-                        {renderTableHeader("エリア", `${fixedColumnStyles.areaColumn}`)}
-                        {renderTableHeaderWithSort("店番", "storeNumber", sortKey, sortDirection, handleSort, `border-r-2 border-r-gray-400 ${fixedColumnStyles.secondColumn}`)}
+                        {renderTableHeader("No.", `${headerFixedColumnStyles.noColumn}`)}
+                        {renderTableHeader("店舗名", `sticky left-0 z-20 ${headerFixedColumnStyles.firstColumn}`)}
+                        {renderTableHeader("エリア", `${headerFixedColumnStyles.areaColumn}`)}
+                        {renderTableHeaderWithSort("店番", "storeNumber", sortKey, sortDirection, handleSort, `border-r-2 border-r-gray-400 ${headerFixedColumnStyles.storeNumberColumn}`)}
                       </>
                     )}
                     {renderTableHeaderWithSort("対象期間", "netSalesA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
                     {compareCheck && (
                       <>
-                        {renderTableHeader("比較期間")}
-                        {renderTableHeader("差異")}
-                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                        {renderTableHeaderWithSort("比較期間", "netSalesB", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("差異", "netSalesChange", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("比率", "netSalesRatio", sortKey, sortDirection, handleSort, "border-r-2 border-r-gray-400")}
                       </>
                     )}
                     {renderTableHeaderWithSort("対象期間", "usersA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
                     {compareCheck && (
                       <>
-                        {renderTableHeader("比較期間")}
-                        {renderTableHeader("差異")}
-                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                        {renderTableHeaderWithSort("比較期間", "usersB", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("差異", "usersChange", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("比率", "usersRatio", sortKey, sortDirection, handleSort, "border-r-2 border-r-gray-400")}
                       </>
                     )}
                     {renderTableHeaderWithSort("対象期間", "avgPriceA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
                     {compareCheck && (
                       <>
-                        {renderTableHeader("比較期間")}
-                        {renderTableHeader("差異")}
-                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                        {renderTableHeaderWithSort("比較期間", "avgPriceB", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("差異", "avgPriceChange", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("比率", "avgPriceRatio", sortKey, sortDirection, handleSort, "border-r-2 border-r-gray-400")}
                       </>
                     )}
                     {renderTableHeaderWithSort("対象期間", "newUsersA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
                     {compareCheck && (
                       <>
-                        {renderTableHeader("比較期間")}
-                        {renderTableHeader("差異")}
-                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                        {renderTableHeaderWithSort("比較期間", "newUsersB", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("差異", "newUsersChange", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("比率", "newUsersRatio", sortKey, sortDirection, handleSort, "border-r-2 border-r-gray-400")}
                       </>
                     )}
                     {renderTableHeaderWithSort("対象期間", "newUsersRateA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
-                    {compareCheck && renderTableHeader("比較期間", "border-r-2 border-r-gray-400")}
+                    {compareCheck && renderTableHeaderWithSort("比較期間", "newUsersRateB", sortKey, sortDirection, handleSort, "border-r-2 border-r-gray-400")}
                     {renderTableHeaderWithSort("対象期間", "otherSalesA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
                     {compareCheck && (
                       <>
-                        {renderTableHeader("比較期間")}
-                        {renderTableHeader("差異")}
-                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                        {renderTableHeaderWithSort("比較期間", "otherSalesB", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("差異", "otherSalesChange", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("比率", "otherSalesRatio", sortKey, sortDirection, handleSort, "border-r-2 border-r-gray-400")}
                       </>
                     )}
                     {renderTableHeaderWithSort("対象期間", "consignmentSalesA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
                     {compareCheck && (
                       <>
-                        {renderTableHeader("比較期間")}
-                        {renderTableHeader("差異")}
-                        {renderTableHeader("比率", "border-r-2 border-r-gray-400")}
+                        {renderTableHeaderWithSort("比較期間", "consignmentSalesB", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("差異", "consignmentSalesChange", sortKey, sortDirection, handleSort)}
+                        {renderTableHeaderWithSort("比率", "consignmentSalesRatio", sortKey, sortDirection, handleSort, "border-r-2 border-r-gray-400")}
                       </>
                     )}
                   </tr>
                   <tr>
                     {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
-                      renderTableHeader("合計", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`)
+                      renderTableHeader("合計", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${headerFixedColumnStyles.firstColumn}`)
                     ) : (
                       <>
-                        {renderTableHeader("", `${fixedColumnStyles.noColumn}`)}
-                        {renderTableHeader(storesData.totalData.storeName.toLocaleString(), `sticky left-0 z-20  ${fixedColumnStyles.firstColumn}`)}
-                        {renderTableHeader("", `${fixedColumnStyles.firstColumn}`)}
+                        {renderTableHeader("", `${headerFixedColumnStyles.noColumn}`)}
+                        {renderTableHeader(storesData.totalData.storeName.toLocaleString(), `sticky left-0 z-20  ${headerFixedColumnStyles.firstColumn}`)}
+                        {renderTableHeader("", `${headerFixedColumnStyles.firstColumn}`)}
                         {renderTableHeader(storesData.totalData.storeNumber.toLocaleString(), `border-r-2 border-r-gray-400`)}
                       </>
                     )}
@@ -2044,24 +2062,24 @@ const IndexPage = () => {
                   {sortedStoresData.map((store, index) => (
                     <tr key={`${store.storeNumber}-${index}`}>
                       {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
-                        renderTableCell(store.storeDate, `sticky left-0 z-20 bg-gray-50 border-r-2 border-r-gray-400 ${fixedColumnStyles.firstColumn}`)
+                        renderTableCell(store.storeDate, `border-r-2 border-r-gray-400 ${dataFixedColumnStyles.dateColumn}`)
                       ) : (
                         <>
-                          {renderTableCell(index + 1, `sticky left-0 z-20 bg-gray-50 ${fixedColumnStyles.noColumn}`)}
-                          {renderTableCell(store.storeName, `sticky left-0 z-20 bg-gray-50 ${fixedColumnStyles.firstColumn}`)}
-                          {renderTableCell(store.area, ``)}
-                          {renderTableCell(store.storeNumber, `border-r-2 border-r-gray-400`)}
+                          {renderTableCell(index + 1, `${dataFixedColumnStyles.othersColumn}`)}
+                          {renderTableCell(store.storeName, `${dataFixedColumnStyles.firstColumn}`)}
+                          {renderTableCell(store.area, `${dataFixedColumnStyles.othersColumn}`)}
+                          {renderTableCell(store.storeNumber, `border-r-2 border-r-gray-400 ${dataFixedColumnStyles.othersColumn}`)}
                         </>
                       )}
-                      {renderTableCell(store.netSalesA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                      {renderTableCell(store.netSalesA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
-                          {renderTableCell(store.netSalesB.toLocaleString(), "bg-gray-50 text-right")}
-                          {renderTableCell(store.netSalesChange.toLocaleString(), "bg-gray-50 text-right")}
-                          {renderTableCell(store.netSalesRatio.toLocaleString(), "bg-gray-50 text-right border-r-2 border-r-gray-400")}
+                          {renderTableCell(store.netSalesB.toLocaleString(), "text-right")}
+                          {renderTableCell(store.netSalesChange.toLocaleString(), "text-right")}
+                          {renderTableCell(store.netSalesRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
-                      {renderTableCell(store.usersA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                      {renderTableCell(store.usersA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
                           {renderTableCell(store.usersB.toLocaleString(), "text-right")}
@@ -2069,15 +2087,15 @@ const IndexPage = () => {
                           {renderTableCell(store.usersRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
-                      {renderTableCell(store.avgPriceA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                      {renderTableCell(store.avgPriceA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
-                          {renderTableCell(store.avgPriceB.toLocaleString(), "bg-gray-50 text-right")}
-                          {renderTableCell(store.avgPriceChange.toLocaleString(), "bg-gray-50 text-right")}
-                          {renderTableCell(store.avgPriceRatio.toLocaleString(), "bg-gray-50 text-right border-r-2 border-r-gray-400")}
+                          {renderTableCell(store.avgPriceB.toLocaleString(), "text-right")}
+                          {renderTableCell(store.avgPriceChange.toLocaleString(), "text-right")}
+                          {renderTableCell(store.avgPriceRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
-                      {renderTableCell(store.newUsersA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                      {renderTableCell(store.newUsersA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
                           {renderTableCell(store.newUsersB.toLocaleString(), "text-right")}
@@ -2085,9 +2103,9 @@ const IndexPage = () => {
                           {renderTableCell(store.newUsersRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
-                      {renderTableCell(store.newUsersRateA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
-                      {compareCheck && renderTableCell(store.newUsersRateB.toLocaleString(), "bg-gray-50 text-right border-r-2 border-r-gray-400")}
-                      {renderTableCell(store.otherSalesA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                      {renderTableCell(store.newUsersRateA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                      {compareCheck && renderTableCell(store.newUsersRateB.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
+                      {renderTableCell(store.otherSalesA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
                           {renderTableCell(store.otherSalesB.toLocaleString(), "text-right")}
@@ -2095,7 +2113,7 @@ const IndexPage = () => {
                           {renderTableCell(store.otherSalesRatio.toLocaleString(), "text-right border-r-2 border-r-gray-400")}
                         </>
                       )}
-                      {renderTableCell(store.consignmentSalesA.toLocaleString(), `bg-gray-50 text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
+                      {renderTableCell(store.consignmentSalesA.toLocaleString(), `text-right ${!compareCheck ? "border-r-2 border-r-gray-400" : ""}`, 1)}
                       {compareCheck && (
                         <>
                           {renderTableCell(store.consignmentSalesB.toLocaleString(), "text-right")}
