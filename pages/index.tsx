@@ -762,12 +762,12 @@ const IndexPage = () => {
 
   // ヘッダーの固定幅のスタイルを定義
   const headerFixedColumnStyles = {
-    firstColumn: "sticky left-0 z-10 text-center bg-gray-300 min-w-[100px]", // 店舗名列
+    firstColumn: "sticky left-0 z-10 text-center bg-gray-300 min-w-[20px] max-w-[60px] px-0", // 店舗名列
     //secondColumn: "text-center bg-gray-300 min-w-[100px]", // 店舗番号列
-    noColumn: "text-center bg-gray-300 min-w-[50px]", // No列
-    areaColumn: "text-center bg-gray-300 min-w-[100px]", // エリア列
-    storeNumberColumn: "text-center bg-gray-300 min-w-[100px]", // 店番列
-    dateColumn: "text-center bg-gray-300 min-w-[120px]", // 日付列
+    noColumn: "text-center bg-gray-300 min-w-[20px] max-w-[40px] px-0", // No列
+    areaColumn: "text-center bg-gray-300 min-w-[20px] max-w-[60px] px-0", // エリア列
+    storeNumberColumn: "text-center bg-gray-300 min-w-[20px] max-w-[70px] px-0", // 店番列
+    dateColumn: "text-center bg-gray-300 min-w-[70px] max-w-[70px] px-0", // 日付列
   };
 
   // データ行の固定幅のスタイルを定義
@@ -777,7 +777,7 @@ const IndexPage = () => {
     //areaColumn: "text-center min-w-[100px] bg-white hover:bg-gray-200", // エリア列
     //storeNumberColumn: "text-center min-w-[100px] bg-white hover:bg-gray-200", // 店番列
     othersColumn: "text-center", // 中央ぞろえ
-    dateColumn: "sticky left-0 z-10 text-center min-w-[120px] bg-white", // 日付列
+    dateColumn: "sticky left-0 z-10 text-center min-w-[70px] bg-white  px-0", // 日付列
   };
 
   // データー行
@@ -794,7 +794,7 @@ const IndexPage = () => {
 
   // ヘッダーのスタイル
   const headerClassName = (additionalClasses = "") =>
-    `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-300 border border-gray-300 ${additionalClasses}`;
+    `px-4 py-1 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-300 border border-gray-200 ${additionalClasses}`;
 
   // 通常ヘッダー
   const renderTableHeader = (content: string, additionalClasses = "", colSpan: number = 1) => (
@@ -1921,8 +1921,8 @@ const IndexPage = () => {
                     ) : (
                       <>
                         {renderTableHeader("", "", 1)}
-                        {renderTableHeader("", `sticky left-0 z-20 ${headerFixedColumnStyles.firstColumn}`, 1)}
-                        {renderTableHeader("店舗情報", "border-r-2 border-r-gray-400", 2)}
+                        {renderTableHeader("店舗情報", `sticky left-0 z-20 ${headerFixedColumnStyles.firstColumn}`, 1)}
+                        {renderTableHeader("", "border-r-2 border-r-gray-400", 2)}
                       </>
                     )}
                     {renderTableHeader("税抜売上", "border-r-2 border-r-gray-400", compareCheck ? 4 : 1)}
@@ -1938,7 +1938,7 @@ const IndexPage = () => {
                       renderTableHeader("日付", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${headerFixedColumnStyles.dateColumn}`)
                     ) : (
                       <>
-                        {renderTableHeader("No.", `${headerFixedColumnStyles.noColumn}`)}
+                        {renderTableHeader("No", `${headerFixedColumnStyles.noColumn}`)}
                         {renderTableHeader("店舗名", `sticky left-0 z-20 ${headerFixedColumnStyles.firstColumn}`)}
                         {renderTableHeader("エリア", `${headerFixedColumnStyles.areaColumn}`)}
                         {renderTableHeaderWithSort("店番", "storeNumber", sortKey, sortDirection, handleSort, `border-r-2 border-r-gray-400 ${headerFixedColumnStyles.storeNumberColumn}`)}
