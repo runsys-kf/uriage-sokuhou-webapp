@@ -20,8 +20,8 @@ import {
   DialogContent,
   DialogActions,
   FormLabel,
+  Tooltip,
 } from "@mui/material";
-import Tooltip from "@mui/material/Tooltip";
 import InfoIcon from "@mui/icons-material/Info";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -57,6 +57,7 @@ import { GetServerSideProps } from "next";
 // add 20241117 16:23
 import nookies from "nookies";
 import jwt from "jsonwebtoken";
+import { setDate } from "date-fns";
 
 const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
 
@@ -199,8 +200,8 @@ const IndexPage = () => {
   //ラジオボタン用状態
   const [locationValue, setLocationValue] = useState("全て"); //"全て or 駅前 or 郊外"
   const [typeValue, setTypeValue] = useState("全て"); //"全て or 直営 or FC"
-  const [closedStoreValue, setClosedStoreValue] = useState("true"); //閉店かどうか
-  const [salesInclusionValue, setSalesInclusionValue] = useState("true"); //その他売り上げ込みかどうか
+  const [closedStoreValue, setClosedStoreValue] = useState(true); //閉店かどうか
+  const [salesInclusionValue, setSalesInclusionValue] = useState(true); //その他売り上げ込みかどうか
   const [consignmentSales, setConsignmentSales] = useState(true);
 
   //集計ボタン ダウンロードボタン　の状態
@@ -508,11 +509,94 @@ const IndexPage = () => {
     }
     return acc;
   }, {});
-  // 祝日かどうかを判定する関数
-  const isHoliday = (day: Dayjs): boolean => {
-    const formattedDate = day.format("YYYY-MM-DD");
-    return Object.hasOwnProperty.call(japaneseHolidays, formattedDate);
+
+  //カレンダー共通コンポーネント
+  const CustomDatePicker = ({ label, value, onChange, minDate, maxDate, dataTestId }) => {
+    const theme = useTheme();
+    // 祝日かどうかを判定する関数
+    const isHoliday = (day: Dayjs): boolean => {
+      const formattedDate = day.format("YYYY-MM-DD");
+      return Object.hasOwnProperty.call(japaneseHolidays, formattedDate);
+    };
+
+    return (
+      <Box sx={{ display: "flex", alignItems: "center", width: "45%" }}>
+        <DesktopDatePicker
+          label={label}
+          value={value}
+          onChange={onChange}
+          minDate={minDate}
+          maxDate={maxDate}
+          slotProps={{
+            textField: {
+              size: "small",
+              inputProps: { "data-testid": dataTestId },
+            },
+            day: ({ day }) => ({
+              sx: {
+                ...(isHoliday(day) && { color: theme.palette.secondary.main }),
+              },
+            }),
+          }}
+        />
+      </Box>
+    );
   };
+
+  const handleDateChange = (dateSetter, date, amount, unit) => {
+    const newDate = dayjs(date).add(amount, unit).startOf(unit);
+    if (newDate.isBefore(dayjs())) {
+      dateSetter(newDate);
+    }
+  };
+
+  //月変更ボタン共通化
+  const CustomButton = ({ onClick, children }) => (
+    <Button
+      className="bg-gray-400 hover:bg-gray-500 text-white p-1 md:p-1 mb-1 md:mt-1"
+      variant="contained"
+      color="primary"
+      size="small"
+      style={{ width: '50px' }}
+      onClick={onClick}
+    >
+      {children}
+    </Button>
+  );
+
+  //ラジオボタン共通コンポーネント
+  const CustomRadioGroup = ({ label, value, onChange, options }) => (
+    <FormControl component="fieldset">
+      <FormLabel component="legend" style={{ fontSize: "0.875rem" }}>{label}</FormLabel>
+      <RadioGroup
+        value={value}
+        onChange={onChange}
+        className="flex flex-row gap-3"
+      >
+        {options.map((option) => (
+          <FormControlLabel
+            key={option.value}
+            value={option.value}
+            control={
+              <Radio
+                sx={{
+                  "& .MuiSvgIcon-root": {
+                    fontSize: 16,
+                  },
+                  ".MuiFormControlLabel-label": { fontSize: 14 },
+                  p: "4px",
+                }}
+              />
+            }
+            label={option.label}
+            sx={{
+              "& .MuiFormControlLabel-label": { fontSize: 14 },
+            }}
+          />
+        ))}
+      </RadioGroup>
+    </FormControl>
+  );
 
   //チェックボックス変換ハンドラ
   const handleDailyCheckChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -859,9 +943,9 @@ const IndexPage = () => {
                     <div className="text-sm text-left md:text-right md:ml-auto">
                       {" "}
                       {/* spanをラップして右寄せ */}
-                      <span>
+                      <span className="text-gray-600">
                         ※直営の締めデータは翌日の
-                        <span className="whitespace-nowrap bg-gray-100 px-1 py-1 rounded">
+                        <span className="whitespace-nowrap bg-gray-100 ml-1 mr-1 px-1 py-1 rounded" style={{ color: '#000000' }}>
                           12 : 33
                         </span>
                         に反映されます
@@ -873,171 +957,125 @@ const IndexPage = () => {
                       dateAdapter={AdapterDayjs}
                       adapterLocale={dayjsAdapter.locale}
                     >
-                      <div className="grid grid-cols-1 gap-2 md:gap-2">
+                      <div className="flex flex-col gap-2">
                         <div className="flex w-full gap-2 lg:gap-4 items-center">
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              width: "45%",
-                            }}
-                          >
-                            <DesktopDatePicker
-                              label="抽出対象"
-                              value={date1}
-                              onChange={setDate1}
-                              maxDate={dayjs()}
-                              //toolbarFormat="yyyy年MM月dd日"
-                              slotProps={{
-                                textField: {
-                                  size: "small",
-                                  inputProps: {
-                                    "data-testid": "date-picker-1",
-                                  },
-                                },
-                                day: ({ day }) => ({
-                                  sx: {
-                                    ...(isHoliday(day) && {
-                                      color: theme.palette.secondary.main,
-                                    }),
-                                  },
-                                }),
-                              }}
-                            />
-                          </Box>
+                          <CustomDatePicker
+                            label="抽出対象"
+                            value={date1}
+                            onChange={setDate1}
+                            minDate={null} // ここを追加
+                            maxDate={dayjs()}
+                            dataTestId="date-picker-1"
+                          />
                           <p>～</p>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              width: "45%",
-                            }}
-                          >
-                            <DesktopDatePicker
-                              label=""
-                              value={date2}
-                              onChange={setDate2}
-                              minDate={date1}
-                              maxDate={dayjs()}
-                              slotProps={{
-                                textField: {
-                                  size: "small",
-                                  inputProps: {
-                                    "data-testid": "date-picker-2",
-                                  },
-                                },
-                                day: ({ day }) => ({
-                                  sx: {
-                                    ...(isHoliday(day) && {
-                                      color: theme.palette.secondary.main,
-                                    }),
-                                  },
-                                }),
-                              }}
-                            />
-                          </Box>
+                          <CustomDatePicker
+                            label=""
+                            value={date2}
+                            onChange={setDate2}
+                            minDate={date1}
+                            maxDate={dayjs()}
+                            dataTestId="date-picker-2"
+                          />
+                        </div>
+                        <div className="flex justify-between">
+                          <CustomButton onClick={() => handleDateChange(setDate1, date1, -1, 'month')}>前月</CustomButton>
+                          <CustomButton onClick={() => handleDateChange(setDate1, date1, 1, 'month')}>後月</CustomButton>
+                          <CustomButton onClick={() => handleDateChange(setDate2, date2, -1, 'month')}>前月</CustomButton>
+                          <CustomButton onClick={() => handleDateChange(setDate2, date2, 1, 'month')}>後月</CustomButton>
                         </div>
                         {compareCheck && (
                           <>
+                            <hr style={{ border: '1px dotted #ccc', margin: '5px 0' }} />
                             <div className="flex w-full gap-2 lg:gap-4 items-center">
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  width: "45%",
-                                }}
-                              >
-                                <DesktopDatePicker
-                                  label="比較対象"
-                                  value={date3}
-                                  onChange={setDate3}
-                                  maxDate={dayjs()}
-                                  slotProps={{
-                                    textField: {
-                                      size: "small",
-                                      inputProps: {
-                                        "data-testid": "date-picker-3",
-                                      },
-                                    },
-                                    day: ({ day }) => ({
-                                      sx: {
-                                        ...(isHoliday(day) && {
-                                          color: theme.palette.secondary.main,
-                                        }),
-                                      },
-                                    }),
-                                  }}
-                                />
-                              </Box>
+                              <CustomDatePicker
+                                label="比較対象"
+                                value={date3}
+                                onChange={setDate3}
+                                minDate={null} // ここを追加
+                                maxDate={dayjs()}
+                                dataTestId="date-picker-3"
+                              />
                               <p>～</p>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  width: "45%",
-                                }}
-                              >
-                                <DesktopDatePicker
-                                  label=""
-                                  value={date4}
-                                  onChange={setDate4}
-                                  minDate={date3}
-                                  maxDate={dayjs()}
-                                  slotProps={{
-                                    textField: {
-                                      size: "small",
-                                      inputProps: {
-                                        "data-testid": "date-picker-4",
-                                      },
-                                    },
-                                    day: ({ day }) => ({
-                                      sx: {
-                                        ...(isHoliday(day) && {
-                                          color: theme.palette.secondary.main,
-                                        }),
-                                      },
-                                    }),
-                                  }}
-                                />
-                              </Box>
+                              <CustomDatePicker
+                                label=""
+                                value={date4}
+                                onChange={setDate4}
+                                minDate={date3}
+                                maxDate={dayjs()}
+                                dataTestId="date-picker-4"
+                              />
+                            </div>
+                            <div className="flex justify-between">
+                              <CustomButton onClick={() => handleDateChange(setDate3, date3, -1, 'month')}>前月</CustomButton>
+                              <CustomButton onClick={() => handleDateChange(setDate3, date3, 1, 'month')}>後月</CustomButton>
+                              <CustomButton onClick={() => handleDateChange(setDate4, date4, -1, 'month')}>前月</CustomButton>
+                              <CustomButton onClick={() => handleDateChange(setDate4, date4, 1, 'month')}>後月</CustomButton>
                             </div>
                           </>
                         )}
-                        <div className="flex w-full gap-4 items-center justify-between">
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={compareCheck}
-                                onChange={(e) =>
-                                  setCompareCheck(e.target.checked)
+                        <hr style={{ border: '1px solid #ccc', margin: '5px 0' }} />
+                        <div className="flex justify-between">
+                          <div className="flex justify-start">
+                            <Tooltip arrow title="抽出日付と比較する期間を設定できます">
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={compareCheck}
+                                    onChange={(e) =>
+                                      setCompareCheck(e.target.checked)
+                                    }
+                                    sx={{
+                                      "& .MuiSvgIcon-root": { fontSize: 18 },
+                                      p: "6px",
+                                    }}
+                                  />
                                 }
+                                label="比較対象"
                                 sx={{
-                                  "& .MuiSvgIcon-root": { fontSize: 18 },
-                                  p: "6px",
+                                  "& .MuiFormControlLabel-label": { fontSize: 14 },
                                 }}
                               />
-                            }
-                            label="比較対象"
-                            sx={{
-                              "& .MuiFormControlLabel-label": { fontSize: 14 },
-                            }}
-                          />
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={dailyCheck === "日別"}
-                                onChange={handleDailyCheckChange}
+                            </Tooltip>
+                          </div>
+                          <div className="flex justify-end">
+                            <Tooltip arrow title="日別ごとの集計結果が表示されます">
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={dailyCheck === "日別"}
+                                    onChange={handleDailyCheckChange}
+                                    sx={{
+                                      "& .MuiSvgIcon-root": { fontSize: 18 },
+                                      p: "6px",
+                                    }}
+                                  />
+                                }
+                                label="日別"
                                 sx={{
-                                  "& .MuiSvgIcon-root": { fontSize: 18 },
-                                  p: "6px",
+                                  "& .MuiFormControlLabel-label": { fontSize: 14 },
                                 }}
                               />
-                            }
-                            label="日別"
-                            sx={{
-                              "& .MuiFormControlLabel-label": { fontSize: 14 },
-                            }}
-                          />
+                            </Tooltip>
+                            <Tooltip arrow title="曜日ごとの集計結果が表示されます">
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={dailyCheck === "曜日別"}
+                                    disabled={true} // 一時的に無効化
+                                    // onChange={}
+                                    sx={{
+                                      "& .MuiSvgIcon-root": { fontSize: 18 },
+                                      p: "6px",
+                                    }}
+                                  />
+                                }
+                                label="曜日別"
+                                sx={{
+                                  "& .MuiFormControlLabel-label": { fontSize: 14 },
+                                }}
+                              />
+                            </Tooltip>
+                          </div>
                         </div>
                       </div>
                     </LocalizationProvider>
@@ -1511,7 +1549,7 @@ const IndexPage = () => {
                     </Button> */}
                   </div>
                   <div className="mb-2 md:mt-2">
-                    <div className="max-h-60 overflow-y-auto">
+                    <div className="max-h-80 overflow-y-auto">
                       {" "}
                       {/* 最大高さとスクロールを追加 */}
                       <div className="text-sm text-gray-700">
@@ -1541,329 +1579,57 @@ const IndexPage = () => {
               <div className="md:w-auto">
                 <div className="bg-white border rounded-lg p-2 px-4 py-2 h-full w-full md:w-auto">
                   <h2 className="text-base font-bold mb-2 md:mb-1">表示設定</h2>
-                  <FormLabel
-                    style={{ fontSize: "0.875rem" }}
-                    component="legend"
-                  >
-                    ---区分---
-                  </FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-radio-buttons-group-label"
-                    value={typeValue}
-                    name="radio-location-group"
-                    className="flex flex-row gap-1"
-                    onChange={handleTypeChange}
-                  >
-                    <FormControlLabel
-                      value="全て"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="全て"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
+                  <div className="flex flex-col gap-4">
+                    <CustomRadioGroup
+                      label="---区分---"
+                      value={typeValue}
+                      onChange={handleTypeChange}
+                      options={[
+                        { value: "全て", label: "全て" },
+                        { value: "直営ランセカンド", label: "直営＋ランセカンド" },
+                        { value: "直営", label: "直営のみ" },
+                        { value: "FC", label: "FCのみ" },
+                        { value: "ランセカンド", label: "ランセカンドのみ" },
+                      ]}
                     />
-                    <FormControlLabel
-                      value="直営ランセカンド"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="直営＋ランセカンド"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
+                    <CustomRadioGroup
+                      label="---エリア---"
+                      value={locationValue}
+                      onChange={handleLocationChange}
+                      options={[
+                        { value: "全て", label: "全て" },
+                        { value: "駅前", label: "駅前" },
+                        { value: "郊外", label: "郊外" },
+                      ]}
                     />
-                    <FormControlLabel
-                      value="直営"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="直営のみ"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
+                    <CustomRadioGroup
+                      label="---閉店店舗を---"
+                      value={closedStoreValue}
+                      onChange={handleClosedStoreChange}
+                      options={[
+                        { value: true, label: "含める" },
+                        { value: false, label: "含めない" },
+                      ]}
                     />
-                    <FormControlLabel
-                      value="FC"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="FCのみ"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
+                    <CustomRadioGroup
+                      label="---税抜売上にその他売上を---"
+                      value={salesInclusionValue}
+                      onChange={handleSalesInclusionChange}
+                      options={[
+                        { value: true, label: "含める" },
+                        { value: false, label: "含めない" },
+                      ]}
                     />
-                    <FormControlLabel
-                      value="ランセカンド"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="ランセカンドのみ"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
+                    <CustomRadioGroup
+                      label="---委託販売を---"
+                      value={consignmentSales}
+                      onChange={consignmentSalesInclusionChange}
+                      options={[
+                        { value: true, label: "含める" },
+                        { value: false, label: "含めない" },
+                      ]}
                     />
-                  </RadioGroup>
-                  <FormLabel
-                    style={{ fontSize: "0.875rem" }}
-                    component="legend"
-                  >
-                    ---エリア---
-                  </FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-radio-buttons-group-label"
-                    value={locationValue}
-                    name="radio-location-group"
-                    className="flex flex-row gap-1"
-                    onChange={handleLocationChange}
-                  >
-                    <FormControlLabel
-                      value="全て"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="全て"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                    <FormControlLabel
-                      value="駅前"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="駅前"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                    <FormControlLabel
-                      value="郊外"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="郊外"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                  </RadioGroup>
-                  <FormLabel
-                    htmlFor="closed-store-group"
-                    style={{ fontSize: "0.875rem" }}
-                    component="legend"
-                  >
-                    ---閉店店舗を---
-                  </FormLabel>
-                  <RadioGroup
-                    id="closed-store-group"
-                    value={closedStoreValue}
-                    name="radio-location-group"
-                    className="flex flex-row gap-3"
-                    onChange={handleClosedStoreChange}
-                  >
-                    <FormControlLabel
-                      value="true"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="含める"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                    <FormControlLabel
-                      value="false"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="含めない"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                  </RadioGroup>
-                  <FormLabel
-                    style={{ fontSize: "0.875rem" }}
-                    component="legend"
-                  >
-                    ---税抜売上にその他売上を---
-                  </FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-radio-buttons-group-label"
-                    value={salesInclusionValue}
-                    name="radio-location-group"
-                    className="flex flex-row gap-3"
-                    onChange={handleSalesInclusionChange}
-                  >
-                    <FormControlLabel
-                      value="true"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="含める"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                    <FormControlLabel
-                      value="false"
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="含めない"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                  </RadioGroup>
-                  <FormLabel
-                    style={{ fontSize: "0.875rem" }}
-                    component="legend"
-                  >
-                    ---委託販売を---
-                  </FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-radio-buttons-group-label"
-                    value={consignmentSales}
-                    name="radio-location-group"
-                    className="flex flex-row gap-3"
-                    onChange={consignmentSalesInclusionChange}
-                  >
-                    <FormControlLabel
-                      value={true}
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="含める"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                    <FormControlLabel
-                      value={false}
-                      control={
-                        <Radio
-                          sx={{
-                            "& .MuiSvgIcon-root": {
-                              fontSize: 16,
-                            },
-                            ".MuiFormControlLabel-label": { fontSize: 14 },
-                            p: "4px",
-                          }}
-                        />
-                      }
-                      label="含めない"
-                      sx={{
-                        "& .MuiFormControlLabel-label": { fontSize: 14 },
-                      }}
-                    />
-                  </RadioGroup>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1913,7 +1679,7 @@ const IndexPage = () => {
                 </Button>
               </div>
             </div>
-            <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[480px]">
+            <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[400px]">
               <table className="min-w-full divide-y divide-x divide-gray-300 table-auto" style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-50 sticky top-0 z-30">
                   <tr>
