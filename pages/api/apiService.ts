@@ -10,8 +10,9 @@ export const API_ENDPOINTS = {
   login: "login",//メイン画面ログイン
   display_by_store: "display_by_store",//店舗別
   display_by_date: "display_by_date",//日別
+  display_by_dotw: "display_by_dotw",//曜日別
   download: "download",//ダウンロード
-  adimn_login: "admlogin",//管理画面ログイン
+  adimn_login: "admin_login",//管理画面ログイン
   newShopAddition: "newShopAddition",//新規店舗追加
   editStore: "editStore",//店舗編集
   storeDeletiet: "storeDeletiet",//店舗削除
@@ -43,6 +44,10 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     // 日別データ表示
     if (endpoint === "display_by_date") {
       url = `${process.env.NEXT_PUBLIC_DISPLAY_API_URL}/api/display_by_date`;
+    }
+    // 曜日別データ表示
+    if (endpoint === "display_by_dotw") {
+      url = `${process.env.NEXT_PUBLIC_DISPLAY_API_URL}/api/display_by_dotw`;
     }
     //ダウンロード
     if (endpoint === "download") {
