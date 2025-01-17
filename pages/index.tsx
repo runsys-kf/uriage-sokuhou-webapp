@@ -56,7 +56,7 @@ import { GetServerSideProps } from "next";
 import nookies from "nookies";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = 100;
+const JWT_SECRET = "100";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
 
