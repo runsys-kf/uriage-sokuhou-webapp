@@ -47,7 +47,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     }
     // 曜日別データ表示
     if (endpoint === "display_by_dotw") {
-      url = `${process.env.NEXT_PUBLIC_DISPLAY_API_URL}/api/display_by_dotw`;
+      url = `${process.env.NEXT_PUBLIC_DISPLAY_API_URL1}/api/display_by_dotw`;
     }
     //ダウンロード
     if (endpoint === "download") {
