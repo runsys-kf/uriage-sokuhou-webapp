@@ -69,13 +69,13 @@ export default async function handler(req, res) {
         // JSONをアップロード
         const updatedData = JSON.stringify(updatedStoreList, null, 2);
         const uploadResponse = await fetch(blobUrl, {
-            method: 'PUT',
+            method: 'PUT',//上書き設定
             headers: {
-                'Content-Type': 'application/json',
-                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': 'application/json',// body: updatedDataの形式はjsonで指定
+                'x-ms-blob-type': 'BlockBlob',//保存時のBlobの種類
                 'x-ms-lease-id': leaseId, // 取得したリースIDを設定
             },
-            body: updatedData,
+            body: updatedData,//送信データ（json形式）
         });
 
         if (!uploadResponse.ok) {
@@ -87,7 +87,7 @@ export default async function handler(req, res) {
 
         console.log('Data updated successfully');
 
-        // リースを解放
+        // リースを解放し、200ステータスを返す
         await leaseClient.releaseLease();
         res.status(200).json({ message: 'Store deleted successfully' });
     } catch (error) {

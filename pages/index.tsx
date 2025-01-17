@@ -42,10 +42,10 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { useTheme } from "@mui/material/styles";
 import Holidays from "date-holidays";
 import { fetchData, API_ENDPOINTS } from "./api/apiService";
-import { storeProcessData, dateProcessData } from "./api/dataTransformer";
+import { storeProcessData, dateProcessData, weekProcessData } from "./api/dataTransformer";
 import { initialStores } from "../data/shopData";
 import ErrorModal from "../components/ErrorModal";
-import { mockStoreResponse, mockDateResponse } from "__tests__/salesMockData";
+import { mockStoreResponse, mockDateResponse, mockWeekResponse } from "__tests__/salesMockData";
 import { csvDlResData } from "__tests__/csvDlResData";
 import { convertToCSV, downloadCSV } from "./api/downloadCSV";
 import dayjs, { Dayjs } from "dayjs";
@@ -193,7 +193,7 @@ const IndexPage = () => {
   const [searchText, setSearchText] = useState(""); //店舗名でフィルタリング時の入力値
 
   // チェックボックス用状態
-  const [dailyCheck, setDailyCheck] = useState("店舗別"); //日別or店舗別
+  const [dailyCheck, setDailyCheck] = useState("店舗別"); //日別or店舗別or曜日別
   const [compareCheck, setCompareCheck] = useState(false); //比較対象チェックボックスの状態
   const [allSelected, setAllSelected] = useState(false); // 全選択/全解除の状態を管理
 
@@ -219,6 +219,7 @@ const IndexPage = () => {
     area: string;
     storeNumber: string;
     storeDate: string;
+    week: string;
     netSalesA: string;
     netSalesB: string;
     netSalesChange: string;
@@ -251,6 +252,7 @@ const IndexPage = () => {
     area: string;
     storeNumber: string;
     storeDate: string;
+    week: string;
     netSalesA: string;
     netSalesB: string;
     netSalesChange: string;
@@ -289,6 +291,7 @@ const IndexPage = () => {
       area: "",
       storeNumber: "",
       storeDate: "",
+      week: "",
       netSalesA: "",
       netSalesB: "",
       netSalesChange: "",
@@ -543,8 +546,11 @@ const IndexPage = () => {
     );
   };
 
+  //月変更処理　unit=単位（月）、amount=変更する月の量（前月：-1、後月：1）、date=変更前の日付、dateSetter=対象のセット関数
   const handleDateChange = (dateSetter, date, amount, unit) => {
+    //更新する日付を作成
     const newDate = dayjs(date).add(amount, unit).startOf(unit);
+    //更新する日付が現在の日付より後なら実行
     if (newDate.isBefore(dayjs())) {
       dateSetter(newDate);
     }
@@ -600,7 +606,7 @@ const IndexPage = () => {
 
   //チェックボックス変換ハンドラ
   const handleDailyCheckChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDailyCheck(e.target.checked ? "日別" : "店舗別");
+    setDailyCheck(e.target.value);
   };
 
   //駅前、郊外変更ハンドラ
@@ -677,7 +683,7 @@ const IndexPage = () => {
       endDate4 = date4.format("YYYY-MM-DD");
     }
     return {
-      displayType: dailyCheck, //  '日別' または '店舗別'
+      displayType: dailyCheck, //  日別/店舗別/曜日別
 
       range: {
         start: date1.format("YYYY-MM-DD"), //始まり日付
@@ -707,6 +713,7 @@ const IndexPage = () => {
       storeNumber: "",
       area: "",
       storeDate: "",
+      week: "",
       netSalesA: "",
       netSalesB: "",
       netSalesChange: "",
@@ -760,6 +767,9 @@ const IndexPage = () => {
           setStoresData(mockDateResponse());
         } else if (endpoint === "display_by_store") {
           setStoresData(mockStoreResponse());
+        } else if (endpoint === "display_by_dotw") {
+          console.log("曜日別");
+          setStoresData(mockWeekResponse());
         } else if (endpoint === "download") {
           console.log("ダウンロード");
           return csvDlResData;
@@ -777,19 +787,29 @@ const IndexPage = () => {
       console.log("endpoint確認: ", endpoint);
 
       const params = createRequestData();                     //送信データ作成
-      const data = await fetchData(endpoint, params, router); //バックエンドへ送信
-
+      const response = await fetchData(endpoint, params, router); //バックエンドへ送信
+      let transformedData;
       // ダウンロードの場合はデータを返す
       if (endpoint === "download") {
-        return data;
+        return response;
       }
 
       //取得データ変換、格納
-      if (endpoint === "display_by_store") {
-        setStoresData(storeProcessData(data));
-      } else if (endpoint === "display_by_date") {
-        setStoresData(dateProcessData(data));
+      switch (endpoint) {
+        case API_ENDPOINTS.display_by_store:
+          transformedData = storeProcessData(response);
+          break;
+        case API_ENDPOINTS.display_by_date:
+          transformedData = dateProcessData(response);
+          break;
+        case API_ENDPOINTS.display_by_dotw:
+          transformedData = weekProcessData(response);
+          break;
+        default:
+          throw new Error('Invalid endpoint');
       }
+
+      setStoresData(transformedData);
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -991,7 +1011,7 @@ const IndexPage = () => {
                                 label="比較対象"
                                 value={date3}
                                 onChange={setDate3}
-                                minDate={null} // ここを追加
+                                minDate={null}
                                 maxDate={dayjs()}
                                 dataTestId="date-picker-3"
                               />
@@ -1013,9 +1033,8 @@ const IndexPage = () => {
                             </div>
                           </>
                         )}
-                        <hr style={{ border: '1px solid #ccc', margin: '5px 0' }} />
-                        <div className="flex justify-between">
-                          <div className="flex justify-start">
+                        
+                        <div className="">
                             <Tooltip arrow title="抽出日付と比較する期間を設定できます">
                               <FormControlLabel
                                 control={
@@ -1036,47 +1055,44 @@ const IndexPage = () => {
                                 }}
                               />
                             </Tooltip>
-                          </div>
-                          <div className="flex justify-end">
-                            <Tooltip arrow title="日別ごとの集計結果が表示されます">
-                              <FormControlLabel
-                                control={
-                                  <Checkbox
-                                    checked={dailyCheck === "日別"}
-                                    onChange={handleDailyCheckChange}
-                                    sx={{
-                                      "& .MuiSvgIcon-root": { fontSize: 18 },
-                                      p: "6px",
-                                    }}
+                            </div>
+
+                          <hr style={{ border: '1px solid #ccc', margin: '5px 0' }} />
+                          <div className="">
+                            <FormControl component="fieldset">
+                              <FormLabel component="legend" style={{ fontSize: "0.875rem" }}>集計タイプ</FormLabel>
+                              <RadioGroup
+                                value={dailyCheck}
+                                onChange={handleDailyCheckChange}
+                                className="flex flex-row gap-3"
+                              >
+                                <Tooltip arrow title="店舗ごとにまとめて集計">
+                                  <FormControlLabel
+                                    value="店舗別"
+                                    control={<Radio sx={{ "& .MuiSvgIcon-root": { fontSize: 18 }, p: "6px" }} />}
+                                    label="店舗別"
+                                    sx={{ "& .MuiFormControlLabel-label": { fontSize: 14 } }}
                                   />
-                                }
-                                label="日別"
-                                sx={{
-                                  "& .MuiFormControlLabel-label": { fontSize: 14 },
-                                }}
-                              />
-                            </Tooltip>
-                            <Tooltip arrow title="曜日ごとの集計結果が表示されます">
-                              <FormControlLabel
-                                control={
-                                  <Checkbox
-                                    checked={dailyCheck === "曜日別"}
-                                    disabled={true} // 一時的に無効化
-                                    // onChange={}
-                                    sx={{
-                                      "& .MuiSvgIcon-root": { fontSize: 18 },
-                                      p: "6px",
-                                    }}
+                                </Tooltip>
+                                <Tooltip arrow title="指定日分を日ごとにまとめて集計">
+                                  <FormControlLabel
+                                    value="日別"
+                                    control={<Radio sx={{ "& .MuiSvgIcon-root": { fontSize: 18 }, p: "6px" }} />}
+                                    label="日別"
+                                    sx={{ "& .MuiFormControlLabel-label": { fontSize: 14 } }}
                                   />
-                                }
-                                label="曜日別"
-                                sx={{
-                                  "& .MuiFormControlLabel-label": { fontSize: 14 },
-                                }}
-                              />
-                            </Tooltip>
+                                </Tooltip>
+                                <Tooltip arrow title="曜日ごとにまとめて集計">
+                                  <FormControlLabel
+                                    value="曜日別"
+                                    control={<Radio sx={{ "& .MuiSvgIcon-root": { fontSize: 18 }, p: "6px" }} />}
+                                    label="曜日別"
+                                    sx={{ "& .MuiFormControlLabel-label": { fontSize: 14 } }}
+                                  />
+                                </Tooltip>
+                              </RadioGroup>
+                            </FormControl>
                           </div>
-                        </div>
                       </div>
                     </LocalizationProvider>
                   </div>
@@ -1664,26 +1680,28 @@ const IndexPage = () => {
                 </Button>
 
                 <Button
-                  variant="contained"
-                  className={`bg-${isLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
-                  startIcon={<SearchIcon className="md:inline hidden" />}
-                  onClick={() =>
-                    fetchAndTransformData(
-                      dailyCheck === "日別"
-                        ? API_ENDPOINTS.display_by_date
-                        : API_ENDPOINTS.display_by_store
-                    )
-                  }
-                >
-                  {isLoading ? "集計中..." : "集計実行"}
-                </Button>
+  variant="contained"
+  className={`bg-${isLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
+  startIcon={<SearchIcon className="md:inline hidden" />}
+  onClick={() =>
+    fetchAndTransformData(
+      dailyCheck === "日別"
+        ? API_ENDPOINTS.display_by_date
+        : dailyCheck === "曜日別"
+        ? API_ENDPOINTS.display_by_dotw
+        : API_ENDPOINTS.display_by_store
+    )
+  }
+>
+  {isLoading ? "集計中..." : "集計実行"}
+</Button>
               </div>
             </div>
             <div className="overflow-x-auto rounded-lg border-gray-300 shadow-sm overflow-y-auto h-[400px]">
               <table className="min-w-full divide-y divide-x divide-gray-300 table-auto" style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-50 sticky top-0 z-30">
                   <tr>
-                    {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
+                  {storesData.storeData.length > 0 && (storesData.storeData[0].storeDate || storesData.storeData[0].week) ? (
                       renderTableHeader("店舗情報", `sticky left-0 z-20 border-r-2 border-r-gray-400`, 1)
                     ) : (
                       <>
@@ -1701,16 +1719,19 @@ const IndexPage = () => {
                     {renderTableHeader("委託販売", "border-r-2 border-r-gray-400", compareCheck ? 4 : 1)}
                   </tr>
                   <tr>
-                    {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
-                      renderTableHeader("日付", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${headerFixedColumnStyles.dateColumn}`)
-                    ) : (
-                      <>
-                        {renderTableHeader("No", `${headerFixedColumnStyles.noColumn}`)}
-                        {renderTableHeader("店舗名", `sticky left-0 z-20 ${headerFixedColumnStyles.firstColumn}`)}
-                        {renderTableHeader("エリア", `${headerFixedColumnStyles.areaColumn}`)}
-                        {renderTableHeaderWithSort("店番", "storeNumber", sortKey, sortDirection, handleSort, `border-r-2 border-r-gray-400 ${headerFixedColumnStyles.storeNumberColumn}`)}
-                      </>
-                    )}
+  {storesData.storeData.length > 0 && (storesData.storeData[0].storeDate || storesData.storeData[0].week) ? (
+    renderTableHeader(
+      storesData.storeData[0].storeDate ? "日付" : "曜日",
+      `sticky left-0 z-20 border-r-2 border-r-gray-400 ${headerFixedColumnStyles.dateColumn}`
+    )
+  ) : (
+    <>
+      {renderTableHeader("No", `${headerFixedColumnStyles.noColumn}`)}
+      {renderTableHeader("店舗名", `sticky left-0 z-20 ${headerFixedColumnStyles.firstColumn}`)}
+      {renderTableHeader("エリア", `${headerFixedColumnStyles.areaColumn}`)}
+      {renderTableHeaderWithSort("店番", "storeNumber", sortKey, sortDirection, handleSort, `border-r-2 border-r-gray-400 ${headerFixedColumnStyles.storeNumberColumn}`)}
+    </>
+  )}
                     {renderTableHeaderWithSort("対象期間", "netSalesA", sortKey, sortDirection, handleSort, !compareCheck ? "border-r-2 border-r-gray-400" : "")}
                     {compareCheck && (
                       <>
@@ -1763,7 +1784,7 @@ const IndexPage = () => {
                     )}
                   </tr>
                   <tr>
-                    {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
+                  {storesData.storeData.length > 0 && (storesData.storeData[0].storeDate || storesData.storeData[0].week) ? (
                       renderTableHeader("合計", `sticky left-0 z-20 border-r-2 border-r-gray-400 ${headerFixedColumnStyles.firstColumn}`)
                     ) : (
                       <>
@@ -1828,8 +1849,8 @@ const IndexPage = () => {
                 <tbody>
                   {sortedStoresData.map((store, index) => (
                     <tr key={`${store.storeNumber}-${index}`}>
-                      {storesData.storeData.length > 0 && storesData.storeData[0].storeDate ? (
-                        renderTableCell(store.storeDate, `border-r-2 border-r-gray-400 ${dataFixedColumnStyles.dateColumn}`)
+                      {storesData.storeData.length > 0 && (storesData.storeData[0].storeDate || storesData.storeData[0].week) ? (
+                        renderTableCell(store.storeDate || store.week,  `border-r-2 border-r-gray-400 ${dataFixedColumnStyles.dateColumn}`)
                       ) : (
                         <>
                           {renderTableCell(index + 1, `${dataFixedColumnStyles.othersColumn}`)}
@@ -1894,10 +1915,10 @@ const IndexPage = () => {
               </table>
             </div>
 
-          </div>
+          </div >
 
-        </div>
-      </Layout>
+        </div >
+      </Layout >
       <ErrorModal
         open={openErrorModal}
         onClose={handleCloseErrorModal}

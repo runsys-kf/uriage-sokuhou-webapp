@@ -1,37 +1,41 @@
+/**
+ * 集計条件登録
+ */
+
+//Blobをインポート
 import { BlobServiceClient } from '@azure/storage-blob';
 
-//リクエストハンドラ関数の定義　この関数はAPIエンドポイントとして動作し、リクエストを処理します。
+//リクエストハンドラ関数定義
 export default async function handler(req, res) {
-    // POSTでない場合はエラー
+
+    //POSTではない場合エラー
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // リクエストボディからデータ取得
-    const { BaseNo, BaseName, Class, Area, Prefecture, District, BaseName2, Owner, Status } = req.body;
+    //リクエストボディからデータ取り出し
+    const { conditionName, displayType, storeSelection, otherConditions, includeSales, includeClose, include_consign_sales } = req.body;
 
-    // 必要データが取得できたか確認
-    if (!BaseNo || !BaseName || !Class || !Area || !Prefecture || !District || !BaseName2 || !Owner || !Status) {
+    //データが取得できてない場合エラー
+    if (!conditionName || !displayType || !storeSelection || !otherConditions || !includeSales || !includeClose || !include_consign_sales) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
-
     try {
-        // Azure Storageの接続情報　トークン、URL
+        //Azure Storageの接続情報 トークン、URL
         const sasToken = 'sp=raw&st=2024-12-20T05:54:55Z&se=2027-12-20T13:54:55Z&spr=https&sv=2022-11-02&sr=b&sig=DwRAlBLnaMxtNxaGOL35wg06PP7Kr0behdO%2F8XOSN78%3D';
         const blobUrl = `https://urisokustorage.blob.core.windows.net/azure-webjobs-hosts/store_list.json?${sasToken}`;
 
-        // Blobの　インスタンスを作成　コンテナ取得　クライアントを取得　
-        //アジュールにおいてのBlobとは非構造化データ（jsonや画像データなど）を保存する機能のこと。DBでは非構造化データ用の型。
+        //Blobの　インスタンス作成　コンテナ取得　クライアント取得
         const blobServiceClient = new BlobServiceClient(`https://urisokustorage.blob.core.windows.net?${sasToken}`);
         const containerClient = blobServiceClient.getContainerClient('azure-webjobs-hosts');
         const blobClient = containerClient.getBlobClient('store_list.json');
 
-        // Blobのリースを取得（排他的なロック）
+        //リース取得
         let leaseId;
         const leaseClient = blobClient.getBlobLeaseClient();
 
         try {
-            // Blobのプロパティを取得してリースの状態を確認
+            // Blobのプロパティを取得
             const properties = await blobClient.getProperties();
 
             //既にリースがある場合解放
@@ -57,35 +61,25 @@ export default async function handler(req, res) {
             await leaseClient.releaseLease();
             return res.status(500).json({ error: 'BLOB コンテンツのダウンロードに失敗しました', details: errorText });
         }
-        const storeList = await response.json();// JSONデータを取得
+        const conditionList = await response.json();// JSONデータを取得
 
-        // 同じ店舗番号、店舗名、略名が存在するかチェック
-        const isBaseNoExists = storeList.some(store => store.BaseNo === BaseNo);
-        const isBaseNameExists = storeList.some(store => store.BaseName === BaseName);
-        const isBaseName2Exists = storeList.some(store => store.BaseName2 === BaseName2);
+        //同じ条件名があるかチェック some：存在していればtrueを返す
+        const isConditionNameExists = conditionList.some(condition => condition.conditionName === conditionName);
 
-        if (isBaseNoExists) {
+        if(isConditionNameExists) {
             await leaseClient.releaseLease();
-            return res.status(400).json({ error: `店舗番号【 ${BaseNo} 】はすでに使われています` });
-        }
-        if (isBaseNameExists) {
-            await leaseClient.releaseLease();
-            return res.status(400).json({ error: `店舗名【 ${BaseName} 】はすでに使われています` });
-        }
-        if (isBaseName2Exists) {
-            await leaseClient.releaseLease();
-            return res.status(400).json({ error: `略名【 ${BaseName2} 】はすでに使われています` });
+            return res.status(400).json({ error: `条件名【 ${conditionName} 】はすでに使われています` });
         }
 
-        // 新しい店舗情報を追加
-        storeList.push({ BaseNo, BaseName, Class, Area, Prefecture, District, BaseName2, Owner, Status });
-        console.log("storeList：" + storeList);
-
+        //新しい条件を追加
+        conditionList.push({ conditionName, displayType, storeSelection, otherConditions, includeSales, includeClose, include_consign_sales });
+        console.log("conditionList" + conditionList);
+   
         // JSONをアップロード
         const updatedData = JSON.stringify(storeList, null, 2);//オブジェクトをjson形式の文字列に変換　null: 変換処理にカスタム関数を適用しない（既定の動作）。　2: 出力結果のインデントサイズ（可読性のためにJSON文字列にインデントを追加）。
         console.log("updatedData：" + updatedData);
         const uploadResponse = await fetch(blobUrl, {
-            method: 'PUT',//データを上書き
+            method: 'PUT',//データを上書き（または新規作成）
             headers: {
                 'Content-Type': 'application/json',//bodyのデータはjson形式
                 'x-ms-blob-type': 'BlockBlob',//BlockBlobを使用
@@ -93,7 +87,7 @@ export default async function handler(req, res) {
             },
             body: updatedData,
         });
-
+        
         //失敗時のエラー
         if (!uploadResponse.ok) {
             const errorText = await uploadResponse.text();
@@ -102,16 +96,13 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'Failed to upload updated data', details: errorText });
         }
 
-        console.log('Data updated successfully');
-
-        // リースを解放
-        await leaseClient.releaseLease();
-        res.status(200).json({ message: 'Store added successfully' });
     } catch (error) {
+
         console.error('Error:', error.message);
         if (leaseId) {
             await leaseClient.releaseLease();
         }
         res.status(500).json({ error: '予期せぬエラーが発生しました', details: error.message });
+
     }
 }

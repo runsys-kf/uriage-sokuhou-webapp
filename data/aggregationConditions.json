@@ -1,0 +1,51 @@
+{
+  "RS999": [
+    {
+      "conditionName": "条件セット1",
+      "displayType": "店舗別",
+      "storeSelection": {
+        "selectedStore": ["1357", "1243", "1331"],
+        "prefecture": ["東京都", "栃木県"]
+      },
+      "otherConditions": {
+        "storeLocation": "全て",
+        "businessType": "FC"
+      },
+      "includeSales": "true",
+      "includeClose": "true",
+      "include_consign_sales": "true"
+    },
+    {
+      "conditionName": "条件セット2",
+      "displayType": "日別",
+      "storeSelection": {
+        "selectedStore": ["1332", "1336", "1337"],
+        "prefecture": ["埼玉県", "東京都"]
+      },
+      "otherConditions": {
+        "storeLocation": "郊外",
+        "businessType": "FC"
+      },
+      "includeSales": "true",
+      "includeClose": "true",
+      "include_consign_sales": "true"
+    }
+  ],
+  "RS700": [
+    {
+      "conditionName": "条件セットA",
+      "displayType": "日別",
+      "storeSelection": {
+        "selectedStore": ["1835", "1839", "1844"],
+        "prefecture": ["北海道"]
+      },
+      "otherConditions": {
+        "storeLocation": "郊外",
+        "businessType": "FC"
+      },
+      "includeSales": "true",
+      "includeClose": "true",
+      "include_consign_sales": "true"
+    }
+  ]
+}
