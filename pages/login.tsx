@@ -43,9 +43,11 @@ const LoginPage = () => {
     try {
       let response;
       if (process.env.NODE_ENV === 'development') {
-        router.push("/admin");
+        localStorage.setItem('userId', username);
+        localStorage.setItem('Authority', JSON.stringify(['9999']));
+        router.push("/");
+        return;
       } else {
-        console.log("ログイン ： " + process.env.NEXT_PUBLIC_LOGIN_API_URL);
         response = await axios.post(`${process.env.NEXT_PUBLIC_LOGIN_API_URL}/api/login`,
           { username, password },
           {
@@ -61,6 +63,7 @@ const LoginPage = () => {
       if (response.status === 200) {
         localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
         const token = response.data.token;
+        localStorage.setItem('userId', username);
         Cookies.set('access_token', token, { expires: 1, path: '/' });
         router.push('/'); // 成功時にリダイレクト
       } else {

@@ -1,4 +1,46 @@
-import { BlobServiceClient } from '@azure/storage-blob';
+/**
+ * 店舗データ追加
+ */
+
+//Blobをインポート
+import { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, SASProtocol } from '@azure/storage-blob';
+
+//アカウント名キー名を取得
+const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
+const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME;
+const blobNameAggregation = process.env.AZURE_STORAGE_BLOB_NAME_SL;
+
+//SASトークン生成関数
+const generateSasToken = () => {
+
+    let sharedKeyCredential;
+
+    //認証情報をオブジェクト化
+    try {
+        sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
+    } catch (error) {
+        console.error("認証情報の取得に失敗しました:", error.message);
+        throw error;
+    }
+
+    //有効期限の設定
+    const expiryDate = new Date();
+    expiryDate.setMinutes(expiryDate.getMinutes() + 60);
+
+    //SASトークンのオプション設定
+    const sasOptions = {
+        containerName: containerName,  //コンテナ名
+        blobName: blobNameAggregation,//BLOB名
+        permissions: 'rwdac',                 // 読み取り、書き込み、削除、追加、作成の権限をトークンに付与（リストを入れるとエラーになる）
+        expiresOn: expiryDate,                 //トークンの有効期限
+        protocol: SASProtocol.Https,           //プロトコル
+    };
+
+    //SASトークン生成
+    return generateBlobSASQueryParameters(sasOptions, sharedKeyCredential).toString();
+}
+
 
 //リクエストハンドラ関数の定義　この関数はAPIエンドポイントとして動作し、リクエストを処理します。
 export default async function handler(req, res) {
@@ -15,20 +57,21 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    let leaseId;
+    let leaseClient;
+
     try {
-        // Azure Storageの接続情報　トークン、URL
-        const sasToken = 'sp=raw&st=2024-12-20T05:54:55Z&se=2027-12-20T13:54:55Z&spr=https&sv=2022-11-02&sr=b&sig=DwRAlBLnaMxtNxaGOL35wg06PP7Kr0behdO%2F8XOSN78%3D';
-        const blobUrl = `https://urisokustorage.blob.core.windows.net/azure-webjobs-hosts/store_list.json?${sasToken}`;
+        //Azure Storageの接続情報 トークン、URL
+        const sasToken = generateSasToken();
+        const blobUrl = `https://${accountName}.blob.core.windows.net/${containerName}/${blobNameAggregation}?${sasToken}`;
 
-        // Blobの　インスタンスを作成　コンテナ取得　クライアントを取得　
-        //アジュールにおいてのBlobとは非構造化データ（jsonや画像データなど）を保存する機能のこと。DBでは非構造化データ用の型。
-        const blobServiceClient = new BlobServiceClient(`https://urisokustorage.blob.core.windows.net?${sasToken}`);
-        const containerClient = blobServiceClient.getContainerClient('azure-webjobs-hosts');
-        const blobClient = containerClient.getBlobClient('store_list.json');
+        //Blobの　インスタンス作成　コンテナ取得　クライアント取得
+        const blobServiceClient = new BlobServiceClient(`https://${accountName}.blob.core.windows.net?${sasToken}`);
+        const containerClient = blobServiceClient.getContainerClient(containerName);
+        const blobClient = containerClient.getBlobClient(blobNameAggregation);
 
-        // Blobのリースを取得（排他的なロック）
-        let leaseId;
-        const leaseClient = blobClient.getBlobLeaseClient();
+        // Blobのリースを取得
+        leaseClient = blobClient.getBlobLeaseClient();
 
         try {
             // Blobのプロパティを取得してリースの状態を確認
@@ -38,12 +81,12 @@ export default async function handler(req, res) {
             if (properties.leaseState === 'leased') {
                 await leaseClient.breakLease();
                 console.log("既存のリースを解放しました");
+                await new Promise(resolve => setTimeout(resolve, 2000)); // 2秒待機
             }
 
             // 新しいリースを取得
             const leaseResponse = await leaseClient.acquireLease(60); // 60秒間のリースを取得
             leaseId = leaseResponse.leaseId;
-            console.log("新しいリースID:", leaseId);
         } catch (leaseError) {
             console.error('リースの取得に失敗しました:', leaseError.message);
             return res.status(500).json({ error: 'リースの取得に失敗しました', details: leaseError.message });
@@ -79,7 +122,7 @@ export default async function handler(req, res) {
 
         // 新しい店舗情報を追加
         storeList.push({ BaseNo, BaseName, Class, Area, Prefecture, District, BaseName2, Owner, Status });
-        console.log("storeList：" + storeList);
+
 
         // JSONをアップロード
         const updatedData = JSON.stringify(storeList, null, 2);//オブジェクトをjson形式の文字列に変換　null: 変換処理にカスタム関数を適用しない（既定の動作）。　2: 出力結果のインデントサイズ（可読性のためにJSON文字列にインデントを追加）。
@@ -101,8 +144,6 @@ export default async function handler(req, res) {
             await leaseClient.releaseLease();
             return res.status(500).json({ error: 'Failed to upload updated data', details: errorText });
         }
-
-        console.log('Data updated successfully');
 
         // リースを解放
         await leaseClient.releaseLease();
