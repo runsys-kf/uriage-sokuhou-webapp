@@ -17,6 +17,9 @@ export const API_ENDPOINTS = {
   editStore: "editStore",//店舗編集
   storeDeletiet: "storeDeletiet",//店舗削除
   getStoreList: "getStoreList", //全店舗情報取得
+  addAggregationConditions: "addAggregationConditions",//条件登録
+  getAggregationConditions: "getAggregationConditions",//条件取得
+  dellAggregationConditions: "dellAggregationConditions",//条件削除
 }
 
 //本番時、開発環境時APIルート変更
@@ -30,11 +33,6 @@ const ProdOrDev = () => {
 export const fetchData = async (endpoint: string, data: any, router: NextRouter) => {
   const token = localStorage.getItem('access_token');
   try {
-
-    console.log("データ表示 ： " + process.env.NEXT_PUBLIC_DISPLAY_API_URL);
-    console.log("ダウンロード ： " + process.env.NEXT_PUBLIC_DOWNLOAD_API_URL);
-    console.log("ホスト ： " + process.env.NEXT_PUBLIC_HOST_URL);
-
     let url = "";
 
     // 店舗別データ表示
@@ -55,20 +53,33 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     }
     //店舗情報取得
     if (endpoint === "getStoreList") {
-      url = `${ProdOrDev()}/api/getStoreList`;
+      url = `/api/getStoreList`;
     }
     //店舗編集
     if (endpoint === "editStore") {
-      url = `${ProdOrDev()}/api/editStore`;
+      url = `/api/editStore`;
     }
     //店舗削除
     if (endpoint === "storeDeletiet") {
-      url = `${ProdOrDev()}/api/storeDeletiet`;
+      url = `/api/storeDeletiet`;
     }
     //新規店舗追加
     if (endpoint === "newShopAddition") {
-      url = `${ProdOrDev()}/api/newShopAddition`;
+      url = `/api/newShopAddition`;
     }
+    //条件登録
+    if (endpoint === "addAggregationConditions") {
+      url = `/api/addAggregationConditions`;
+    }
+    //条件取得
+    if (endpoint === "getAggregationConditions") {
+      url = `/api/getAggregationConditions`;
+    }
+    //条件削除
+    if (endpoint === "dellAggregationConditions") {
+      url = `/api/dellAggregationConditions`;
+    }
+
     // 送信データをログに出力
     console.log("url : " + url);
     console.log("Sending data to endpoint:", endpoint);
@@ -112,7 +123,7 @@ export const fetchData = async (endpoint: string, data: any, router: NextRouter)
     if (error.response) {
 
       //azureStorage連携時のエラー処理
-      if (endpoint === "getStoreList" || endpoint === "editStore" || endpoint === "storeDeletiet" || endpoint === "newShopAddition") {
+      if (endpoint === "getStoreList" || endpoint === "editStore" || endpoint === "storeDeletiet" || endpoint === "newShopAddition" || endpoint === "addAggregationConditions" || endpoint === "getAggregationConditions" || endpoint === "dellAggregationConditions") {
         //const errorMessage = error.response.data?.error || 'データの取得に失敗しました';
         const errorMessage = error.response.data?.error;
         throw new Error(errorMessage);

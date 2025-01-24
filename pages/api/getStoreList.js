@@ -1,11 +1,53 @@
+/**
+ * 店舗データ取得
+ */
+
+//Blobをインポート
+import { StorageSharedKeyCredential, generateBlobSASQueryParameters, SASProtocol } from '@azure/storage-blob';
+
+//アカウント名キー名を取得
+const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
+const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME;
+const blobNameAggregation = process.env.AZURE_STORAGE_BLOB_NAME_SL;
+
+//SASトークン生成関数
+const generateSasToken = () => {
+
+    let sharedKeyCredential;
+
+    //認証情報をオブジェクト化
+    try {
+        sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
+    } catch (error) {
+        console.error("認証情報の取得に失敗しました:", error.message);
+        throw error;
+    }
+
+    //有効期限の設定
+    const expiryDate = new Date();
+    expiryDate.setMinutes(expiryDate.getMinutes() + 60);
+
+    //SASトークンのオプション設定
+    const sasOptions = {
+        containerName: containerName,  //コンテナ名
+        blobName: blobNameAggregation,//BLOB名
+        permissions: 'r',                 // 読み取り、書き込み、削除、追加、作成の権限をトークンに付与（リストを入れるとエラーになる）
+        expiresOn: expiryDate,                 //トークンの有効期限
+        protocol: SASProtocol.Https,           //プロトコル
+    };
+
+    //SASトークン生成
+    return generateBlobSASQueryParameters(sasOptions, sharedKeyCredential).toString();
+}
+
 export default async function handler(req, res) {
     try {
-        //トークンとURL
-        const sasToken = 'sp=raw&st=2024-12-20T05:54:55Z&se=2027-12-20T13:54:55Z&spr=https&sv=2022-11-02&sr=b&sig=DwRAlBLnaMxtNxaGOL35wg06PP7Kr0behdO%2F8XOSN78%3D'
-        const url = `https://urisokustorage.blob.core.windows.net/azure-webjobs-hosts/store_list.json?${sasToken}`;
-        const response = await fetch(url);
+        //Azure Storageの接続情報 トークン、URL
+        const sasToken = generateSasToken();
+        const blobUrl = `https://${accountName}.blob.core.windows.net/${containerName}/${blobNameAggregation}?${sasToken}`;
+        const response = await fetch(blobUrl);
         const contentType = response.headers.get('content-type');
-        
 
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();

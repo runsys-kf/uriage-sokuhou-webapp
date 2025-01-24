@@ -1,5 +1,5 @@
 /**
- * 店舗データ編集
+ * 集計条件削除
  */
 
 //Blobをインポート
@@ -9,7 +9,7 @@ import { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryPara
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
 const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
 const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME;
-const blobNameAggregation = process.env.AZURE_STORAGE_BLOB_NAME_SL;
+const blobNameAggregation = process.env.AZURE_STORAGE_BLOB_NAME_AC;
 
 //SASトークン生成関数
 const generateSasToken = () => {
@@ -40,21 +40,22 @@ const generateSasToken = () => {
     //SASトークン生成
     return generateBlobSASQueryParameters(sasOptions, sharedKeyCredential).toString();
 }
-
+//リクエストハンドラ関数定義
 export default async function handler(req, res) {
-    //POSTでない場合はエラー
+
+    //POSTではない場合エラー
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    //リクエストボディからデータ取得
-    const { BaseNo, Class, Area, Owner, Status } = req.body;
+    //リクエストボディからデータ取り出し
+    const { userId, conditionName } = req.body;
 
-    //必要データが取得できたか確認
-    if (!BaseNo || !Class || !Area || !Owner || !Status) {
-        return res.status(400).json({ error: 'Missing required fields' });
+    //データが取得できてない場合エラー
+    if (!userId || !conditionName) {
+        return res.status(400).json({ error: 'リクエストデータが欠落しています' });
     }
-
+    
     let leaseId;
     let leaseClient;
 
@@ -68,13 +69,14 @@ export default async function handler(req, res) {
         const containerClient = blobServiceClient.getContainerClient(containerName);
         const blobClient = containerClient.getBlobClient(blobNameAggregation);
 
-        // Blobのリースを取得
+        //リース取得
         leaseClient = blobClient.getBlobLeaseClient();
 
         try {
-            // Blobのプロパティを取得してリースの状態を確認
+            // Blobのプロパティを取得
             const properties = await blobClient.getProperties();
 
+            //既にリースがある場合解放
             if (properties.leaseState === 'leased') {
                 await leaseClient.breakLease();
                 console.log("既存のリースを解放しました");
@@ -89,7 +91,7 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'リースの取得に失敗しました', details: leaseError.message });
         }
 
-        // JSONデータを取得
+        // リクエスト実行、リースIDを使用しアクセスしJSONデータを取得
         const response = await fetch(blobUrl, { headers: { 'x-ms-lease-id': leaseId } });
         if (!response.ok) {
             const errorText = await response.text();
@@ -97,31 +99,34 @@ export default async function handler(req, res) {
             await leaseClient.releaseLease();
             return res.status(500).json({ error: 'BLOB コンテンツのダウンロードに失敗しました', details: errorText });
         }
-        const storeList = await response.json();
+        const conditionList = await response.json();// JSONデータを取得
 
-        // データを更新
-        const storeIndex = storeList.findIndex(store => store.BaseNo === BaseNo);
-        if (storeIndex === -1) {
+        // ユーザーIDに一致する条件を取得
+        const userConditions = conditionList[userId] || [];
+        // 条件名に一致する条件を省く
+        const updatedConditions = userConditions.filter(condition => condition.conditionName !== conditionName);
+
+        if (userConditions.length === updatedConditions.length) {
             await leaseClient.releaseLease();
-            return res.status(404).json({ error: 'ストアが見つかりません' });
+            return res.status(404).json({ error: '指定された条件名が見つかりません' });
         }
-        storeList[storeIndex].Class = Class;
-        storeList[storeIndex].Area = Area;
-        storeList[storeIndex].Owner = Owner;
-        storeList[storeIndex].Status = Status;
 
-        // JSONをアップロード
-        const updatedData = JSON.stringify(storeList, null, 2);
+        // 変更したユーザーの条件のみを更新
+        conditionList[userId] = updatedConditions;
+        //更新した条件をJSONに変換
+        const updatedData = JSON.stringify(conditionList, null, 2);//オブジェクトをjson形式の文字列に変換　null: 変換処理にカスタム関数を適用しない（既定の動作）。　2: 出力結果のインデントサイズ（可読性のためにJSON文字列にインデントを追加）。
+        //更新したJSONをアップロード
         const uploadResponse = await fetch(blobUrl, {
-            method: 'PUT',
+            method: 'PUT',//データを上書き（または新規作成）
             headers: {
-                'Content-Type': 'application/json',
-                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': 'application/json',//bodyのデータはjson形式
+                'x-ms-blob-type': 'BlockBlob',//BlockBlobを使用
                 'x-ms-lease-id': leaseId, // 取得したリースIDを設定
             },
             body: updatedData,
         });
 
+        //失敗時のエラー
         if (!uploadResponse.ok) {
             const errorText = await uploadResponse.text();
             console.error('更新データのアップロードに失敗しました:', errorText);
@@ -129,14 +134,17 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: '更新データのアップロードに失敗しました', details: errorText });
         }
 
-        // リースを解放
         await leaseClient.releaseLease();
-        res.status(200).json({ message: 'ストアが正常に更新されました。' });
+        res.status(200).json({ message: '条件が削除されました。' });
+
+
     } catch (error) {
+
         console.error('Error:', error.message);
         if (leaseId) {
             await leaseClient.releaseLease();
         }
-        res.status(500).json({ error: 'ストアの更新に失敗しました', details: error.message });
+        res.status(500).json({ error: '予期せぬエラーが発生しました', details: error.message });
+
     }
 }

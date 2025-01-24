@@ -26,6 +26,8 @@ import InfoIcon from "@mui/icons-material/Info";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DownloadIcon from "@mui/icons-material/Download";
+import RemoveIcon from "@mui/icons-material/Remove";
+import SaveIcon from "@mui/icons-material/Save";
 import SearchIcon from "@mui/icons-material/Search";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
@@ -102,51 +104,67 @@ const IndexPage = () => {
   const theme = useTheme();
   const router = useRouter();
 
-  //初期表示時店舗を選択する
+  // 初期表示時店舗を選択する
   useEffect(() => {
-    const fetchStoreList = async () => {
-      try {
-        const data = await fetchData(API_ENDPOINTS.getStoreList, {}, router);
-        const stores = data.map((store) => ({
-          id: store.BaseNo,
-          name: store.BaseName,
-          prefecture: store.Prefecture,
-        }));
-        stores.forEach(store => {
-          console.log(`id: ${store.id}, name: ${store.name}`);
-        });
-        const isTestMode = process.env.NODE_ENV === "development"; //テスト環境
-        if (isTestMode) {
+    fetchStoreList(); // 店舗情報取得
+    fetchConditions(); // 条件を取得取得
+  }, []);
+
+  const fetchStoreList = async () => {
+    try {
+      const data = await fetchData(API_ENDPOINTS.getStoreList, {}, router);
+      const stores = data.map((store) => ({
+        id: store.BaseNo,
+        name: store.BaseName,
+        prefecture: store.Prefecture,
+      }));
+      // stores.some((store) => {
+      //   console.log("store.id : " + store.id);});
+
+      const authority = JSON.parse(localStorage.getItem("Authority"));
+      console.log("Authority : " + authority);
+      if (authority) {
+        // '9999'のみの場合は全店舗を選択
+        if (authority.length === 1 && authority.includes("9999")) {
           setSelectedStores(stores);
           setAuthorizedStores(stores);
-          setFilteredStores(stores); return;
+          setFilteredStores(stores);
+        } else {
+          // '9999'が含まれていても他の店舗IDがある場合はその店舗のみを選択
+          const authorizedStoreList = stores.filter((store) =>
+            authority.includes(store.id)
+          );
+          console.log("authorizedStoreList : " + authorizedStoreList);
+          setSelectedStores(authorizedStoreList);//選択状態店舗
+          setAuthorizedStores(authorizedStoreList);//表示される店舗
+          setFilteredStores(authorizedStoreList);//絞り込み店舗
         }
-        const authority = JSON.parse(localStorage.getItem("Authority"));
-        if (authority) {
-          // '9999'のみの場合は全店舗を選択
-          if (authority.length === 1 && authority.includes("9999")) {
-            setSelectedStores(stores);
-            setAuthorizedStores(stores);
-            setFilteredStores(stores);
-          } else {
-            // '9999'が含まれていても他の店舗IDがある場合はその店舗のみを選択
-            const authorizedStoreList = stores.filter((store) =>
-              authority.includes(store.id)
-            );
-            setSelectedStores(authorizedStoreList);//選択状態店舗
-            setAuthorizedStores(authorizedStoreList);//表示される店舗
-            setFilteredStores(authorizedStoreList);//絞り込み店舗
-          }
-        }
-      } catch (error) {
-        setModalType("error");
-        setErrorMessage("店舗情報の取得に失敗しました");
-        setOpenErrorModal(true);
       }
-    };
+    } catch (error) {
+      setModalType("error");
+      setErrorMessage("店舗情報の取得に失敗しました");
+      setOpenErrorModal(true);
+    }
+  };
 
-    fetchStoreList();
-  }, [router]);
+  // 条件を取得する関数
+  const fetchConditions = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      console.error('ユーザーIDが取得できませんでした : ' + userId);
+      return;
+    }
+
+    try {
+      const data = { userId: userId };
+      const response = await fetchData(API_ENDPOINTS.getAggregationConditions, data, router);
+      setConditionList(response.conditions || []);
+    } catch (error) {
+      console.error('条件の取得に失敗しました:', error);
+      setErrorMessage(error.message);
+      setOpenErrorModal(true);
+    }
+  };
 
   // 認証チェック
   useEffect(() => {
@@ -182,12 +200,20 @@ const IndexPage = () => {
   // 店舗選択モーダル用状態
   const [openStoreModal, setOpenStoreModal] = useState(false);
   const [openPrefectureModal, setOpenPrefectureModal] = useState(false);
-
   const [selectedStores, setSelectedStores] = useState([]); //選択した店舗
   const [authorizedStores, setAuthorizedStores] = useState([]); //表示できる店舗
   const [filteredStores, setFilteredStores] = useState([]); //絞り込み店舗
   const [selectedPrefecture, setSelectedPrefecture] = useState<string[]>([]); //選択した都道府県名
   const [searchText, setSearchText] = useState(""); //店舗名でフィルタリング時の入力値
+
+  //条件登録モーダル
+  const [openSaveModal, setOpenSaveModal] = useState(false);
+  const [conditionName, setConditionName] = useState("");
+  const [conditionError, setConditionError] = useState("");
+
+  //条件取得
+  const [conditionList, setConditionList] = useState([]);
+  const [selectedCondition, setSelectedCondition] = useState("");//選択した条件
 
   // チェックボックス用状態
   const [dailyCheck, setDailyCheck] = useState("店舗別"); //日別or店舗別or曜日別
@@ -626,6 +652,122 @@ const IndexPage = () => {
   const consignmentSalesInclusionChange = (event) => {
     setConsignmentSales(event.target.value);
   };
+
+  // 条件選択から各集計条件を変更するハンドラ
+  const handleConditionChange = (event) => {
+
+    const selectedConditionName = event.target.value;
+    setSelectedCondition(selectedConditionName);
+    if (!selectedConditionName) {
+      console.log("条件名ナシ");
+      return;
+    }
+
+
+    //条件名から条件データを取得
+    const selectedConditionData = conditionList.find(condition => condition.conditionName === event.target.value);
+
+    //選択中店舗を条件データから絞り込み
+    const selectedConditionStores = authorizedStores.filter(store => selectedConditionData.storeSelection.selectedStore.includes(store.id));
+
+    //条件データを各集計条件にセット
+    setDailyCheck(selectedConditionData.displayType);//集計タイプ
+    setSelectedStores(selectedConditionStores);//選択店舗
+    setLocationValue(selectedConditionData.otherConditions.storeLocation);//区分
+    setTypeValue(selectedConditionData.otherConditions.businessType);//エリア
+    setSalesInclusionValue(selectedConditionData.includeSales);//閉店店舗
+    setClosedStoreValue(selectedConditionData.includeClose);//その他売上
+    setConsignmentSales(selectedConditionData.include_consign_sales);//委託販売
+  };
+  const handleDeleteCondition = async (conditionName) => {
+    const userId = localStorage.getItem('userId'); // ローカルストレージからユーザーIDを取得
+    // 条件パラメータを保存
+    const dellCondition = {
+      userId: userId,
+      conditionName: conditionName,
+    };
+    try {
+      const response = await fetchData(API_ENDPOINTS.dellAggregationConditions, dellCondition, router);
+      setConditionError(""); // エラーをクリア
+      await fetchConditions();// 条件を再取得
+      console.log('条件が正常に保存されました:', response);
+      setErrorMessage(response.message);
+      setModalType('info');
+      setOpenErrorModal(true);
+    } catch (error) {
+      console.error('条件の削除中にエラーが発生しました:', error);
+      setErrorMessage(error.message);
+      setOpenErrorModal(true);
+    }
+  }
+
+  //条件保存処理
+  const handleSaveCondition = async () => {
+
+    // 条件の数をチェック
+    if (conditionList.length >= 10) {
+      console.log("条件数が上限に達しました。" + conditionList.length);
+      setErrorMessage("条件の数が上限に達しました。最大10個まで登録できます。");
+      setOpenErrorModal(true);
+      return;
+    }
+
+    //入力値エラーチェック
+    if (conditionError || !conditionName) {
+      return;
+    }
+
+    const userId = localStorage.getItem('userId'); // ローカルストレージからユーザーIDを取得
+    // 条件パラメータを保存
+    const newCondition = {
+      userId: userId,
+      conditionName,
+      displayType: dailyCheck,
+      storeSelection: {
+        selectedStore: selectedStores.map((store) => store.id).join(", "), // 店舗IDをカンマ区切りで連結
+        prefecture: selectedStores.map((store) => store.prefecture).join(", "), // 選択された店舗の都道府県をカンマ区切りで連結
+      },
+      otherConditions: {
+        storeLocation: locationValue,
+        businessType: typeValue
+      },
+      includeSales: salesInclusionValue,
+      includeClose: closedStoreValue,
+      include_consign_sales: consignmentSales
+    };
+
+    try {
+      const response = await fetchData(API_ENDPOINTS.addAggregationConditions, newCondition, router);//条件登録
+      setOpenSaveModal(false);//モーダルを閉じる
+      setConditionError(""); // エラーをクリア
+      setConditionName(''); //条件名をクリア
+      await fetchConditions();// 条件を再取得
+      console.log('条件が正常に保存されました:', response);
+      setErrorMessage(response.message);
+      setModalType('info');
+      setOpenErrorModal(true);
+    } catch (error) {
+      console.error('条件の保存中にエラーが発生しました:', error);
+      setErrorMessage(error.message);
+      setOpenErrorModal(true);
+    }
+  };
+
+  //条件保存モーダルを閉じる
+  const handleCloseSaveModal = () => {
+    setOpenSaveModal(false);
+  };
+
+  //条件名入力値の管理ハンドラ
+  const handleConditionNameChange = (e) => {
+    setConditionName(e.target.value);
+    if (e.target.value.length <= 10) {
+      setConditionError("");
+    } else {
+      setConditionError("条件名は10文字以内で入力してください");
+    }
+  };
+
   //比較対象日付を抽出対象の1年前にする
   useEffect(() => {
     if (compareCheck) {
@@ -743,6 +885,7 @@ const IndexPage = () => {
   //バックエンドAPIにデータ送信、受信
   // add 20240828
   const fetchAndTransformData = async (endpoint) => {
+
     if (selectedStores.length === 0) {
       setModalType("error");
       setErrorMessage("対象店舗が選択されていません");
@@ -751,14 +894,13 @@ const IndexPage = () => {
     }
     try {
       if (!(endpoint === "download")) {
-        setStoresData(initialStoresData); //初期化処理
+        setStoresData(initialStoresData); // 初期化処理
         setSortKey("");
         setSortDirection("desc");
       }
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
       const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
       if (isTestMode) {
-        console.log("テスト集計開始");
         setIsLoading(true); // 集計中...に設定
         if (endpoint === "display_by_date") {
           //setStoresData(mockDateResponse());
@@ -1644,19 +1786,61 @@ const IndexPage = () => {
               </div>
             </div>
             <div className="w-full flex flex-wrap gap-2 justify-between">
-              <div className="flex gap-4 ml-auto w-full md:w-auto justify-end">
-                {/* <Button
-                  variant="contained"
-                  className="bg-gray-400 hover:bg-gray-500 text-white px-2 md:px-4 py-2"
-                  startIcon={<ArrowBackIcon className="md:inline hidden" />}
-                  onClick={() => { }}
-                >
-                  店舗別に戻る
-                </Button> */}
-
+              <div className="flex flex-col md:flex-row gap-4 ml-auto w-full md:w-auto justify-end">
                 <Button
                   variant="contained"
-                  className={`bg-${isDlLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
+                  className="bg-blue-500 hover:bg-blue-800 text-white whitespace-nowrap"
+                  onClick={() => setOpenSaveModal(true)}
+                  style={{ minWidth: "120px", padding: "8px 16px", fontSize: "0.875rem", height: "40px" }} // ボタンの最小幅とパディングを設定
+                >
+                  条件登録
+                </Button>
+                <FormControl fullWidth sx={{ minWidth: { xs: "100%", md: "200px" } }}>
+                  <InputLabel
+                    sx={{
+                      fontSize: "0.875rem"
+                    }}>条件を選択</InputLabel>
+                  <Select
+                    value={selectedCondition}
+                    onChange={handleConditionChange}
+                    label="条件を選択"
+                    renderValue={(selected) => selected} // 選択された値のみを表示
+                    sx={{
+                      height: "40px", // 他のボタンと同じ高さに設定
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {conditionList.length === 0 ? (
+                      <MenuItem value="">
+                        条件がありません
+                      </MenuItem>
+                    ) : (
+                      conditionList.map((condition) => (
+                        <MenuItem key={condition.conditionName} value={condition.conditionName}>
+                          {condition.conditionName}
+                          <Tooltip arrow title="削除" placement="right">
+                            <IconButton
+                              edge="end"
+                              aria-label="remove"
+                              size="small"
+                              sx={{ marginLeft: "auto" }}
+                              onClick={(event) => {
+                                event.stopPropagation(); // イベントの伝播を停止
+                                handleDeleteCondition(condition.conditionName);
+                              }}
+                            >
+                              <RemoveIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                </FormControl>
+                <Button
+                  variant="contained"
+                  className={`bg-${isDlLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white whitespace-nowrap`}
                   startIcon={<DownloadIcon className="md:inline hidden" />}
                   onClick={async () => {
                     try {
@@ -1669,13 +1853,13 @@ const IndexPage = () => {
                       setOpenErrorModal(true);
                     }
                   }}
+                  style={{ minWidth: "120px", padding: "8px 16px", fontSize: "0.875rem", height: "40px" }} // ボタンの最小幅とパディングを設定
                 >
                   {isDlLoading ? "ダウンロード中..." : "ダウンロード"}
                 </Button>
-
                 <Button
                   variant="contained"
-                  className={`bg-${isLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white px-2 md:px-4 py-2`}
+                  className={`bg-${isLoading ? "blue-800" : "blue-500"} hover:bg-blue-800 text-white whitespace-nowrap`}
                   startIcon={<SearchIcon className="md:inline hidden" />}
                   onClick={() =>
                     fetchAndTransformData(
@@ -1686,6 +1870,7 @@ const IndexPage = () => {
                           : API_ENDPOINTS.display_by_store
                     )
                   }
+                  style={{ minWidth: "120px", padding: "8px 16px", fontSize: "0.875rem", height: "40px" }} // ボタンの最小幅とパディングを設定
                 >
                   {isLoading ? "集計中..." : "集計実行"}
                 </Button>
@@ -1843,9 +2028,9 @@ const IndexPage = () => {
                 <tbody>
                   {sortedStoresData.map((store, index) => (
                     <tr key={`${store.storeNumber}-${index}`}>
-                    {storesData.storeData.length > 0 && (storesData.storeData[0].storeDate || storesData.storeData[0].week) ? (
-                      renderTableCell(store.storeDate || store.week, `border-r-2 border-r-gray-400 ${dataFixedColumnStyles.dateColumn}`)
-                    ) : (
+                      {storesData.storeData.length > 0 && (storesData.storeData[0].storeDate || storesData.storeData[0].week) ? (
+                        renderTableCell(store.storeDate || store.week, `border-r-2 border-r-gray-400 ${dataFixedColumnStyles.dateColumn}`)
+                      ) : (
                         <>
                           {renderTableCell(index + 1, `${dataFixedColumnStyles.othersColumn}`)}
                           {renderTableCell(store.storeName, `${dataFixedColumnStyles.firstColumn}`)}
@@ -1913,6 +2098,44 @@ const IndexPage = () => {
 
         </div >
       </Layout >
+      <Dialog
+        open={openSaveModal} onClose={handleCloseSaveModal} aria-labelledby="save-condition-dialog-title"
+        maxWidth="xs" // ここでダイアログの最大幅を設定
+        fullWidth // ここでダイアログを全幅に設定
+      >
+        <DialogTitle id="save-condition-dialog-title">
+          条件を保存
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseSaveModal}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography gutterBottom>
+            条件名を入力してください。
+          </Typography>
+          <TextField
+            label="条件名"
+            value={conditionName}
+            onChange={handleConditionNameChange}
+            error={Boolean(conditionError)}
+            helperText={`${conditionName.length}/10`}
+            fullWidth
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSaveModal} variant="outlined">
+            キャンセル
+          </Button>
+          <Button onClick={handleSaveCondition} variant="contained" color="primary" startIcon={<SaveIcon />} disabled={Boolean(conditionError) || !conditionName}>
+            保存
+          </Button>
+        </DialogActions>
+      </Dialog>
       <ErrorModal
         open={openErrorModal}
         onClose={handleCloseErrorModal}
