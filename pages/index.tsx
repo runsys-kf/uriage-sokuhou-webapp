@@ -575,25 +575,42 @@ const IndexPage = () => {
 
   //月変更処理　unit=単位（月）、amount=変更する月の量（前月：-1、後月：1）、date=変更前の日付、dateSetter=対象のセット関数
   const handleDateChange = (dateSetter, date, amount, unit) => {
-    //更新する日付を作成
-    //let newDate = dayjs(date).add(amount, unit);
     let newDate;
 
-    // 翌月ボタンが押された場合、月末に設定
-    // amount が 1 の場合、現在の月の月末に設定
-  if (amount === 1) {
-    if (dayjs(date).isSame(dayjs(date).endOf('month'), 'day')) {
-      // dateがすでに月末の場合、次の月の月末に設定
-      newDate = dayjs(date).add(1, 'month').endOf('month');
+    if (dateSetter === setDate1 || dateSetter === setDate3) {
+      //開始日
+      if (amount === 1) {
+        //翌月
+        newDate = dayjs(date).add(1, 'month').startOf('month');
+      } else if (amount === -1) {
+        //前月
+        if (dayjs(date).isSame(dayjs(date).startOf('month'), 'day')) {
+          //すでに1日だった場合
+          newDate = dayjs(date).subtract(1, 'month').startOf('month');
+        } else {
+          //その月の1日に
+          newDate = dayjs(date).startOf('month');
+        }
+      }
+    } else if (dateSetter === setDate2 || dateSetter === setDate4) {
+      //終了日
+      if (amount === 1) {
+        //翌月
+        if (dayjs(date).isSame(dayjs(date).endOf('month'), 'day')) {
+          //すでに末日だった場合
+          newDate = dayjs(date).add(1, 'month').endOf('month');
+        } else {
+          //その月の末日に
+          newDate = dayjs(date).endOf('month');
+        }
+      } else if (amount === -1) {
+        //前月
+        newDate = dayjs(date).subtract(1, 'month').endOf('month');
+      }
     } else {
-      // dateが月末でない場合、現在の月の月末に設定
-      newDate = dayjs(date).endOf('month');
+      newDate = dayjs(date).add(amount, unit);
     }
-  } else {
-    newDate = dayjs(date).add(amount, unit).startOf(unit);
-  }
 
-    //更新する日付が現在の日付より後なら実行
     if (newDate.isBefore(dayjs())) {
       dateSetter(newDate);
     }
@@ -1186,9 +1203,9 @@ const IndexPage = () => {
                             </div>
                             <div className="flex justify-between">
                               <CustomButton onClick={() => handleDateChange(setDate3, date3, -1, 'month')}>前月</CustomButton>
-                              <CustomButton onClick={() => handleDateChange(setDate3, date3, 1, 'month')}>後月</CustomButton>
+                              <CustomButton onClick={() => handleDateChange(setDate3, date3, 1, 'month')}>翌月</CustomButton>
                               <CustomButton onClick={() => handleDateChange(setDate4, date4, -1, 'month')}>前月</CustomButton>
-                              <CustomButton onClick={() => handleDateChange(setDate4, date4, 1, 'month')}>後月</CustomButton>
+                              <CustomButton onClick={() => handleDateChange(setDate4, date4, 1, 'month')}>翌月</CustomButton>
                             </div>
                           </>
                         )}
@@ -1251,9 +1268,6 @@ const IndexPage = () => {
                               </Tooltip>
                             </RadioGroup>
                           </FormControl>
-                        </div>
-                        <div className="mt-4">
-
                         </div>
                       </div>
                     </LocalizationProvider>
