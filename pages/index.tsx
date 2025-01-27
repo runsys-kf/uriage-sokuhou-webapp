@@ -409,7 +409,7 @@ const IndexPage = () => {
       handleSelectOpen();
       // MouseEventを使用してクリックイベントを生成
       setTimeout(() => {
-        const selectElement = document.querySelector(".MuiSelect-select");
+        const selectElement = document.querySelector("#store-select");
         if (selectElement) {
           const mouseEvent = new MouseEvent("mousedown", {
             bubbles: true,
@@ -1339,6 +1339,7 @@ const IndexPage = () => {
                           <FormControl sx={{ mt: 2, width: "100%" }}>
                             <InputLabel>店舗選択</InputLabel>
                             <Select
+                              id="store-select" // ここを追加
                               multiple
                               value={selectedStores.map((store) => store.id)}
                               input={<OutlinedInput label="店舗選択" />}
