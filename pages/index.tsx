@@ -123,7 +123,7 @@ const IndexPage = () => {
       }));
       // stores.some((store) => {
       //   console.log("store.id : " + store.id);});
-      
+
       const authority = JSON.parse(localStorage.getItem("Authority"));
       console.log("Authority : " + authority);
       if (authority) {
@@ -576,7 +576,23 @@ const IndexPage = () => {
   //月変更処理　unit=単位（月）、amount=変更する月の量（前月：-1、後月：1）、date=変更前の日付、dateSetter=対象のセット関数
   const handleDateChange = (dateSetter, date, amount, unit) => {
     //更新する日付を作成
-    const newDate = dayjs(date).add(amount, unit).startOf(unit);
+    //let newDate = dayjs(date).add(amount, unit);
+    let newDate;
+
+    // 翌月ボタンが押された場合、月末に設定
+    // amount が 1 の場合、現在の月の月末に設定
+  if (amount === 1) {
+    if (dayjs(date).isSame(dayjs(date).endOf('month'), 'day')) {
+      // dateがすでに月末の場合、次の月の月末に設定
+      newDate = dayjs(date).add(1, 'month').endOf('month');
+    } else {
+      // dateが月末でない場合、現在の月の月末に設定
+      newDate = dayjs(date).endOf('month');
+    }
+  } else {
+    newDate = dayjs(date).add(amount, unit).startOf(unit);
+  }
+
     //更新する日付が現在の日付より後なら実行
     if (newDate.isBefore(dayjs())) {
       dateSetter(newDate);
@@ -662,11 +678,11 @@ const IndexPage = () => {
 
     const selectedConditionName = event.target.value;
     setSelectedCondition(selectedConditionName);
-    if (!selectedConditionName){
+    if (!selectedConditionName) {
       console.log("条件名ナシ");
       return;
     }
-    
+
 
     //条件名から条件データを取得
     const selectedConditionData = conditionList.find(condition => condition.conditionName === event.target.value);
@@ -709,12 +725,12 @@ const IndexPage = () => {
   const handleSaveCondition = async () => {
 
     // 条件の数をチェック
-  if (conditionList.length >= 10) {
-    console.log("条件数が上限に達しました。" + conditionList.length);
-    setErrorMessage("条件の数が上限に達しました。最大10個まで登録できます。");
-    setOpenErrorModal(true);
-    return;
-  }
+    if (conditionList.length >= 10) {
+      console.log("条件数が上限に達しました。" + conditionList.length);
+      setErrorMessage("条件の数が上限に達しました。最大10個まで登録できます。");
+      setOpenErrorModal(true);
+      return;
+    }
 
     //入力値エラーチェック
     if (conditionError || !conditionName) {
@@ -1142,9 +1158,9 @@ const IndexPage = () => {
                         </div>
                         <div className="flex justify-between">
                           <CustomButton onClick={() => handleDateChange(setDate1, date1, -1, 'month')}>前月</CustomButton>
-                          <CustomButton onClick={() => handleDateChange(setDate1, date1, 1, 'month')}>後月</CustomButton>
+                          <CustomButton onClick={() => handleDateChange(setDate1, date1, 1, 'month')}>翌月</CustomButton>
                           <CustomButton onClick={() => handleDateChange(setDate2, date2, -1, 'month')}>前月</CustomButton>
-                          <CustomButton onClick={() => handleDateChange(setDate2, date2, 1, 'month')}>後月</CustomButton>
+                          <CustomButton onClick={() => handleDateChange(setDate2, date2, 1, 'month')}>翌月</CustomButton>
                         </div>
                         {compareCheck && (
                           <>
@@ -1807,9 +1823,9 @@ const IndexPage = () => {
                 </Button>
                 <FormControl fullWidth sx={{ minWidth: { xs: "100%", md: "200px" } }}>
                   <InputLabel
-                  sx={{
-                    fontSize: "0.875rem"
-                  }}>条件を選択</InputLabel>
+                    sx={{
+                      fontSize: "0.875rem"
+                    }}>条件を選択</InputLabel>
                   <Select
                     value={selectedCondition}
                     onChange={handleConditionChange}
@@ -1830,18 +1846,18 @@ const IndexPage = () => {
                         <MenuItem key={condition.conditionName} value={condition.conditionName}>
                           {condition.conditionName}
                           <Tooltip arrow title="削除" placement="right">
-                          <IconButton
-                            edge="end"
-                            aria-label="remove"
-                            size="small"
-                            sx={{ marginLeft: "auto" }}
-                            onClick={(event) => {
-                              event.stopPropagation(); // イベントの伝播を停止
-                              handleDeleteCondition(condition.conditionName);
-                            }}
-                          >
-                            <RemoveIcon fontSize="small" />
-                          </IconButton>
+                            <IconButton
+                              edge="end"
+                              aria-label="remove"
+                              size="small"
+                              sx={{ marginLeft: "auto" }}
+                              onClick={(event) => {
+                                event.stopPropagation(); // イベントの伝播を停止
+                                handleDeleteCondition(condition.conditionName);
+                              }}
+                            >
+                              <RemoveIcon fontSize="small" />
+                            </IconButton>
                           </Tooltip>
                         </MenuItem>
                       ))
