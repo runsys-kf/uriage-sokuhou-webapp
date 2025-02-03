@@ -550,7 +550,7 @@ const IndexPage = () => {
     };
 
     return (
-      <Box sx={{ display: "flex", alignItems: "center", width: "45%" }}>
+      <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
         <DesktopDatePicker
           label={label}
           value={value}
@@ -577,38 +577,40 @@ const IndexPage = () => {
   const handleDateChange = (dateSetter, date, amount, unit) => {
     let newDate;
 
-    if (dateSetter === setDate1 || dateSetter === setDate3) {
-      //開始日
-      if (amount === 1) {
-        //翌月
-        newDate = dayjs(date).add(1, 'month').startOf('month');
-      } else if (amount === -1) {
-        //前月
-        if (dayjs(date).isSame(dayjs(date).startOf('month'), 'day')) {
-          //すでに1日だった場合
-          newDate = dayjs(date).subtract(1, 'month').startOf('month');
-        } else {
-          //その月の1日に
-          newDate = dayjs(date).startOf('month');
+    if (unit === 'month') {
+      if (dateSetter === setDate1 || dateSetter === setDate3) {
+        //開始日
+        if (amount === 1) {
+          //翌月
+          newDate = dayjs(date).add(1, 'month').startOf('month');
+        } else if (amount === -1) {
+          //前月
+          if (dayjs(date).isSame(dayjs(date).startOf('month'), 'day')) {
+            //すでに1日だった場合
+            newDate = dayjs(date).subtract(1, 'month').startOf('month');
+          } else {
+            //その月の1日に
+            newDate = dayjs(date).startOf('month');
+          }
+        }
+      } else if (dateSetter === setDate2 || dateSetter === setDate4) {
+        //終了日
+        if (amount === 1) {
+          //翌月
+          if (dayjs(date).isSame(dayjs(date).endOf('month'), 'day')) {
+            //すでに末日だった場合
+            newDate = dayjs(date).add(1, 'month').endOf('month');
+          } else {
+            //その月の末日に
+            newDate = dayjs(date).endOf('month');
+          }
+        } else if (amount === -1) {
+          //前月
+          newDate = dayjs(date).subtract(1, 'month').endOf('month');
         }
       }
-    } else if (dateSetter === setDate2 || dateSetter === setDate4) {
-      //終了日
-      if (amount === 1) {
-        //翌月
-        if (dayjs(date).isSame(dayjs(date).endOf('month'), 'day')) {
-          //すでに末日だった場合
-          newDate = dayjs(date).add(1, 'month').endOf('month');
-        } else {
-          //その月の末日に
-          newDate = dayjs(date).endOf('month');
-        }
-      } else if (amount === -1) {
-        //前月
-        newDate = dayjs(date).subtract(1, 'month').endOf('month');
-      }
-    } else {
-      newDate = dayjs(date).add(amount, unit);
+    } else if (unit === 'date') {
+      newDate = dayjs(date).add(amount, 'day').startOf('day');
     }
 
     if (newDate.isBefore(dayjs())) {
@@ -619,11 +621,11 @@ const IndexPage = () => {
   //月変更ボタン共通化
   const CustomButton = ({ onClick, children }) => (
     <Button
-      className="bg-gray-400 hover:bg-gray-500 text-white p-1 md:p-1 mb-1 md:mt-1"
+      className="bg-gray-400 hover:bg-gray-500 text-white p-1 mb-1"
       variant="contained"
       color="primary"
       size="small"
-      style={{ width: '50px' }}
+      style={{ minWidth: '24px', padding: '2px 4px', fontSize: '0.75rem' }} // ボタンの最小幅、パディング、フォントサイズを設定
       onClick={onClick}
     >
       {children}
@@ -1153,17 +1155,25 @@ const IndexPage = () => {
                       dateAdapter={AdapterDayjs}
                       adapterLocale={dayjsAdapter.locale}
                     >
-                      <div className="flex flex-col gap-2">
-                        <div className="flex w-full gap-2 lg:gap-4 items-center">
+                      <div className="flex gap-2 items-center">
+                        <div className="flex flex-col gap-2 lg:gap-4 items-center">
                           <CustomDatePicker
                             label="抽出対象"
                             value={date1}
                             onChange={setDate1}
-                            minDate={null} // ここを追加
+                            minDate={null}
                             maxDate={dayjs()}
                             dataTestId="date-picker-1"
                           />
-                          <p>～</p>
+                          <div className="flex justify-between w-full">
+                            <CustomButton onClick={() => handleDateChange(setDate1, date1, -1, 'month')}>＜＜</CustomButton>
+                            <CustomButton onClick={() => handleDateChange(setDate1, date1, -1, 'date')}>＜</CustomButton>
+                            <CustomButton onClick={() => handleDateChange(setDate1, date1, 1, 'date')}>＞</CustomButton>
+                            <CustomButton onClick={() => handleDateChange(setDate1, date1, 1, 'month')}>＞＞</CustomButton>
+                          </div>
+                        </div>
+                        <p style={{ marginTop: '-40px'}}>～</p>
+                        <div className="flex flex-col gap-2 lg:gap-4 items-center">
                           <CustomDatePicker
                             label=""
                             value={date2}
@@ -1172,17 +1182,19 @@ const IndexPage = () => {
                             maxDate={dayjs()}
                             dataTestId="date-picker-2"
                           />
+                          <div className="flex justify-between w-full">
+                            <CustomButton onClick={() => handleDateChange(setDate2, date2, -1, 'month')}>＜＜</CustomButton>
+                            <CustomButton onClick={() => handleDateChange(setDate2, date2, -1, 'date')}>＜</CustomButton>
+                            <CustomButton onClick={() => handleDateChange(setDate2, date2, 1, 'date')}>＞</CustomButton>
+                            <CustomButton onClick={() => handleDateChange(setDate2, date2, 1, 'month')}>＞＞</CustomButton>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <CustomButton onClick={() => handleDateChange(setDate1, date1, -1, 'month')}>前月</CustomButton>
-                          <CustomButton onClick={() => handleDateChange(setDate1, date1, 1, 'month')}>翌月</CustomButton>
-                          <CustomButton onClick={() => handleDateChange(setDate2, date2, -1, 'month')}>前月</CustomButton>
-                          <CustomButton onClick={() => handleDateChange(setDate2, date2, 1, 'month')}>翌月</CustomButton>
-                        </div>
-                        {compareCheck && (
-                          <>
-                            <hr style={{ border: '1px dotted #ccc', margin: '5px 0' }} />
-                            <div className="flex w-full gap-2 lg:gap-4 items-center">
+                      </div>
+                      {compareCheck && (
+                        <>
+                          <hr style={{ border: '1px dotted #ccc', margin: '10px 0' }} />
+                          <div className="flex gap-2 items-center">
+                            <div className="flex flex-col gap-2 lg:gap-4 items-center">
                               <CustomDatePicker
                                 label="比較対象"
                                 value={date3}
@@ -1191,7 +1203,15 @@ const IndexPage = () => {
                                 maxDate={dayjs()}
                                 dataTestId="date-picker-3"
                               />
-                              <p>～</p>
+                              <div className="flex justify-between w-full">
+                                <CustomButton onClick={() => handleDateChange(setDate3, date3, -1, 'month')}>＜＜</CustomButton>
+                                <CustomButton onClick={() => handleDateChange(setDate3, date3, -1, 'date')}>＜</CustomButton>
+                                <CustomButton onClick={() => handleDateChange(setDate3, date3, 1, 'date')}>＞</CustomButton>
+                                <CustomButton onClick={() => handleDateChange(setDate3, date3, 1, 'month')}>＞＞</CustomButton>
+                              </div>
+                            </div>
+                            <p style={{ marginTop: '-40px' }}>～</p>
+                            <div className="flex flex-col gap-2 lg:gap-4 items-center">
                               <CustomDatePicker
                                 label=""
                                 value={date4}
@@ -1200,76 +1220,77 @@ const IndexPage = () => {
                                 maxDate={dayjs()}
                                 dataTestId="date-picker-4"
                               />
+                              <div className="flex justify-between w-full">
+                                <CustomButton onClick={() => handleDateChange(setDate4, date4, -1, 'month')}>＜＜</CustomButton>
+                                <CustomButton onClick={() => handleDateChange(setDate4, date4, -1, 'date')}>＜</CustomButton>
+                                <CustomButton onClick={() => handleDateChange(setDate4, date4, 1, 'date')}>＞</CustomButton>
+                                <CustomButton onClick={() => handleDateChange(setDate4, date4, 1, 'month')}>＞＞</CustomButton>
+                              </div>
                             </div>
-                            <div className="flex justify-between">
-                              <CustomButton onClick={() => handleDateChange(setDate3, date3, -1, 'month')}>前月</CustomButton>
-                              <CustomButton onClick={() => handleDateChange(setDate3, date3, 1, 'month')}>翌月</CustomButton>
-                              <CustomButton onClick={() => handleDateChange(setDate4, date4, -1, 'month')}>前月</CustomButton>
-                              <CustomButton onClick={() => handleDateChange(setDate4, date4, 1, 'month')}>翌月</CustomButton>
-                            </div>
-                          </>
-                        )}
+                          </div>
+                        </>
+                      )}
 
-                        <div className="">
-                          <Tooltip arrow title="抽出日付と比較する期間を設定できます">
-                            <FormControlLabel
-                              control={
-                                <Checkbox
-                                  checked={compareCheck}
-                                  onChange={(e) =>
-                                    setCompareCheck(e.target.checked)
-                                  }
-                                  sx={{
-                                    "& .MuiSvgIcon-root": { fontSize: 18 },
-                                    p: "6px",
-                                  }}
-                                />
-                              }
-                              label="比較対象"
-                              sx={{
-                                "& .MuiFormControlLabel-label": { fontSize: 14 },
-                              }}
-                            />
-                          </Tooltip>
-                        </div>
-
-                        <hr style={{ border: '1px solid #ccc', margin: '5px 0' }} />
-                        <div className="">
-                          <FormControl component="fieldset">
-                            <FormLabel component="legend" style={{ fontSize: "0.875rem" }}>集計タイプ</FormLabel>
-                            <RadioGroup
-                              value={dailyCheck}
-                              onChange={handleDailyCheckChange}
-                              className="flex flex-row gap-3"
-                            >
-                              <Tooltip arrow title="店舗ごとにまとめて集計">
-                                <FormControlLabel
-                                  value="店舗別"
-                                  control={<Radio sx={{ "& .MuiSvgIcon-root": { fontSize: 18 }, p: "6px" }} />}
-                                  label="店舗別"
-                                  sx={{ "& .MuiFormControlLabel-label": { fontSize: 14 } }}
-                                />
-                              </Tooltip>
-                              <Tooltip arrow title="指定日分を日ごとにまとめて集計">
-                                <FormControlLabel
-                                  value="日別"
-                                  control={<Radio sx={{ "& .MuiSvgIcon-root": { fontSize: 18 }, p: "6px" }} />}
-                                  label="日別"
-                                  sx={{ "& .MuiFormControlLabel-label": { fontSize: 14 } }}
-                                />
-                              </Tooltip>
-                              <Tooltip arrow title="曜日ごとにまとめて集計">
-                                <FormControlLabel
-                                  value="曜日別"
-                                  control={<Radio sx={{ "& .MuiSvgIcon-root": { fontSize: 18 }, p: "6px" }} />}
-                                  label="曜日別"
-                                  sx={{ "& .MuiFormControlLabel-label": { fontSize: 14 } }}
-                                />
-                              </Tooltip>
-                            </RadioGroup>
-                          </FormControl>
-                        </div>
+                      <div className="">
+                        <Tooltip arrow title="抽出日付と比較する期間を設定できます">
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={compareCheck}
+                                onChange={(e) =>
+                                  setCompareCheck(e.target.checked)
+                                }
+                                sx={{
+                                  "& .MuiSvgIcon-root": { fontSize: 18 },
+                                  p: "6px",
+                                }}
+                              />
+                            }
+                            label="比較対象"
+                            sx={{
+                              "& .MuiFormControlLabel-label": { fontSize: 14 },
+                            }}
+                          />
+                        </Tooltip>
                       </div>
+
+                      <hr style={{ border: '1px solid #ccc', margin: '5px 0' }} />
+                      <div className="">
+                        <FormControl component="fieldset">
+                          <FormLabel component="legend" style={{ fontSize: "0.875rem" }}>集計タイプ</FormLabel>
+                          <RadioGroup
+                            value={dailyCheck}
+                            onChange={handleDailyCheckChange}
+                            className="flex flex-row gap-3"
+                          >
+                            <Tooltip arrow title="店舗ごとにまとめて集計">
+                              <FormControlLabel
+                                value="店舗別"
+                                control={<Radio sx={{ "& .MuiSvgIcon-root": { fontSize: 18 }, p: "6px" }} />}
+                                label="店舗別"
+                                sx={{ "& .MuiFormControlLabel-label": { fontSize: 14 } }}
+                              />
+                            </Tooltip>
+                            <Tooltip arrow title="指定日分を日ごとにまとめて集計">
+                              <FormControlLabel
+                                value="日別"
+                                control={<Radio sx={{ "& .MuiSvgIcon-root": { fontSize: 18 }, p: "6px" }} />}
+                                label="日別"
+                                sx={{ "& .MuiFormControlLabel-label": { fontSize: 14 } }}
+                              />
+                            </Tooltip>
+                            <Tooltip arrow title="曜日ごとにまとめて集計">
+                              <FormControlLabel
+                                value="曜日別"
+                                control={<Radio sx={{ "& .MuiSvgIcon-root": { fontSize: 18 }, p: "6px" }} />}
+                                label="曜日別"
+                                sx={{ "& .MuiFormControlLabel-label": { fontSize: 14 } }}
+                              />
+                            </Tooltip>
+                          </RadioGroup>
+                        </FormControl>
+                      </div>
+
                     </LocalizationProvider>
                   </div>
                 </div>
