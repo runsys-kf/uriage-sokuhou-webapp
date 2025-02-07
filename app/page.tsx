@@ -97,7 +97,7 @@ const Home = () => {
             <Button
               className="bg-blue-500 hover:bg-blue-800 text-white w-full p-3"
               onClick={() => router.push("/app2/")}>
-              自空ナビ
+              自空MAP
             </Button>
           </div>
         </div>
