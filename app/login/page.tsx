@@ -10,6 +10,8 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import LoginSideImage from "@/public/images/login-side-image.webp";
 //import { mockLoginResponses } from "../__tests__/loginMockData";
 import Cookies from 'js-cookie';
+import jwt from 'jsonwebtoken';//ダミートークン生成用
+const JWT_SECRET = "100"; // サーバー側と同じ秘密鍵
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -37,6 +39,10 @@ const LoginPage = () => {
     try {
       let response;
       if (process.env.NODE_ENV === 'development') {
+
+        // 開発環境ではダミートークンを生成してクッキーに保存
+        // const dummyToken = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1d' });
+        // Cookies.set('access_token', dummyToken, { expires: 1, path: '/' });
         localStorage.setItem('userId', username);
         localStorage.setItem('Authority', JSON.stringify(['9999']));
         router.push("/");
