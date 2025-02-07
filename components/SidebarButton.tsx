@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import {
   IconButton,
@@ -10,7 +11,7 @@ import { List } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   isMobile: boolean;
@@ -25,12 +26,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile }) => {
   };
 
   const handleDashboardClick = () => {
-    router.push("/admin");
+    router.push("/app1/admin");
     setIsSidebarOpen(false); // メニューを閉じる
   };
 
   const handleLogClick = () => {
-    router.push("/admin/log");
+    router.push("/app1/admin/log");
     setIsSidebarOpen(false); // メニューを閉じる
   };
 
