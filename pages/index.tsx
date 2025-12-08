@@ -55,31 +55,57 @@ import "dayjs/locale/ja";
 import { useRouter } from "next/router";
 import { GetServerSideProps } from "next";
 // add 20241117 16:23
-import nookies from "nookies";
-import jwt from "jsonwebtoken";
+// import nookies from "nookies";
+// import jwt from "jsonwebtoken";
 
-const JWT_SECRET = "100";
+// const JWT_SECRET = "100";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-
-  const cookies = nookies.get(context);
-  const token = cookies['access_token'];
-
-  if (!token) {
-    // トークンがない場合、ログインページにリダイレクト
+  // add 20251208 17:37
+  // 開発環境では認証をスキップ
+  if (process.env.NODE_ENV === 'development') {
     return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
+      props: {
+        user: {
+          userId: 'dev-user',
+          authority: ['9999']
+        },
       },
     };
   }
 
+  // 本番環境でのみnookiesとJWT検証を実行
   try {
-    // トークンを検証
-    const decoded = jwt.verify(token, JWT_SECRET);
+    // Next.jsの標準機能を使用してクッキーを取得
+    const { req } = context;
+    const cookies = req.headers.cookie;
+    
+    let token = null;
+    if (cookies) {
+      const cookieArray = cookies.split(';');
+      const accessTokenCookie = cookieArray.find(cookie => 
+        cookie.trim().startsWith('access_token=')
+      );
+      if (accessTokenCookie) {
+        token = accessTokenCookie.split('=')[1];
+      }
+    }
 
-    // 認証成功
+    if (!token) {
+      return {
+        redirect: {
+          destination: '/login',
+          permanent: false,
+        },
+      };
+    }
+
+    // JWTライブラリを動的import
+    const jwt = await import('jsonwebtoken');
+    const JWT_SECRET = "100";
+    
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
     return {
       props: {
         user: decoded,
@@ -87,7 +113,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   } catch (error) {
     console.error('Token verification failed:', error.message);
-    // 認証失敗、ログインページにリダイレクト
     return {
       redirect: {
         destination: '/login',
@@ -111,6 +136,34 @@ const IndexPage = () => {
   }, []);
 
   const fetchStoreList = async () => {
+
+
+    // 開発環境では簡単なモックデータを使用
+  if (process.env.NODE_ENV === 'development') {
+    console.log("Development mode - using mock store data");
+    const mockStores = [
+      { BaseNo: "001", BaseName: "テスト店舗1", Prefecture: "東京都" },
+      { BaseNo: "002", BaseName: "テスト店舗2", Prefecture: "大阪府" },
+      { BaseNo: "003", BaseName: "テスト店舗3", Prefecture: "愛知県" },
+    ];
+    
+    const stores = mockStores.map((store) => ({
+      id: store.BaseNo,
+      name: store.BaseName,
+      prefecture: store.Prefecture,
+    }));
+    
+    setAuthorizedStores(stores);
+    setFilteredStores(stores);
+    
+    // 最初の店舗を自動選択
+    if (stores.length > 0) {
+      setSelectedStores([stores[0]]);
+    }
+    return;
+  }
+
+  // 本番環境でのみAPIを呼び出し
     try {
       const data = await fetchData(API_ENDPOINTS.getStoreList, {}, router);
       const stores = data.map((store) => ({
@@ -149,6 +202,12 @@ const IndexPage = () => {
 
   // 条件を取得する関数
   const fetchConditions = async () => {
+    // 開発環境では条件取得をスキップ
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Development mode - skipping conditions fetch");
+      setConditionList([]); // 空の条件リストをセット
+      return;
+    }
     const userId = localStorage.getItem('userId');
     if (!userId) {
       console.error('ユーザーIDが取得できませんでした : ' + userId);
@@ -920,6 +979,15 @@ const IndexPage = () => {
   //バックエンドAPIにデータ送信、受信
   // add 20240828
   const fetchAndTransformData = async (endpoint) => {
+
+    // 開発環境では集計処理をスキップ
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Development mode - skipping data aggregation");
+      setErrorMessage('開発環境では集計機能は利用できません。');
+      setModalType("info");
+      setOpenErrorModal(true);
+      return;
+    }
 
     if (selectedStores.length === 0) {
       setModalType("error");

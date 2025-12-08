@@ -42,14 +42,29 @@ const LoginPage = () => {
     }
     try {
       let response;
-      //if (process.env.NODE_ENV === 'development') { // 開発環境の場合はモックデータを使用
-      if (false) {
-        //response = mockLoginResponses[username] || mockLoginResponses.not200;
-        localStorage.setItem('userId', username);
-        localStorage.setItem('Authority', JSON.stringify(['9999']));
-        router.push("/");
-        return;
+    if (process.env.NODE_ENV === 'development') {
+      // 開発環境では認証をスキップ
+      // シンプルなモックトークンを生成
+      const mockToken = `mock-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+      
+      response = {
+        status: 200,
+        data: {
+          Authority: ['9999'],
+          token: mockToken
+        }
+      };
+      
+      console.log("Development mode - auto login with mock token");
+      localStorage.setItem('userId', username);
+      localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
+      const token = response.data.token;
+      Cookies.set('access_token', token, { expires: 1, path: '/' });
+      
+      await router.push('/');
+      return;
       } else {
+        // 本番環境では実際のAPIを呼び出し
         response = await axios.post(`${process.env.NEXT_PUBLIC_LOGIN_API_URL}/api/login`,
           { username, password },
           {

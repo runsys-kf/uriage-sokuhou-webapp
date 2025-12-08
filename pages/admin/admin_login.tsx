@@ -43,9 +43,28 @@ const AdminLoginPage = () => {
 		try {
 			let response;
 			if (process.env.NODE_ENV === 'development') {
-				router.push("/admin");
-				return;
-			} else {
+      // 開発環境では認証をスキップ
+      // シンプルなモックトークンを生成（JWTライブラリを使用しない）
+      const mockToken = `mock-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+      
+      response = {
+        status: 200,
+        data: {
+          Authority: ['admin'],
+          token: mockToken
+        }
+      };
+      
+      console.log("Development mode - auto login with mock token");
+      localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
+      const token = response.data.token;
+      Cookies.set('access_token', token, { expires: 1, path: '/' });
+      
+      // ページ遷移を確実に実行
+      await router.push("/admin");
+      return;
+      } else {
+      // 本番環境では実際のAPIを呼び出し
 				console.log("アドミンログイン ： " + process.env.NEXT_PUBLIC_ADMIN_LOGIN_API_URL);
 				response = await axios.post(`${process.env.NEXT_PUBLIC_ADMIN_LOGIN_API_URL}/api/admlogin`,
 					{ username, password },

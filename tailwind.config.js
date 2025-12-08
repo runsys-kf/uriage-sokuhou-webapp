@@ -2,6 +2,7 @@
 
 module.exports = {
 	mode: 'jit',
+  important: true, // 追加: Tailwind CSSの優先度を上げる
 	content: [
 		'./app/**/*.{js,ts,jsx,tsx,mdx}',
 		'./pages/**/*.{js,ts,jsx,tsx,mdx}',
