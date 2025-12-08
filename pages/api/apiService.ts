@@ -24,7 +24,7 @@ export const API_ENDPOINTS = {
 
 //本番時、開発環境時APIルート変更
 const ProdOrDev = () => {
-  const isTestMode = process.env.NODE_ENV === "production";
+  const isTestMode = process.env.NODE_ENV !== 'production';
   return isTestMode ? "http://localhost:3000" : process.env.NEXT_PUBLIC_HOST_URL;
 };
 

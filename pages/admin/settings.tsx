@@ -110,7 +110,7 @@ const Settings = () => {
   const handleConfirm = async () => {
     setOpenConfirmationModal(false);
     try {
-      const isTestMode = process.env.NODE_ENV === "production";
+      const isTestMode = process.env.NODE_ENV !== 'production';
       // if (isTestMode) {
       //     router.push("/admin");
       //     return;

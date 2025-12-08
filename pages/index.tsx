@@ -1002,7 +1002,7 @@ const IndexPage = () => {
         setSortDirection("desc");
       }
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
-      const isTestMode = process.env.NODE_ENV === "production"; //テスト環境か本番化フラグ
+      const isTestMode = process.env.NODE_ENV !== "production"; //テスト環境か本番化フラグ
       if (isTestMode) {
         setIsLoading(true); // 集計中...に設定
         if (endpoint === "display_by_date") {

@@ -140,7 +140,7 @@ const AdminPage = () => {
 
   // テーブルデータ取得
   useEffect(() => {
-    const isTestMode = process.env.NODE_ENV === "production";
+    const isTestMode = process.env.NODE_ENV !== 'production';
     if (isTestMode) {
       // setStoresInfo(stores_info_sequential());
       // return;
