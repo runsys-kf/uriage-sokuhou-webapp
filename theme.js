@@ -13,16 +13,6 @@ const theme = createTheme({
 	typography: {
 		fontSize: 14,
 	},
-  // MUIの新しいバージョン対応
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none', // 必要に応じて
-        },
-      },
-    },
-  },
 });
 
 export default theme;
