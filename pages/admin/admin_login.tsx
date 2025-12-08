@@ -42,7 +42,7 @@ const AdminLoginPage = () => {
 		}
 		try {
 			let response;
-			if (process.env.NODE_ENV === 'development') {
+			if (process.env.NODE_ENV !== 'production') {
       // 開発環境では認証をスキップ
       // シンプルなモックトークンを生成（JWTライブラリを使用しない）
       const mockToken = `mock-${Date.now()}-${Math.random().toString(36).substring(2)}`;
@@ -55,7 +55,7 @@ const AdminLoginPage = () => {
         }
       };
       
-      console.log("Development mode - auto login with mock token");
+      console.log("production mode - auto login with mock token");
       localStorage.setItem('Authority', JSON.stringify(response.data.Authority));
       const token = response.data.token;
       Cookies.set('access_token', token, { expires: 1, path: '/' });

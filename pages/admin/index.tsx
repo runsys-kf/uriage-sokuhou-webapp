@@ -31,7 +31,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const JWT_SECRET = "100";
 
   // 開発環境では認証をスキップ
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV !== 'production') {
     return {
       props: {
         user: {
@@ -140,7 +140,7 @@ const AdminPage = () => {
 
   // テーブルデータ取得
   useEffect(() => {
-    const isTestMode = process.env.NODE_ENV === "development";
+    const isTestMode = process.env.NODE_ENV === "production";
     if (isTestMode) {
       // setStoresInfo(stores_info_sequential());
       // return;

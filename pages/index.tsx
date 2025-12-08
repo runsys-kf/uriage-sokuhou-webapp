@@ -63,7 +63,7 @@ import { GetServerSideProps } from "next";
 export const getServerSideProps: GetServerSideProps = async (context) => {
   // add 20251208 17:37
   // 開発環境では認証をスキップ
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV !== 'production') {
     return {
       props: {
         user: {
@@ -139,8 +139,8 @@ const IndexPage = () => {
 
 
     // 開発環境では簡単なモックデータを使用
-  if (process.env.NODE_ENV === 'development') {
-    console.log("Development mode - using mock store data");
+  if (process.env.NODE_ENV !== 'production') {
+    console.log("production mode - using mock store data");
     const mockStores = [
       { BaseNo: "001", BaseName: "テスト店舗1", Prefecture: "東京都" },
       { BaseNo: "002", BaseName: "テスト店舗2", Prefecture: "大阪府" },
@@ -203,8 +203,8 @@ const IndexPage = () => {
   // 条件を取得する関数
   const fetchConditions = async () => {
     // 開発環境では条件取得をスキップ
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Development mode - skipping conditions fetch");
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("production mode - skipping conditions fetch");
       setConditionList([]); // 空の条件リストをセット
       return;
     }
@@ -981,8 +981,8 @@ const IndexPage = () => {
   const fetchAndTransformData = async (endpoint) => {
 
     // 開発環境では集計処理をスキップ
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Development mode - skipping data aggregation");
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("production mode - skipping data aggregation");
       setErrorMessage('開発環境では集計機能は利用できません。');
       setModalType("info");
       setOpenErrorModal(true);
@@ -1002,7 +1002,7 @@ const IndexPage = () => {
         setSortDirection("desc");
       }
       /**テスト環境用　if (isTestMode) にするとモックデータを参照する*/
-      const isTestMode = process.env.NODE_ENV === "development"; //テスト環境か本番化フラグ
+      const isTestMode = process.env.NODE_ENV === "production"; //テスト環境か本番化フラグ
       if (isTestMode) {
         setIsLoading(true); // 集計中...に設定
         if (endpoint === "display_by_date") {
